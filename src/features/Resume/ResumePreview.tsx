@@ -1,19 +1,17 @@
 "use client";
 
-import { ResumeData, ThemeConfig } from '@/lib/types';
+import React from 'react';
 import { Mail, Phone, MapPin, Linkedin, Globe, ExternalLink } from 'lucide-react';
 import { useResumeStore } from '@/lib/store';
+import { ResumeData, ThemeConfig } from '@/types';
 
 // Helper to check if a section has data to avoid empty empty headers
 const hasData = (arr: unknown[] | undefined) => arr && arr.length > 0;
 
-export default function ResumePreview() {
+export const ResumePreview: React.FC = () => {
   const { resumeData, theme } = useResumeStore();
   const { personalInfo, education, experience, skills, certifications, publications, summary } = resumeData;
 
-  // We use the theme color for the sidebar background and headings
-  // For dynamic colors that Tailwind can't predict, we use inline styles for specific properties.
-  
   return (
     <div className="w-full h-full min-h-[1100px] bg-white shadow-2xl flex overflow-hidden print:shadow-none print:w-full print:h-auto" id="resume-preview">
       
@@ -31,8 +29,8 @@ export default function ResumePreview() {
               className="w-32 h-32 rounded-full object-cover border-4 border-white/20 mb-4"
             />
           ) : (
-             <div className="w-32 h-32 rounded-full bg-white/10 flex items-center justify-center text-4xl font-bold mb-4 border-4 border-white/20">
-               {personalInfo.name.charAt(0)}
+             <div className="w-32 h-32 rounded-full bg-white/10 flex items-center justify-center text-4xl font-bold mb-4 border-4 border-white/20 uppercase">
+               {personalInfo?.name?.charAt(0) || '?'}
              </div>
           )}
         </div>
@@ -80,7 +78,7 @@ export default function ResumePreview() {
           <div>
             <h3 className="text-lg font-bold uppercase tracking-wider mb-3 border-b border-white/20 pb-1">Skills</h3>
             <div className="flex flex-wrap gap-2">
-              {skills.map((skill, idx) => (
+              {skills.map((skill: string, idx: number) => (
                 <span key={idx} className="bg-white/10 px-2 py-1 rounded text-sm mb-1 inline-block">
                   {skill}
                 </span>
@@ -94,7 +92,7 @@ export default function ResumePreview() {
           <div>
             <h3 className="text-lg font-bold uppercase tracking-wider mb-3 border-b border-white/20 pb-1">Certifications</h3>
             <ul className="list-disc list-inside text-sm space-y-1">
-              {certifications.map((cert, idx) => (
+              {certifications.map((cert: string, idx: number) => (
                 <li key={idx}>{cert}</li>
               ))}
             </ul>
@@ -106,12 +104,12 @@ export default function ResumePreview() {
           <div>
             <h3 className="text-lg font-bold uppercase tracking-wider mb-3 border-b border-white/20 pb-1">Publications</h3>
              <ul className="text-sm space-y-3">
-              {publications.map((pub, idx) => (
+              {(publications || []).map((pub: any, idx: number) => (
                 <li key={idx} className="flex flex-col">
                   <span className="font-semibold">{pub.title}</span>
                   {pub.date && <span className="text-xs opacity-75">{pub.date}</span>}
                   {pub.link && (
-                    <a href={pub.link} target="_blank" className="text-xs underline opacity-80 flex items-center gap-1 mt-0.5">
+                    <a href={pub.link} target="_blank" className="text-xs underline opacity-80 flex items-center gap-1 mt-0.5" rel="noreferrer">
                       View <ExternalLink size={10} />
                     </a>
                   )}
@@ -133,7 +131,7 @@ export default function ResumePreview() {
             className="text-4xl font-extrabold uppercase tracking-tight mb-2"
             style={{ color: theme.primaryColor }}
           >
-            {personalInfo.name}
+            {personalInfo?.name || "Your Name"}
           </h1>
           {/* We could add a subtitle/role here if we extracted it, but for now just name */}
         </header>
@@ -163,7 +161,7 @@ export default function ResumePreview() {
                Experience
              </h2>
              <div className="space-y-6">
-               {experience.map((exp, idx) => (
+               {(experience || []).map((exp: any, idx: number) => (
                  <div key={idx}>
                    <div className="flex justify-between items-baseline mb-1">
                      <h3 className="text-lg font-bold text-slate-800">{exp.role}</h3>
@@ -174,7 +172,7 @@ export default function ResumePreview() {
                      {exp.location && <span className="text-sm font-normal text-slate-500 italic">{exp.location}</span>}
                     </div>
                    <ul className="list-disc list-outside ml-4 space-y-1 text-sm text-slate-600">
-                     {exp.bullets.map((bullet, bIdx) => (
+                     {(exp.bullets || []).map((bullet: string, bIdx: number) => (
                        <li key={bIdx}>{bullet}</li>
                      ))}
                    </ul>
@@ -194,7 +192,7 @@ export default function ResumePreview() {
                Education
             </h2>
             <div className="space-y-4">
-              {education.map((edu, idx) => (
+              {(education || []).map((edu: any, idx: number) => (
                 <div key={idx}>
                   <div className="flex justify-between items-baseline">
                     <h3 className="text-lg font-bold text-slate-800">{edu.school}</h3>
@@ -211,4 +209,4 @@ export default function ResumePreview() {
       </main>
     </div>
   );
-}
+};

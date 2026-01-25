@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { ResumeData, ThemeConfig, AIConfig } from './types';
+import { ResumeData, ThemeConfig, AIConfig } from '@/types';
 
 interface ResumeState {
   resumeData: ResumeData;
@@ -35,8 +35,8 @@ const initialTheme: ThemeConfig = {
 };
 
 const initialAIConfig: AIConfig = {
-  provider: 'openai',
-  model: 'gpt-4o',
+  provider: 'google',
+  model: 'gemini-3-flash',
 };
 
 export const useResumeStore = create<ResumeState>((set) => ({

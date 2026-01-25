@@ -56,7 +56,9 @@ export async function POST(req: NextRequest) {
       }
 
       try {
-        const geminiModel = genAI.getGenerativeModel({ model: model || "gemini-1.5-flash" });
+        const geminiModel = genAI.getGenerativeModel({ 
+          model: model === 'gemini-3-flash' ? 'gemini-3-flash-preview' : (model || "gemini-3-flash-preview") 
+        });
         const prompt = `${SYSTEM_PROMPT}\n\nHere is the resume text:\n\n${rawText}`;
 
         const result = await geminiModel.generateContent({

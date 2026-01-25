@@ -19,7 +19,7 @@ const FONTS = [
   { name: 'Mono', value: 'font-mono' },
 ];
 
-export default function ThemeSwitcher() {
+export const ThemeSwitcher: React.FC = () => {
   const { theme, setTheme } = useResumeStore();
 
   return (
