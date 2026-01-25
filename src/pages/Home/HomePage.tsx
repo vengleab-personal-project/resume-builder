@@ -6,9 +6,12 @@ import { Upload } from '@/features/Upload';
 import { ResumeEditor, ThemeSwitcher } from '@/features/Editor';
 import { ResumePreview } from '@/features/Resume';
 import { useHomeLogic } from './useHomeLogic';
+import { useTranslations } from '@/hooks/useTranslations';
 
 export const HomePage: React.FC = () => {
   const { handlePrint } = useHomeLogic();
+  const { t: tHome } = useTranslations('home');
+  const { t: tCommon } = useTranslations('common');
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans text-slate-900">
@@ -19,7 +22,9 @@ export const HomePage: React.FC = () => {
           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
             AI
           </div>
-          <h1 className="text-xl font-bold text-slate-800 tracking-tight">Resume<span className="text-indigo-600">Builder</span></h1>
+          <h1 className="text-xl font-bold text-slate-800 tracking-tight">
+            Resume<span className="text-indigo-600">Builder</span>
+          </h1>
         </div>
         
         <div className="flex items-center gap-3">
@@ -28,7 +33,7 @@ export const HomePage: React.FC = () => {
             className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-md text-sm font-medium hover:bg-slate-800 transition-colors shadow-sm"
           >
             <Printer size={16} />
-            Export / Print
+            {tCommon('exportPrint')}
           </button>
         </div>
       </header>
@@ -41,17 +46,23 @@ export const HomePage: React.FC = () => {
           <div className="p-6 space-y-6">
             
             <section>
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">1. Ingest</h2>
+              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">
+                {tHome('sections.ingest')}
+              </h2>
               <Upload />
             </section>
 
             <section>
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">2. Customize</h2>
+              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">
+                {tHome('sections.customize')}
+              </h2>
               <ThemeSwitcher />
             </section>
 
             <section>
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">3. Edit Content</h2>
+              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">
+                {tHome('sections.edit')}
+              </h2>
               <ResumeEditor />
             </section>
             

@@ -1,0 +1,86 @@
+{
+    "common": {
+        "appTitle": "ResumeBuilder",
+        "exportPrint": "Export / Print",
+        "loading": "Loading...",
+        "error": "Error"
+    },
+    "home": {
+        "sections": {
+            "ingest": "1. Ingest",
+            "customize": "2. Customize",
+            "edit": "3. Edit Content"
+        }
+    },
+    "upload": {
+        "title": "Upload Resume",
+        "aiProvider": "AI Provider",
+        "model": "Model",
+        "analyzing": "Analyzing with AI...",
+        "clickToUpload": "Click to Upload",
+        "supportedFormats": "PDF, DOCX, or TXT",
+        "errors": {
+            "noFile": "No file uploaded",
+            "unsupportedFormat": "Unsupported file format",
+            "parseError": "Failed to parse resume"
+        }
+    },
+    "editor": {
+        "personalInfo": "Personal Information",
+        "summary": "Professional Summary",
+        "experience": "Work Experience",
+        "education": "Education",
+        "skills": "Skills",
+        "certifications": "Certifications",
+        "publications": "Publications",
+        "theme": {
+            "options": "Theme Options",
+            "accentColor": "Accent Color",
+            "typography": "Typography"
+        },
+        "placeholders": {
+            "bullets": "One bullet per line",
+            "newRole": "New Role",
+            "newCompany": "New Company",
+            "newSchool": "New School",
+            "newPublication": "New Publication"
+        },
+        "labels": {
+            "fullName": "Full Name",
+            "email": "Email",
+            "phone": "Phone",
+            "address": "City, Country",
+            "linkedin": "LinkedIn",
+            "summary": "Professional Summary",
+            "jobTitle": "Job Title",
+            "company": "Company",
+            "dates": "Dates",
+            "location": "Location",
+            "achievements": "Achievements",
+            "school": "School",
+            "degree": "Degree",
+            "year": "Year",
+            "skills": "Skills (Comma separated)",
+            "certifications": "Certifications",
+            "publications": "Publications",
+            "title": "Title",
+            "link": "Link"
+        },
+        "actions": {
+            "addExperience": "Add Experience",
+            "addEducation": "Add Education",
+            "addPublication": "Add Publication",
+            "clean": "Clean"
+        },
+        "preview": {
+            "profile": "Profile",
+            "experience": "Experience",
+            "education": "Education",
+            "skills": "Skills",
+            "certifications": "Certifications",
+            "publications": "Publications",
+            "view": "View",
+            "yourName": "Your Name"
+        }
+    }
+}

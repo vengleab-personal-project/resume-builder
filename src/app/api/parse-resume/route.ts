@@ -4,22 +4,24 @@ import mammoth from 'mammoth';
 import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { SYSTEM_PROMPT } from '@/lib/ai-config';
+import { ENV } from '@/config/env';
+import { AI_PROVIDERS, DEFAULT_AI_CONFIG } from '@/config/constants';
 
 // Initialize OpenAI client
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'dummy-key',
+  apiKey: ENV.OPENAI_API_KEY || 'dummy-key',
   dangerouslyAllowBrowser: false,
 });
 
 // Initialize Gemini client
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'dummy-key');
+const genAI = new GoogleGenerativeAI(ENV.GEMINI_API_KEY || 'dummy-key');
 
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File;
-    const provider = formData.get('provider') as string || 'openai';
-    const model = formData.get('model') as string || 'gpt-4o';
+    const provider = (formData.get('provider') as string) || DEFAULT_AI_CONFIG.PROVIDER;
+    const model = (formData.get('model') as string) || DEFAULT_AI_CONFIG.MODEL;
 
     if (!file) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
@@ -50,8 +52,8 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. AI Parsing
-    if (provider === 'google') {
-      if (!process.env.GEMINI_API_KEY) {
+    if (provider === AI_PROVIDERS.GOOGLE) {
+      if (!ENV.GEMINI_API_KEY) {
         return NextResponse.json({ error: "GEMINI_API_KEY is not set." }, { status: 500 });
       }
 
@@ -79,14 +81,14 @@ export async function POST(req: NextRequest) {
       }
     } else {
       // Default to OpenAI
-      if (!process.env.OPENAI_API_KEY) {
+      if (!ENV.OPENAI_API_KEY) {
         console.warn("OPENAI_API_KEY is not set. Returning mock data.");
         return NextResponse.json(mockResponse(rawText));
       }
 
       try {
         const completion = await openai.chat.completions.create({
-          model: model || "gpt-4o",
+          model: model || DEFAULT_AI_CONFIG.MODEL,
           messages: [
             { role: "system", content: SYSTEM_PROMPT },
             { role: "user", content: `Here is the resume text:\n\n${rawText}` }

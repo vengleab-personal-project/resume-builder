@@ -3,7 +3,7 @@
 import React from 'react';
 import { Mail, Phone, MapPin, Linkedin, Globe, ExternalLink } from 'lucide-react';
 import { useResumeStore } from '@/lib/store';
-import { ResumeData, ThemeConfig } from '@/types';
+import { useTranslations } from '@/hooks/useTranslations';
 
 // Helper to check if a section has data to avoid empty empty headers
 const hasData = (arr: unknown[] | undefined) => arr && arr.length > 0;
@@ -11,6 +11,7 @@ const hasData = (arr: unknown[] | undefined) => arr && arr.length > 0;
 export const ResumePreview: React.FC = () => {
   const { resumeData, theme } = useResumeStore();
   const { personalInfo, education, experience, skills, certifications, publications, summary } = resumeData;
+  const { t } = useTranslations('editor');
 
   return (
     <div className="w-full h-full min-h-[1100px] bg-white shadow-2xl flex overflow-hidden print:shadow-none print:w-full print:h-auto" id="resume-preview">
@@ -76,7 +77,9 @@ export const ResumePreview: React.FC = () => {
         {/* Skills */}
         {hasData(skills) && (
           <div>
-            <h3 className="text-lg font-bold uppercase tracking-wider mb-3 border-b border-white/20 pb-1">Skills</h3>
+            <h3 className="text-lg font-bold uppercase tracking-wider mb-3 border-b border-white/20 pb-1">
+              {t('preview.skills')}
+            </h3>
             <div className="flex flex-wrap gap-2">
               {skills.map((skill: string, idx: number) => (
                 <span key={idx} className="bg-white/10 px-2 py-1 rounded text-sm mb-1 inline-block">
@@ -90,7 +93,9 @@ export const ResumePreview: React.FC = () => {
         {/* Certifications */}
         {hasData(certifications) && (
           <div>
-            <h3 className="text-lg font-bold uppercase tracking-wider mb-3 border-b border-white/20 pb-1">Certifications</h3>
+            <h3 className="text-lg font-bold uppercase tracking-wider mb-3 border-b border-white/20 pb-1">
+              {t('preview.certifications')}
+            </h3>
             <ul className="list-disc list-inside text-sm space-y-1">
               {certifications.map((cert: string, idx: number) => (
                 <li key={idx}>{cert}</li>
@@ -102,7 +107,9 @@ export const ResumePreview: React.FC = () => {
         {/* Publications */}
         {hasData(publications) && (
           <div>
-            <h3 className="text-lg font-bold uppercase tracking-wider mb-3 border-b border-white/20 pb-1">Publications</h3>
+            <h3 className="text-lg font-bold uppercase tracking-wider mb-3 border-b border-white/20 pb-1">
+              {t('preview.publications')}
+            </h3>
              <ul className="text-sm space-y-3">
               {(publications || []).map((pub: any, idx: number) => (
                 <li key={idx} className="flex flex-col">
@@ -110,7 +117,7 @@ export const ResumePreview: React.FC = () => {
                   {pub.date && <span className="text-xs opacity-75">{pub.date}</span>}
                   {pub.link && (
                     <a href={pub.link} target="_blank" className="text-xs underline opacity-80 flex items-center gap-1 mt-0.5" rel="noreferrer">
-                      View <ExternalLink size={10} />
+                      {t('preview.view')} <ExternalLink size={10} />
                     </a>
                   )}
                 </li>
@@ -131,7 +138,7 @@ export const ResumePreview: React.FC = () => {
             className="text-4xl font-extrabold uppercase tracking-tight mb-2"
             style={{ color: theme.primaryColor }}
           >
-            {personalInfo?.name || "Your Name"}
+            {personalInfo?.name || t('preview.yourName')}
           </h1>
           {/* We could add a subtitle/role here if we extracted it, but for now just name */}
         </header>
@@ -143,7 +150,7 @@ export const ResumePreview: React.FC = () => {
                className="text-xl font-bold uppercase tracking-widest mb-3 border-b-2 pb-1"
                style={{ borderColor: theme.primaryColor, color: theme.primaryColor }}
              >
-               Profile
+               {t('preview.profile')}
              </h2>
              <p className="text-sm leading-relaxed text-slate-600">
                {summary}
@@ -158,7 +165,7 @@ export const ResumePreview: React.FC = () => {
                className="text-xl font-bold uppercase tracking-widest mb-4 border-b-2 pb-1"
                style={{ borderColor: theme.primaryColor, color: theme.primaryColor }}
              >
-               Experience
+               {t('preview.experience')}
              </h2>
              <div className="space-y-6">
                {(experience || []).map((exp: any, idx: number) => (
@@ -189,7 +196,7 @@ export const ResumePreview: React.FC = () => {
                className="text-xl font-bold uppercase tracking-widest mb-4 border-b-2 pb-1"
                style={{ borderColor: theme.primaryColor, color: theme.primaryColor }}
             >
-               Education
+               {t('preview.education')}
             </h2>
             <div className="space-y-4">
               {(education || []).map((edu: any, idx: number) => (

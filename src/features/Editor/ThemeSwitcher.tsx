@@ -1,35 +1,22 @@
-"use client";
 
 import React from 'react';
 import { useResumeStore } from '@/lib/store';
+import { THEME_COLORS, THEME_FONTS } from '@/config/constants';
+import { useTranslations } from '@/hooks/useTranslations';
 
-const COLORS = [
-  { name: 'Slate', value: '#1e293b' },
-  { name: 'Blue', value: '#1e40af' },
-  { name: 'Indigo', value: '#3730a3' },
-  { name: 'Emerald', value: '#064e3b' },
-  { name: 'Red', value: '#991b1b' },
-  { name: 'Purple', value: '#6b21a8' },
-  { name: 'Black', value: '#000000' },
-];
-
-const FONTS = [
-  { name: 'Sans', value: 'font-sans' },
-  { name: 'Serif', value: 'font-serif' },
-  { name: 'Mono', value: 'font-mono' },
-];
 
 export const ThemeSwitcher: React.FC = () => {
   const { theme, setTheme } = useResumeStore();
+  const { t } = useTranslations('editor');
 
   return (
     <div className="p-4 bg-white rounded-lg shadow-sm border border-slate-200 mb-4">
-      <h3 className="text-sm font-semibold text-slate-700 mb-3">Theme Options</h3>
+      <h3 className="text-sm font-semibold text-slate-700 mb-3">{t('theme.options')}</h3>
       
       <div className="mb-4">
-        <label className="text-xs text-slate-500 mb-2 block font-medium">Accent Color</label>
+        <label className="text-xs text-slate-500 mb-2 block font-medium">{t('theme.accentColor')}</label>
         <div className="flex flex-wrap gap-2">
-          {COLORS.map((c) => (
+          {THEME_COLORS.map((c) => (
             <button
               key={c.name}
               onClick={() => setTheme({ primaryColor: c.value, backgroundColor: c.value })}
@@ -51,9 +38,9 @@ export const ThemeSwitcher: React.FC = () => {
       </div>
 
       <div>
-        <label className="text-xs text-slate-500 mb-2 block font-medium">Typography</label>
+        <label className="text-xs text-slate-500 mb-2 block font-medium">{t('theme.typography')}</label>
         <div className="flex gap-2">
-          {FONTS.map((f) => (
+          {THEME_FONTS.map((f) => (
             <button
               key={f.name}
               onClick={() => setTheme({ fontFamily: f.value })}
