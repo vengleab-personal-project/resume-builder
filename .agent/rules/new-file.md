@@ -61,6 +61,11 @@ description: When create new file in frontend folder
 - **Files**: `index.ts` or domain-specific `.ts`
 - **Examples**: `resume.ts`, `job-description.ts`, `api.ts`
 
+### State Management → `src/store/`
+- **When**: Global state containers (Zustand, etc.)
+- **Files**: `.ts` files
+- **Examples**: `resume-store.ts`, `auth-store.ts`
+
 ### Styles → `src/styles/`
 - **When**: Global styles, CSS modules (legacy - prefer Tailwind)
 - **Files**: `.css` files

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from 'react';
-import { useResumeStore } from '@/lib/store';
+import { useResumeStore } from '@/store/resume-store';
 import { parseResume } from '@/services/resumeService';
 import { AIProvider, AIModel } from '@/types';
 

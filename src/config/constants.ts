@@ -49,3 +49,29 @@ export const RESUME_SECTIONS = {
   CUSTOMIZE: 'customize',
   EDIT: 'edit',
 } as const;
+
+export const INITIAL_RESUME_DATA = {
+  personalInfo: {
+    name: "Your Name",
+    email: "email@example.com",
+    phone: "(555) 555-5555",
+    address: "City, State",
+  },
+  summary: "Professional summary goes here...",
+  education: [],
+  experience: [],
+  skills: [],
+  certifications: [],
+  publications: []
+} as const;
+
+export const INITIAL_THEME = {
+  primaryColor: "#1e293b", // Matches Slate from THEME_COLORS
+  backgroundColor: "#1e293b",
+  fontFamily: "font-sans",
+} as const;
+
+export const INITIAL_AI_CONFIG = {
+  provider: AI_PROVIDERS.GOOGLE,
+  model: 'gemini-3-flash',
+} as const;

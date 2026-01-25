@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { useResumeStore } from '@/lib/store';
+import { useResumeStore } from '@/store/resume-store';
 import { refineResumeField } from '@/services/resumeService';
 
 export const useResumeEditorLogic = () => {

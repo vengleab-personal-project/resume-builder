@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Mail, Phone, MapPin, Linkedin, Globe, ExternalLink } from 'lucide-react';
-import { useResumeStore } from '@/lib/store';
+import { useResumeStore } from '@/store/resume-store';
 import { useTranslations } from '@/hooks/useTranslations';
 
 // Helper to check if a section has data to avoid empty empty headers

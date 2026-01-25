@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useResumeStore } from '@/lib/store';
+import { useResumeStore } from '@/store/resume-store';
 import { THEME_COLORS, THEME_FONTS } from '@/config/constants';
 import { useTranslations } from '@/hooks/useTranslations';
 
