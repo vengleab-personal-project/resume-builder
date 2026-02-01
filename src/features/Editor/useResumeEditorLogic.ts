@@ -24,8 +24,6 @@ export const useResumeEditorLogic = () => {
     }
   };
 
-  // This one is slightly different in original code (uses /api/refine-resume with instruction)
-  // I'll keep the flexibility but use the service if it matches
   const refineWithInstruction = async (id: string, currentVal: string, instruction: string, onDone: (res: string) => void) => {
     setLocalLoading(id, true);
     try {
@@ -91,6 +89,12 @@ export const useResumeEditorLogic = () => {
     setResumeData({ ...resumeData, [key]: list });
   };
 
+  const toggleBreakPage = (key: 'experience' | 'education' | 'publications', index: number) => {
+    const list = [...(resumeData[key] as any[])];
+    list[index] = { ...list[index], breakPage: !list[index].breakPage };
+    setResumeData({ ...resumeData, [key]: list });
+  };
+
   const updateSummary = (v: string) => setResumeData({...resumeData, summary: v});
   
   const updateSkills = (v: string) => setResumeData({...resumeData, skills: v.split(',').map(s => s.trim()).filter(Boolean)});
@@ -109,6 +113,7 @@ export const useResumeEditorLogic = () => {
     updateCertifications,
     refineWithInstruction,
     generateItems,
-    setResumeData
+    setResumeData,
+    toggleBreakPage,
   };
 };

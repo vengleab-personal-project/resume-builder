@@ -16,7 +16,11 @@ export const Upload: React.FC = () => {
     handleFileChange,
     handleProviderChange,
     handleModelChange,
-    triggerFileInput
+    triggerFileInput,
+    isDragging,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop
   } = useUploadLogic();
 
   const { t } = useTranslations('upload');
@@ -75,9 +79,14 @@ export const Upload: React.FC = () => {
       <div className="pt-2">
         <div 
           onClick={triggerFileInput}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
           className={`
             border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-colors
-            ${isParsing ? 'bg-slate-50 border-slate-300 cursor-not-allowed' : 'border-indigo-200 hover:bg-indigo-50 hover:border-indigo-400'}
+            ${isParsing ? 'bg-slate-50 border-slate-300 cursor-not-allowed' : 
+              isDragging ? 'bg-indigo-50 border-indigo-500 ring-2 ring-indigo-500/20' : 
+              'border-indigo-200 hover:bg-indigo-50 hover:border-indigo-400'}
           `}
         >
           <input 

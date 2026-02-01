@@ -1,11 +1,12 @@
 "use client";
 
 import React from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Scissors } from 'lucide-react';
 import { Section, Input, TextArea } from '@/components/ui/FormElements';
 import { AIButton } from '@/components/ui/AIButton';
 import { useResumeEditorLogic } from './useResumeEditorLogic';
 import { useTranslations } from '@/hooks/useTranslations';
+import { cn } from '@/lib/utils';
 
 export const ResumeEditor: React.FC = () => {
   const {
@@ -20,10 +21,44 @@ export const ResumeEditor: React.FC = () => {
     updateCertifications,
     refineWithInstruction,
     generateItems,
-    setResumeData
+    setResumeData,
+    toggleBreakPage
   } = useResumeEditorLogic();
 
   const { t } = useTranslations('editor');
+
+  const [skillsText, setSkillsText] = React.useState(resumeData.skills.join(', '));
+  const [certsText, setCertsText] = React.useState(resumeData.certifications.join('\n'));
+
+  React.useEffect(() => {
+    const currentText = resumeData.skills.join(', ');
+    // Only update local state if the store has changed in a way that's not just whitespace/formatting
+    // This allows the user to type commas and spaces without them being "cleaned" immediately
+    const normalizedLocal = skillsText.split(',').map(s => s.trim()).filter(Boolean).join(', ');
+    if (currentText !== normalizedLocal) {
+      setSkillsText(currentText);
+    }
+  }, [resumeData.skills]);
+
+  React.useEffect(() => {
+    const currentText = resumeData.certifications.join('\n');
+    const normalizedLocal = certsText.split('\n').map(s => s.trim()).filter(Boolean).join('\n');
+    if (currentText !== normalizedLocal) {
+      setCertsText(currentText);
+    }
+  }, [resumeData.certifications]);
+
+  const handleSkillsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    setSkillsText(val);
+    updateSkills(val);
+  };
+
+  const handleCertsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    setCertsText(val);
+    updateCertifications(val);
+  };
 
   return (
     <div className="flex flex-col gap-2 pb-10">
@@ -67,12 +102,26 @@ export const ResumeEditor: React.FC = () => {
       >
         {resumeData.experience.map((exp: any, idx: number) => (
           <div key={idx} className="mb-6 p-4 border border-slate-100 rounded-lg bg-slate-50/30 relative group">
-            <button 
-              onClick={() => removeItem('experience', idx)}
-              className="absolute top-3 right-3 p-1.5 text-slate-300 hover:text-red-500 hover:bg-white rounded-md transition-all shadow-sm"
-            >
-              <Trash2 size={14} />
-            </button>
+            <div className="absolute top-3 right-3 flex gap-2">
+              <button 
+                onClick={() => toggleBreakPage('experience', idx)}
+                className={cn(
+                  "p-1.5 rounded-md transition-all shadow-sm border",
+                  exp.breakPage 
+                    ? "bg-indigo-600 text-white border-indigo-600" 
+                    : "bg-white text-slate-300 hover:text-indigo-600 border-slate-100"
+                )}
+                title={exp.breakPage ? "Remove page break" : "Add page break after this item"}
+              >
+                <Scissors size={14} />
+              </button>
+              <button 
+                onClick={() => removeItem('experience', idx)}
+                className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-white rounded-md transition-all shadow-sm border border-slate-100"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
             <Input 
               label={t('labels.jobTitle')} 
               value={exp.role} 
@@ -110,12 +159,24 @@ export const ResumeEditor: React.FC = () => {
       >
          {resumeData.education.map((edu: any, idx: number) => (
           <div key={idx} className="mb-4 pb-4 border-b border-slate-100 last:border-0 last:pb-0 relative">
-             <button 
-              onClick={() => removeItem('education', idx)}
-              className="absolute top-0 right-0 p-1 text-slate-300 hover:text-red-500 transition-colors"
-            >
-              <Trash2 size={14} />
-            </button>
+             <div className="absolute top-0 right-0 flex gap-2">
+               <button 
+                onClick={() => toggleBreakPage('education', idx)}
+                className={cn(
+                  "p-1 text-xs transition-colors",
+                  edu.breakPage ? "text-indigo-600" : "text-slate-300 hover:text-indigo-600"
+                )}
+                title={edu.breakPage ? "Remove page break" : "Add page break after this item"}
+              >
+                <Scissors size={12} />
+              </button>
+              <button 
+                onClick={() => removeItem('education', idx)}
+                className="p-1 text-slate-300 hover:text-red-500 transition-colors"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
             <Input label={t('labels.school')} value={edu.school} onChange={(e) => updateItem('education', idx, 'school', e.target.value)} />
             <Input label={t('labels.degree')} value={edu.degree} onChange={(e) => updateItem('education', idx, 'degree', e.target.value)} />
             <Input label={t('labels.year')} value={edu.year} onChange={(e) => updateItem('education', idx, 'year', e.target.value)} />
@@ -141,16 +202,16 @@ export const ResumeEditor: React.FC = () => {
             </div>
             <textarea
               className="w-full text-sm p-3 bg-slate-50/50 border border-slate-200 rounded-md focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 outline-none transition-all min-h-[100px]"
-              value={resumeData.skills.join(', ')}
-              onChange={(e) => updateSkills(e.target.value)}
+              value={skillsText}
+              onChange={handleSkillsChange}
             />
          </div>
          <div>
             <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">{t('labels.certifications')}</label>
             <textarea
               className="w-full text-sm p-3 bg-slate-50/50 border border-slate-200 rounded-md focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 outline-none transition-all min-h-[100px]"
-              value={resumeData.certifications.join('\n')}
-              onChange={(e) => updateCertifications(e.target.value)}
+              value={certsText}
+              onChange={handleCertsChange}
             />
          </div>
       </Section>
@@ -162,12 +223,24 @@ export const ResumeEditor: React.FC = () => {
       >
         {(resumeData.publications || []).map((pub: any, idx: number) => (
           <div key={idx} className="mb-4 pb-4 border-b border-slate-100 last:border-0 last:pb-0 relative group">
-             <button 
-              onClick={() => removeItem('publications', idx)}
-              className="absolute top-0 right-0 p-1 text-slate-300 hover:text-red-500"
-            >
-              <Trash2 size={14} />
-            </button>
+             <div className="absolute top-0 right-0 flex gap-2">
+               <button 
+                onClick={() => toggleBreakPage('publications', idx)}
+                className={cn(
+                  "p-1 text-xs transition-colors",
+                  pub.breakPage ? "text-indigo-600" : "text-slate-300 hover:text-indigo-600"
+                )}
+                title={pub.breakPage ? "Remove page break" : "Add page break after this item"}
+              >
+                <Scissors size={12} />
+              </button>
+              <button 
+                onClick={() => removeItem('publications', idx)}
+                className="p-1 text-slate-300 hover:text-red-500"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
             <Input label={t('labels.title')} value={pub.title} onChange={(e) => updateItem('publications', idx, 'title', e.target.value)} />
             <Input label={t('labels.link')} value={pub.link} onChange={(e) => updateItem('publications', idx, 'link', e.target.value)} />
           </div>

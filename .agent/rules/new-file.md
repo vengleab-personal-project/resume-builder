@@ -3,90 +3,81 @@ trigger: model_decision
 description: When create new file in frontend folder
 ---
 
-# Frontend File Placement Guide (Next.js App Router)
+# Next.js App Router - File Placement Guide
 
-## Where to Create Files
+## Directory Structure
 
-### App Routes → `src/app/route-name/`
-- **When**: New route/page in your application
-- **Files**: `page.tsx` (required), `layout.tsx` (optional), `loading.tsx` (optional), `error.tsx` (optional)
-- **Examples**: 
-  - `src/app/dashboard/page.tsx` → `/dashboard` route
-  - `src/app/profile/[id]/page.tsx` → `/profile/:id` dynamic route
-- **Note**: Each route folder can contain:
-  - `page.tsx` - The UI for that route
-  - `layout.tsx` - Shared layout for that route segment
-  - `loading.tsx` - Loading UI
-  - `error.tsx` - Error UI
-  - `not-found.tsx` - 404 UI
+### 🎯 Frontend
+| Folder | Purpose | Examples |
+|--------|---------|----------|
+| `src/app/[route]/` | **Pages & routes** - `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx` | `src/app/dashboard/page.tsx` → `/dashboard` |
+| `src/features/` | **Feature modules** - Components with business logic | `Upload/`, `Editor/`, `Resume/` |
+| `src/components/ui/` | **Reusable UI** - Generic components, no business logic | `Button.tsx`, `Input.tsx`, `Modal.tsx` |
+| `src/components/layouts/` | **Layout components** - Reusable layouts (not route-specific) | `MainLayout.tsx`, `DashboardLayout.tsx` |
+| `src/hooks/` | **Custom hooks** - Reusable React hooks | `useDebounce.ts`, `useMediaQuery.ts` |
+| `src/store/` | **State management** - Global state (Zustand, Redux, etc.) | `resume-store.ts`, `auth-store.ts` |
 
-### API Routes → `src/app/api/endpoint-name/`
-- **When**: Creating backend API endpoints
-- **Files**: `route.ts` (for GET, POST, etc. handlers)
-- **Examples**: `src/app/api/parse-resume/route.ts`, `src/app/api/refine-resume/route.ts`
+### ⚙️ Backend
+| Folder | Purpose | Examples |
+|--------|---------|----------|
+| `src/app/api/` | **API routes** - Thin handlers (`route.ts` only) | `api/parse-resume/route.ts` |
+| `src/services/` | **Business logic** - Core logic & orchestration | `resumeService.ts`, `aiService.ts` |
+| `src/integrations/` | **External APIs** - Third-party API clients | `openai.ts`, `gemini.ts` |
 
-### Features → `src/features/FeatureName/`
-- **When**: Reusable business components with logic
-- **Files**: `FeatureName.tsx`, `useFeatureNameLogic.ts`, `index.ts`
-- **Examples**: ResumeUploader, JobDescriptionInput, ResumePreview
-- **Note**: These are Client Components that can be imported into pages
-
-### UI Components → `src/components/ui/`
-- **When**: Generic, reusable UI with zero business logic
-- **Files**: Single `.tsx` files
-- **Examples**: Button, Input, Modal, Card, Badge
-
-### Layouts → `src/components/layouts/`
-- **When**: Reusable layout components (not route-specific)
-- **Files**: Single `.tsx` files
-- **Examples**: MainLayout, DashboardLayout, AuthLayout
-
-### Lib/Utils → `src/lib/`
-- **When**: Utility functions, configurations, helpers
-- **Files**: `.ts` files with pure functions
-- **Examples**: `utils.ts`, `ai-config.ts`, `validators.ts`
-
-### Config → `src/config/`
-- **When**: Application configuration and constants
-- **Files**: `.ts` files with configuration objects
-- **Examples**: `ai-prompts.ts`, `env.ts`, `constants.ts`
-
-### Services → `src/services/`
-- **When**: API calls & external service integrations
-- **Files**: `.ts` files with pure async functions
-- **Examples**: `openai-service.ts`, `google-ai-service.ts`
-
-### Types → `src/types/`
-- **When**: Shared TypeScript types and interfaces
-- **Files**: `index.ts` or domain-specific `.ts`
-- **Examples**: `resume.ts`, `job-description.ts`, `api.ts`
-
-### State Management → `src/store/`
-- **When**: Global state containers (Zustand, etc.)
-- **Files**: `.ts` files
-- **Examples**: `resume-store.ts`, `auth-store.ts`
-
-### Styles → `src/styles/`
-- **When**: Global styles, CSS modules (legacy - prefer Tailwind)
-- **Files**: `.css` files
-- **Note**: In App Router, `globals.css` is typically imported in `src/app/layout.tsx`
+### 🔧 Shared
+| Folder | Purpose | Examples |
+|--------|---------|----------|
+| `src/types/` | **TypeScript types** - Shared interfaces | `resume.ts`, `api.ts` |
+| `src/lib/` | **Utilities** - Pure helper functions | `utils.ts`, `validators.ts` |
+| `src/config/` | **Configuration** - Constants & env vars | `constants.ts`, `prompts.ts` |
 
 ## Quick Decision Tree
+- **Page/route?** → `src/app/[route]/page.tsx`
+- **API endpoint?** → `src/app/api/[name]/route.ts`
+- **Feature with logic?** → `src/features/`
+- **Generic UI?** → `src/components/ui/`
+- **Custom hook?** → `src/hooks/`
+- **Business logic?** → `src/services/`
+- **External API?** → `src/integrations/`
+- **Type/interface?** → `src/types/`
+- **Utility function?** → `src/lib/`
+- **Configuration?** → `src/config/`
 
-- New route/page? → `src/app/route-name/page.tsx`
-- API endpoint? → `src/app/api/endpoint-name/route.ts`
-- Reusable component with business logic? → `src/features/`
-- Generic UI component? → `src/components/ui/`
-- Reusable layout? → `src/components/layouts/`
-- Utility/helper function? → `src/lib/`
-- Configuration? → `src/config/`
-- External API integration? → `src/services/`
-- Type definition? → `src/types/`
+## Next.js App Router Conventions
+- `src/app/` folder structure = URL structure
+- `page.tsx` makes a route publicly accessible
+- Server Components by default (add `"use client"` for interactivity)
+- Private folders: prefix with `_` to exclude from routing (`_components/`)
 
-## Important Next.js App Router Conventions
+---
 
-1. **`src/app/` directory is for routing** - folder structure = URL structure
-2. **`page.tsx` makes a route publicly accessible**
-3. **Server Components by default** - add `"use client"` for interactivity
-4. **Co-location is allowed** - you can put components next to the routes that use them
-5. **Private folders** - prefix with `_` to exclude from routing (e.g., `src/app/_components/`)
+## Layered Architecture Pattern
+
+### Layer Responsibilities
+```
+src/app/api/route.ts       → Request/response handling only
+        ↓
+src/services/              → Business logic & orchestration
+        ↓
+src/integrations/          → External API clients
+```
+
+| Layer | Responsibilities | Prohibited |
+|-------|-----------------|------------|
+| **Routes** (`route.ts`) | Parse requests, format responses, handle errors | Business logic, complex transformations |
+| **Services** | Business logic, orchestration, data transformation | Direct `NextRequest`/`NextResponse` objects |
+| **Integrations** | External API clients (OpenAI, Gemini, etc.) | Business logic |
+| **Types** | TypeScript interfaces & validation | Business logic |
+
+## Best Practices
+
+**DO** ✅
+- Use path aliases: `import { service } from '@/services/service'`
+- Keep `route.ts` thin (< 50 lines)
+- Strong typing everywhere
+- `async/await` for all I/O
+
+**DON'T** ❌
+- Business logic in `route.ts`
+- Relative imports: `'../../../services'`
+- Missing type definitions

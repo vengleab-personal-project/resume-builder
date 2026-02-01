@@ -1,17 +1,19 @@
 "use client";
 
 import React from 'react';
-import { Printer } from 'lucide-react';
+import { Printer, FileText, Eye, Download, Loader2 } from 'lucide-react';
 import { Upload } from '@/features/Upload';
 import { ResumeEditor, ThemeSwitcher } from '@/features/Editor';
 import { ResumePreview } from '@/features/Resume';
 import { useHomeLogic } from './useHomeLogic';
 import { useTranslations } from '@/hooks/useTranslations';
+import { useResumeStore } from '@/store/resume-store';
 
 export const HomePage: React.FC = () => {
-  const { handlePrint } = useHomeLogic();
+  const { handleExportPDF, isExporting } = useHomeLogic();
   const { t: tHome } = useTranslations('home');
   const { t: tCommon } = useTranslations('common');
+  const { originalFileUrl, exportedFileUrl, viewMode, setViewMode } = useResumeStore();
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans text-slate-900">
@@ -28,12 +30,53 @@ export const HomePage: React.FC = () => {
         </div>
         
         <div className="flex items-center gap-3">
+          <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
+            <button
+              onClick={() => setViewMode('parsed')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                viewMode === 'parsed' 
+                  ? 'bg-white text-indigo-600 shadow-sm' 
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <Eye size={16} />
+              Editor
+            </button>
+            <button
+              onClick={() => setViewMode('original')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                viewMode === 'original' 
+                  ? 'bg-white text-indigo-600 shadow-sm' 
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <FileText size={16} />
+              Original PDF
+            </button>
+            <button
+              onClick={() => setViewMode('exported')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                viewMode === 'exported' 
+                  ? 'bg-white text-indigo-600 shadow-sm' 
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <Download size={16} />
+              Exported PDF
+            </button>
+          </div>
+
           <button 
-            onClick={handlePrint}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-md text-sm font-medium hover:bg-slate-800 transition-colors shadow-sm"
+            onClick={handleExportPDF}
+            disabled={isExporting}
+            className={`flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-md text-sm font-medium hover:bg-slate-800 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed`}
           >
-            <Printer size={16} />
-            {tCommon('exportPrint')}
+            {isExporting ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Printer size={16} />
+            )}
+            {isExporting ? 'Exporting...' : tCommon('exportPrint')}
           </button>
         </div>
       </header>
@@ -70,15 +113,13 @@ export const HomePage: React.FC = () => {
         </div>
 
         {/* Right Panel: Live Preview (Centered) */}
-        <div className="flex-1 bg-slate-200/50 p-8 overflow-y-auto h-[calc(100vh-64px)] flex justify-center items-start print:p-0 print:h-auto print:bg-white print:overflow-visible">
-          
-          <div className="print:w-full print:h-full w-[210mm] min-h-[297mm] shadow-2xl bg-white origin-top items-center justify-center flex transition-all print:shadow-none print:transform-none">
-             <div className="w-full h-full"> 
-               <ResumePreview />
-             </div>
-          </div>
-
-        </div>
+    <div className="flex-1 bg-slate-200/50 p-8 overflow-y-auto h-[calc(100vh-64px)] flex justify-center items-start print:p-0 print:h-auto print:bg-white print:overflow-visible relative">
+      <div className="print:w-full print:h-full w-[210mm] min-h-[297mm] shadow-2xl bg-white origin-top items-center justify-center flex transition-all print:shadow-none print:transform-none">
+         <div className="w-full h-full"> 
+           <ResumePreview />
+         </div>
+      </div>
+    </div>
       </div>
 
     </div>

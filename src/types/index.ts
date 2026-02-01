@@ -3,6 +3,7 @@ export interface Education {
   school: string;
   year: string;
   location?: string;
+  breakPage?: boolean;
 }
 
 export interface Experience {
@@ -11,12 +12,14 @@ export interface Experience {
   dates: string;
   location?: string;
   bullets: string[];
+  breakPage?: boolean;
 }
 
 export interface Publication {
   title: string;
   link?: string;
   date?: string;
+  breakPage?: boolean;
 }
 
 export interface ResumeData {

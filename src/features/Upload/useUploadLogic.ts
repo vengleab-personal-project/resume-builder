@@ -7,15 +7,43 @@ import { AIProvider, AIModel } from '@/types';
 
 export const useUploadLogic = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { setResumeData, setIsParsing, isParsing, aiConfig, setAIConfig } = useResumeStore();
+  const { 
+    setResumeData, 
+    setIsParsing, 
+    isParsing, 
+    aiConfig, 
+    setAIConfig, 
+    setOriginalFileUrl, 
+    originalFileUrl,
+    setViewMode 
+  } = useResumeStore();
   const [error, setError] = useState<string | null>(null);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const [isDragging, setIsDragging] = useState(false);
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isParsing) setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const processFile = async (file: File) => {
     setIsParsing(true);
     setError(null);
+    setViewMode('parsed');
+
+    // Create a preview URL for the original file
+    if (originalFileUrl) {
+      URL.revokeObjectURL(originalFileUrl);
+    }
+    const fileUrl = URL.createObjectURL(file);
+    setOriginalFileUrl(fileUrl);
 
     try {
       const data = await parseResume(file, aiConfig);
@@ -26,6 +54,25 @@ export const useUploadLogic = () => {
     } finally {
       setIsParsing(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await processFile(file);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    if (isParsing) return;
+
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      await processFile(file);
     }
   };
 
@@ -55,6 +102,10 @@ export const useUploadLogic = () => {
     handleFileChange,
     handleProviderChange,
     handleModelChange,
-    triggerFileInput
+    triggerFileInput,
+    isDragging,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop
   };
 };
