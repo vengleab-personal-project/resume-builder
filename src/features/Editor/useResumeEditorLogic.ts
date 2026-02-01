@@ -1,12 +1,33 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useResumeStore } from '@/store/resume-store';
 import { refineResumeField } from '@/services/resumeService';
 
 export const useResumeEditorLogic = () => {
   const { resumeData, setResumeData, aiConfig } = useResumeStore();
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
+  
+  // Local state for skills and certifications text input
+  const [skillsText, setSkillsText] = useState(resumeData.skills.join(', '));
+  const [certsText, setCertsText] = useState(resumeData.certifications.join('\n'));
+
+  // Sync local state with store changes
+  useEffect(() => {
+    const currentText = resumeData.skills.join(', ');
+    const normalizedLocal = skillsText.split(',').map(s => s.trim()).filter(Boolean).join(', ');
+    if (currentText !== normalizedLocal) {
+      setSkillsText(currentText);
+    }
+  }, [resumeData.skills]);
+
+  useEffect(() => {
+    const currentText = resumeData.certifications.join('\n');
+    const normalizedLocal = certsText.split('\n').map(s => s.trim()).filter(Boolean).join('\n');
+    if (currentText !== normalizedLocal) {
+      setCertsText(currentText);
+    }
+  }, [resumeData.certifications]);
 
   const setLocalLoading = (key: string, val: boolean) => {
     setLoadingStates(prev => ({ ...prev, [key]: val }));
@@ -101,9 +122,21 @@ export const useResumeEditorLogic = () => {
   
   const updateCertifications = (v: string) => setResumeData({...resumeData, certifications: v.split('\n').filter(Boolean)});
 
+  const handleSkillsChange = (val: string) => {
+    setSkillsText(val);
+    updateSkills(val);
+  };
+
+  const handleCertsChange = (val: string) => {
+    setCertsText(val);
+    updateCertifications(val);
+  };
+
   return {
     resumeData,
     loadingStates,
+    skillsText,
+    certsText,
     updatePersonalInfo,
     addItem,
     removeItem,
@@ -111,6 +144,8 @@ export const useResumeEditorLogic = () => {
     updateSummary,
     updateSkills,
     updateCertifications,
+    handleSkillsChange,
+    handleCertsChange,
     refineWithInstruction,
     generateItems,
     setResumeData,

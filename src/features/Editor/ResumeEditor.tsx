@@ -12,13 +12,16 @@ export const ResumeEditor: React.FC = () => {
   const {
     resumeData,
     loadingStates,
+    skillsText,
+    certsText,
     updatePersonalInfo,
     addItem,
     removeItem,
     updateItem,
     updateSummary,
     updateSkills,
-    updateCertifications,
+    handleSkillsChange,
+    handleCertsChange,
     refineWithInstruction,
     generateItems,
     setResumeData,
@@ -26,39 +29,6 @@ export const ResumeEditor: React.FC = () => {
   } = useResumeEditorLogic();
 
   const { t } = useTranslations('editor');
-
-  const [skillsText, setSkillsText] = React.useState(resumeData.skills.join(', '));
-  const [certsText, setCertsText] = React.useState(resumeData.certifications.join('\n'));
-
-  React.useEffect(() => {
-    const currentText = resumeData.skills.join(', ');
-    // Only update local state if the store has changed in a way that's not just whitespace/formatting
-    // This allows the user to type commas and spaces without them being "cleaned" immediately
-    const normalizedLocal = skillsText.split(',').map(s => s.trim()).filter(Boolean).join(', ');
-    if (currentText !== normalizedLocal) {
-      setSkillsText(currentText);
-    }
-  }, [resumeData.skills]);
-
-  React.useEffect(() => {
-    const currentText = resumeData.certifications.join('\n');
-    const normalizedLocal = certsText.split('\n').map(s => s.trim()).filter(Boolean).join('\n');
-    if (currentText !== normalizedLocal) {
-      setCertsText(currentText);
-    }
-  }, [resumeData.certifications]);
-
-  const handleSkillsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const val = e.target.value;
-    setSkillsText(val);
-    updateSkills(val);
-  };
-
-  const handleCertsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const val = e.target.value;
-    setCertsText(val);
-    updateCertifications(val);
-  };
 
   return (
     <div className="flex flex-col gap-2 pb-10">
@@ -203,7 +173,7 @@ export const ResumeEditor: React.FC = () => {
             <textarea
               className="w-full text-sm p-3 bg-slate-50/50 border border-slate-200 rounded-md focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 outline-none transition-all min-h-[100px]"
               value={skillsText}
-              onChange={handleSkillsChange}
+              onChange={(e) => handleSkillsChange(e.target.value)}
             />
          </div>
          <div>
@@ -211,7 +181,7 @@ export const ResumeEditor: React.FC = () => {
             <textarea
               className="w-full text-sm p-3 bg-slate-50/50 border border-slate-200 rounded-md focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 outline-none transition-all min-h-[100px]"
               value={certsText}
-              onChange={handleCertsChange}
+              onChange={(e) => handleCertsChange(e.target.value)}
             />
          </div>
       </Section>

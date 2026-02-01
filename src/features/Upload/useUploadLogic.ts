@@ -20,6 +20,7 @@ export const useUploadLogic = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [isDragging, setIsDragging] = useState(false);
+  const [pastedText, setPastedText] = useState('');
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -33,20 +34,24 @@ export const useUploadLogic = () => {
     setIsDragging(false);
   };
 
-  const processFile = async (file: File) => {
+  const processInput = async (input: File | string) => {
     setIsParsing(true);
     setError(null);
     setViewMode('parsed');
 
-    // Create a preview URL for the original file
-    if (originalFileUrl) {
-      URL.revokeObjectURL(originalFileUrl);
+    if (input instanceof File) {
+      // Create a preview URL for the original file
+      if (originalFileUrl) {
+        URL.revokeObjectURL(originalFileUrl);
+      }
+      const fileUrl = URL.createObjectURL(input);
+      setOriginalFileUrl(fileUrl);
+    } else {
+      setOriginalFileUrl(null);
     }
-    const fileUrl = URL.createObjectURL(file);
-    setOriginalFileUrl(fileUrl);
 
     try {
-      const data = await parseResume(file, aiConfig);
+      const data = await parseResume(input, aiConfig);
       setResumeData(data);
     } catch (err) {
       console.error(err);
@@ -60,7 +65,7 @@ export const useUploadLogic = () => {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    await processFile(file);
+    await processInput(file);
   };
 
   const handleDrop = async (e: React.DragEvent) => {
@@ -72,8 +77,14 @@ export const useUploadLogic = () => {
 
     const file = e.dataTransfer.files?.[0];
     if (file) {
-      await processFile(file);
+      await processInput(file);
     }
+  };
+
+  const handlePasteSubmit = async () => {
+    if (!pastedText.trim() || isParsing) return;
+    await processInput(pastedText);
+    setPastedText('');
   };
 
   const handleProviderChange = (provider: AIProvider) => {
@@ -106,6 +117,9 @@ export const useUploadLogic = () => {
     isDragging,
     handleDragOver,
     handleDragLeave,
-    handleDrop
+    handleDrop,
+    pastedText,
+    setPastedText,
+    handlePasteSubmit
   };
 };

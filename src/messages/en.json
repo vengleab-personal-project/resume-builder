@@ -3,7 +3,23 @@
         "appTitle": "ResumeBuilder",
         "exportPrint": "Export / Print",
         "loading": "Loading...",
-        "error": "Error"
+        "error": "Error",
+        "exporting": "Exporting..."
+    },
+    "viewMode": {
+        "editor": "Editor",
+        "originalPdf": "Original PDF",
+        "exportedPdf": "Exported PDF"
+    },
+    "preview": {
+        "noExportedPdf": {
+            "title": "No Exported PDF Yet",
+            "description": "Click the \"Export / Print\" button to generate and download your PDF resume."
+        },
+        "noPdfUploaded": {
+            "title": "No PDF Uploaded",
+            "description": "Upload your resume in the sidebar to see the original file here."
+        }
     },
     "home": {
         "sections": {
@@ -19,10 +35,18 @@
         "analyzing": "Analyzing with AI...",
         "clickToUpload": "Click to Upload",
         "supportedFormats": "PDF, DOCX, or TXT",
+        "pasteText": "Paste resume text instead",
+        "or": "OR",
+        "parseText": "Parse Text",
+        "placeholderText": "Paste your resume content here...",
+        "providers": {
+            "openai": "OpenAI",
+            "google": "Google Gemini"
+        },
         "errors": {
             "noFile": "No file uploaded",
             "unsupportedFormat": "Unsupported file format",
-            "parseError": "Failed to parse resume"
+            "parseError": "Failed to parse resume. Please try again."
         }
     },
     "editor": {
@@ -70,7 +94,19 @@
             "addExperience": "Add Experience",
             "addEducation": "Add Education",
             "addPublication": "Add Publication",
-            "clean": "Clean"
+            "clean": "Clean",
+            "removePageBreak": "Remove page break",
+            "addPageBreak": "Add page break after this item"
+        },
+        "instructions": {
+            "formatEmail": "Format this email address correctly",
+            "generateSummary": "Write a professional 2-3 sentence resume summary for a candidate with these skills: {skills}",
+            "improveSummary": "Make this summary more impactful and professional",
+            "seniorJobTitle": "Suggest a more senior-sounding job title for: {title}",
+            "improveBullets": "Turn these into strong, achievement-oriented bullet points starting with action verbs",
+            "suggestSkills": "Based on this resume, suggest 5 more relevant technical skills for this candidate.",
+            "cleanSkills": "Format these skills nicely, remove duplicates, and capitalize correctly. Return comma separated.",
+            "generateSection": "Generate professional and relevant entries for the resume section: {section} in JSON format."
         },
         "preview": {
             "profile": "Profile",

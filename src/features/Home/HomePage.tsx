@@ -9,10 +9,11 @@ import { useHomeLogic } from './useHomeLogic';
 import { useTranslations } from '@/hooks/useTranslations';
 import { useResumeStore } from '@/store/resume-store';
 
-export const HomePage: React.FC = () => {
+export default function HomePage() {
   const { handleExportPDF, isExporting } = useHomeLogic();
   const { t: tHome } = useTranslations('home');
   const { t: tCommon } = useTranslations('common');
+  const { t: tViewMode } = useTranslations('viewMode');
   const { originalFileUrl, exportedFileUrl, viewMode, setViewMode } = useResumeStore();
 
   return (
@@ -40,7 +41,7 @@ export const HomePage: React.FC = () => {
               }`}
             >
               <Eye size={16} />
-              Editor
+              {tViewMode('editor')}
             </button>
             <button
               onClick={() => setViewMode('original')}
@@ -51,7 +52,7 @@ export const HomePage: React.FC = () => {
               }`}
             >
               <FileText size={16} />
-              Original PDF
+              {tViewMode('originalPdf')}
             </button>
             <button
               onClick={() => setViewMode('exported')}
@@ -62,7 +63,7 @@ export const HomePage: React.FC = () => {
               }`}
             >
               <Download size={16} />
-              Exported PDF
+              {tViewMode('exportedPdf')}
             </button>
           </div>
 
@@ -76,7 +77,7 @@ export const HomePage: React.FC = () => {
             ) : (
               <Printer size={16} />
             )}
-            {isExporting ? 'Exporting...' : tCommon('exportPrint')}
+            {isExporting ? tCommon('exporting') : tCommon('exportPrint')}
           </button>
         </div>
       </header>
@@ -124,4 +125,4 @@ export const HomePage: React.FC = () => {
 
     </div>
   );
-};
+}

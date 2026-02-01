@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: When create new file in frontend folder
+description: Project folder structure
 ---
 
 # Next.js App Router - File Placement Guide
@@ -34,9 +34,9 @@ description: When create new file in frontend folder
 ## Quick Decision Tree
 - **Page/route?** → `src/app/[route]/page.tsx`
 - **API endpoint?** → `src/app/api/[name]/route.ts`
-- **Feature with logic?** → `src/features/`
+- **Feature with logic/hooks?** → `src/features/`
 - **Generic UI?** → `src/components/ui/`
-- **Custom hook?** → `src/hooks/`
+- **Custom common hook?** → `src/hooks/`
 - **Business logic?** → `src/services/`
 - **External API?** → `src/integrations/`
 - **Type/interface?** → `src/types/`
@@ -73,7 +73,7 @@ src/integrations/          → External API clients
 
 **DO** ✅
 - Use path aliases: `import { service } from '@/services/service'`
-- Keep `route.ts` thin (< 50 lines)
+- Keep `route.ts` thin
 - Strong typing everywhere
 - `async/await` for all I/O
 

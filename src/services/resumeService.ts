@@ -1,8 +1,17 @@
 import { AIConfig, ResumeData } from '@/types';
 
-export const parseResume = async (file: File, config: AIConfig): Promise<ResumeData> => {
+export const parseResume = async (
+  input: File | string, 
+  config: AIConfig
+): Promise<ResumeData> => {
   const formData = new FormData();
-  formData.append("file", file);
+  
+  if (typeof input === 'string') {
+    formData.append("text", input);
+  } else {
+    formData.append("file", input);
+  }
+  
   formData.append("provider", config.provider);
   formData.append("model", config.model);
 

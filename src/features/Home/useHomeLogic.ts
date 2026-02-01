@@ -4,6 +4,7 @@ import { useState } from 'react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { useResumeStore } from '@/store/resume-store';
+import { PDF_EXPORT_CONFIG } from '@/config/constants';
 
 export const useHomeLogic = () => {
   const [isExporting, setIsExporting] = useState(false);
@@ -18,24 +19,24 @@ export const useHomeLogic = () => {
     try {
       // 1. Generate Canvas
       const canvas = await html2canvas(element, {
-        scale: 2, // Higher resolution
+        scale: PDF_EXPORT_CONFIG.CANVAS_SCALE,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
       });
 
       // 2. Create PDF
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL(PDF_EXPORT_CONFIG.IMAGE_MIME_TYPE);
       const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
+        orientation: PDF_EXPORT_CONFIG.ORIENTATION,
+        unit: PDF_EXPORT_CONFIG.UNIT,
+        format: PDF_EXPORT_CONFIG.FORMAT,
       });
 
-      const imgWidth = 210; // A4 width in mm
+      const imgWidth = PDF_EXPORT_CONFIG.A4_WIDTH_MM;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      pdf.addImage(imgData, PDF_EXPORT_CONFIG.IMAGE_FORMAT, 0, 0, imgWidth, imgHeight);
       
       // 3. Create Blob and URL
       const pdfBlob = pdf.output('blob');

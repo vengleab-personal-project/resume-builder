@@ -12,6 +12,7 @@ export const ResumePreview: React.FC = () => {
   const { resumeData, theme, originalFileUrl, exportedFileUrl, viewMode, setViewMode } = useResumeStore();
   const { personalInfo, education, experience, skills, certifications, publications, summary } = resumeData;
   const { t } = useTranslations('editor');
+  const { t: tPreview } = useTranslations('preview');
 
   if (viewMode === 'exported') {
     return (
@@ -28,9 +29,9 @@ export const ResumePreview: React.FC = () => {
               <Download size={40} />
             </div>
             <div className="max-w-xs">
-              <h3 className="text-lg font-bold text-slate-800 mb-2">No Exported PDF Yet</h3>
+              <h3 className="text-lg font-bold text-slate-800 mb-2">{tPreview('noExportedPdf.title')}</h3>
               <p className="text-sm text-slate-500">
-                Click the "Export / Print" button to generate and download your PDF resume.
+                {tPreview('noExportedPdf.description')}
               </p>
             </div>
           </div>
@@ -54,9 +55,9 @@ export const ResumePreview: React.FC = () => {
               <FileText size={40} />
             </div>
             <div className="max-w-xs">
-              <h3 className="text-lg font-bold text-slate-800 mb-2">No PDF Uploaded</h3>
+              <h3 className="text-lg font-bold text-slate-800 mb-2">{tPreview('noPdfUploaded.title')}</h3>
               <p className="text-sm text-slate-500">
-                Upload your resume in the sidebar to see the original file here.
+                {tPreview('noPdfUploaded.description')}
               </p>
             </div>
           </div>
@@ -117,7 +118,7 @@ export const ResumePreview: React.FC = () => {
              <div className="flex items-center gap-2">
                <Linkedin size={16} className="shrink-0" />
                <a href={`https://${personalInfo.linkedin.replace(/^https?:\/\//, '')}`} target="_blank" rel="noreferrer" className="hover:underline truncate">
-                 LinkedIn
+                 {t('labels.linkedin')}
                </a>
              </div>
           )}
@@ -125,7 +126,7 @@ export const ResumePreview: React.FC = () => {
              <div className="flex items-center gap-2">
                <Globe size={16} className="shrink-0" />
                <a href={`https://${personalInfo.website.replace(/^https?:\/\//, '')}`} target="_blank" rel="noreferrer" className="hover:underline truncate">
-                 Website
+                 {t('labels.website') || 'Website'}
                </a>
              </div>
           )}

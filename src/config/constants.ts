@@ -75,3 +75,53 @@ export const INITIAL_AI_CONFIG = {
   provider: AI_PROVIDERS.GOOGLE,
   model: 'gemini-3-flash',
 } as const;
+
+// PDF Export Configuration
+export const PDF_EXPORT_CONFIG = {
+  CANVAS_SCALE: 2,
+  ORIENTATION: 'portrait' as const,
+  UNIT: 'mm' as const,
+  FORMAT: 'a4' as const,
+  A4_WIDTH_MM: 210,
+  IMAGE_FORMAT: 'PNG' as const,
+  IMAGE_MIME_TYPE: 'image/png' as const,
+} as const;
+
+// File Parsing Configuration
+export const FILE_PARSING = {
+  SUPPORTED_MIME_TYPES: {
+    PDF: 'application/pdf',
+    DOCX: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    TXT: 'text/plain',
+  },
+  ENCODING: 'utf-8' as const,
+} as const;
+
+// AI Configuration
+export const AI_CONFIG = {
+  TEMPERATURE_PARSING: 0,
+  TEMPERATURE_REFINEMENT: 0.7,
+  RESPONSE_FORMAT_JSON: 'json_object' as const,
+  RESPONSE_FORMAT_TEXT: 'text' as const,
+} as const;
+
+// API Error Messages (internal)
+export const API_ERROR_MESSAGES = {
+  NO_FILE_UPLOADED: 'No file uploaded',
+  UNSUPPORTED_FILE_FORMAT: 'Unsupported file format',
+  PDF_PARSING_NOT_SUPPORTED: 'PDF parsing is not supported on this server environment',
+  GEMINI_API_KEY_NOT_SET: 'GEMINI_API_KEY is not set',
+  OPENAI_API_KEY_NOT_SET: 'OPENAI_API_KEY is not set',
+  INTERNAL_SERVER_ERROR: 'Internal Server Error',
+  NO_CONTENT_FROM_AI: 'No content from AI',
+  GEMINI_FAILED: 'Gemini failed',
+  FAILED_TO_PARSE_OPENAI: 'Failed to parse with OpenAI',
+  FAILED_TO_PARSE_GEMINI: 'Failed to parse with Gemini',
+} as const;
+
+// HTTP Status Codes
+export const HTTP_STATUS = {
+  OK: 200,
+  BAD_REQUEST: 400,
+  INTERNAL_SERVER_ERROR: 500,
+} as const;

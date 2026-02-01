@@ -20,7 +20,10 @@ export const Upload: React.FC = () => {
     isDragging,
     handleDragOver,
     handleDragLeave,
-    handleDrop
+    handleDrop,
+    pastedText,
+    setPastedText,
+    handlePasteSubmit
   } = useUploadLogic();
 
   const { t } = useTranslations('upload');
@@ -52,7 +55,7 @@ export const Upload: React.FC = () => {
                 `}
               >
                 {Icon && <Icon size={14} />}
-                {providerId === AI_PROVIDERS.OPENAI ? 'OpenAI' : 'Google Gemini'}
+                {t(`providers.${providerId}`)}
               </button>
             );
           })}
@@ -76,7 +79,7 @@ export const Upload: React.FC = () => {
         </select>
       </div>
 
-      <div className="pt-2">
+      <div className="space-y-4 pt-2">
         <div 
           onClick={triggerFileInput}
           onDragOver={handleDragOver}
@@ -111,12 +114,50 @@ export const Upload: React.FC = () => {
             </>
           )}
         </div>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center" aria-hidden="true">
+            <div className="w-full border-t border-slate-200"></div>
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-white px-2 text-slate-400 font-medium">{t('or')}</span>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <textarea
+            value={pastedText}
+            onChange={(e) => setPastedText(e.target.value)}
+            placeholder={t('placeholderText')}
+            className="w-full h-32 p-3 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none"
+            disabled={isParsing}
+          />
+          <button
+            onClick={handlePasteSubmit}
+            disabled={isParsing || !pastedText.trim()}
+            className={`
+              w-full py-2 px-4 rounded-md text-sm font-medium transition-all
+              ${isParsing || !pastedText.trim()
+                ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm'}
+            `}
+          >
+            {isParsing ? (
+              <div className="flex items-center justify-center gap-2">
+                <Loader2 size={14} className="animate-spin" />
+                {t('analyzing')}
+              </div>
+            ) : (
+              t('parseText')
+            )}
+          </button>
+        </div>
       </div>
 
       {error && (
         <div className="mt-3 flex items-center gap-2 text-red-500 text-sm bg-red-50 p-2 rounded">
           <AlertCircle size={16} />
-          {error}
+          {t('errors.parseError')}
         </div>
       )}
     </div>
