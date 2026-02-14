@@ -24,4 +24,67 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
-@media print { @page { margin: 0; size: auto; } body { -webkit-print-color-adjust: exact; } }
+/* Print styles for pixel-perfect PDF export */
+@media print {
+  @page {
+    margin: 0;
+    size: A4 portrait;
+  }
+  
+  /* Force exact colors to print (backgrounds, etc.) */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  /* Reset body for print */
+  body {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Resume preview fills the page */
+  #resume-preview {
+    display: flex !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+  
+  /* Sidebar takes proportional width */
+  #resume-preview aside {
+    width: 32% !important;
+    flex-shrink: 0 !important;
+    height: auto !important;
+    min-height: 100% !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    position: relative !important;
+  }
+  
+  /* Main content fills remaining space */
+  #resume-preview main {
+    flex: 1 !important;
+    position: relative !important;
+  }
+  
+  /* Ensure backgrounds extend for multi-page prints */
+  #resume-preview main > div:first-child {
+    position: fixed !important;
+    left: 32% !important;
+    right: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    height: 200vh !important;
+    background: white !important;
+    z-index: -1 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

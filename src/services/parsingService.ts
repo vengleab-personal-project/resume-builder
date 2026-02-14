@@ -14,11 +14,11 @@ export const extractTextFromFile = async (
 ): Promise<string> => {
   if (fileType === FILE_PARSING.SUPPORTED_MIME_TYPES.PDF) {
     try {
-      const { createRequire } = await import('module');
-      const require = createRequire(import.meta.url);
-      const pdf = require('pdf-parse/lib/pdf-parse.js');
-      const pdfData = await pdf(buffer);
-      return pdfData.text;
+      // Dynamic import of pdf-parse for Next.js compatibility
+      const { PDFParse } = await import('pdf-parse');
+      const parser = new PDFParse({ data: buffer });
+      const result = await parser.getText();
+      return result.text;
     } catch (e: unknown) {
       console.error("PDF Parse Error:", e);
       throw new Error(API_ERROR_MESSAGES.PDF_PARSING_NOT_SUPPORTED);
@@ -89,8 +89,8 @@ export const generateMockResponse = (text: string): ResumeData => {
       email: "mock@example.com",
       phone: "123-456-7890",
       address: "Mock City, MK",
-      summary: "This is a mock summary because API key was not found. " + text.slice(0, 50) + "..."
     },
+    summary: "This is a mock summary because API key was not found. " + text.slice(0, 50) + "...",
     education: [],
     experience: [],
     skills: ["Mock Skill 1", "Mock Skill 2"],

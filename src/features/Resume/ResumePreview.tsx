@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Mail, Phone, MapPin, Linkedin, Globe, ExternalLink, FileText, Eye, Download } from 'lucide-react';
+import { Mail, Phone, MapPin, Linkedin, Globe, ExternalLink, FileText } from 'lucide-react';
 import { useResumeStore } from '@/store/resume-store';
 import { useTranslations } from '@/hooks/useTranslations';
 
@@ -9,36 +9,10 @@ import { useTranslations } from '@/hooks/useTranslations';
 const hasData = (arr: unknown[] | undefined) => arr && arr.filter(Boolean).length > 0;
 
 export const ResumePreview: React.FC = () => {
-  const { resumeData, theme, originalFileUrl, exportedFileUrl, viewMode, setViewMode } = useResumeStore();
+  const { resumeData, theme, originalFileUrl, viewMode } = useResumeStore();
   const { personalInfo, education, experience, skills, certifications, publications, summary } = resumeData;
   const { t } = useTranslations('editor');
   const { t: tPreview } = useTranslations('preview');
-
-  if (viewMode === 'exported') {
-    return (
-      <div className="w-full h-full min-h-[1122px] bg-white flex flex-col overflow-hidden print:hidden relative">
-        {exportedFileUrl ? (
-          <iframe
-            src={exportedFileUrl}
-            className="w-full h-full flex-1 border-none"
-            title="Exported PDF"
-          />
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-4 bg-slate-50">
-            <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-400">
-              <Download size={40} />
-            </div>
-            <div className="max-w-xs">
-              <h3 className="text-lg font-bold text-slate-800 mb-2">{tPreview('noExportedPdf.title')}</h3>
-              <p className="text-sm text-slate-500">
-                {tPreview('noExportedPdf.description')}
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
 
   if (viewMode === 'original') {
     return (
@@ -67,18 +41,19 @@ export const ResumePreview: React.FC = () => {
   }
 
   return (
-    <div className="w-full h-full min-h-[1122px] bg-white flex overflow-hidden print:shadow-none print:w-full print:h-auto relative" id="resume-preview">
+    <div className="w-full h-full min-h-[1122px] bg-white flex overflow-visible print:shadow-none print:w-full print:h-auto relative" id="resume-preview">
       {/* Left Sidebar */}
       <aside 
         className="w-[32%] text-white p-6 flex flex-col gap-8 flex-shrink-0 relative z-10"
-        style={{ backgroundColor: theme.primaryColor, fontFamily: theme.fontFamily }}
+        style={{ backgroundColor: theme.primaryColor, fontFamily: theme.fontFamily, WebkitPrintColorAdjust: 'exact' }}
       >
         {/* Sidebar Background Extension for Print */}
         <div 
-          className="absolute inset-y-0 left-0 w-full -z-10 print:fixed print:h-[297mm]" 
-          style={{ backgroundColor: theme.primaryColor }}
+          className="absolute inset-y-0 left-0 w-full -z-10 print:fixed print:h-screen" 
+          style={{ backgroundColor: theme.primaryColor, WebkitPrintColorAdjust: 'exact' }}
         />
         
+        {/* Profile Photo */}
         {/* Profile Photo */}
         <div className="flex flex-col items-center">
           {personalInfo.photoUrl ? (
@@ -190,6 +165,11 @@ export const ResumePreview: React.FC = () => {
         className="flex-1 p-8 pb-16 text-slate-800 bg-white relative z-20"
         style={{ fontFamily: theme.fontFamily }}
       >
+        {/* White Background Extension for Print - ensures white fills to bottom of each page */}
+        <div 
+          className="absolute inset-0 -z-10 bg-white print:fixed print:left-[32%] print:right-0 print:top-0 print:bottom-0 print:h-[200vh]" 
+          style={{ WebkitPrintColorAdjust: 'exact' }}
+        />
         {/* Header Name & Title (Title inferred or just name) */}
         <header className="mb-8">
           <h1 
