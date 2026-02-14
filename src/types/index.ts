@@ -3,6 +3,7 @@ export interface Education {
   school: string;
   year: string;
   location?: string;
+  gpa?: string;
   breakPage?: boolean;
 }
 
@@ -22,13 +23,47 @@ export interface Publication {
   breakPage?: boolean;
 }
 
+export interface Volunteering {
+  role: string;
+  organization: string;
+  topic?: string;
+  breakPage?: boolean;
+}
+
+export interface Language {
+  name: string;
+  proficiency: string;
+}
+
+export interface Training {
+  name: string;
+  breakPage?: boolean;
+}
+
+export interface Reference {
+  name: string;
+  title: string;
+  company: string;
+  phone?: string;
+  email?: string;
+}
+
+export interface Certification {
+  name: string;
+  issuer?: string;
+  location?: string;
+  expireDate?: string;
+  year?: string;
+}
+
 export interface ResumeData {
   personalInfo: {
     name: string;
+    title?: string;
     email: string;
     phone: string;
     address: string;
-    photoUrl?: string; // Optional
+    photoUrl?: string;
     linkedin?: string;
     website?: string;
   };
@@ -36,8 +71,12 @@ export interface ResumeData {
   education: Education[];
   experience: Experience[];
   skills: string[];
-  certifications: string[];
+  certifications: Certification[];
   publications: Publication[];
+  volunteering: Volunteering[];
+  languages: Language[];
+  otherTraining: Training[];
+  references: Reference[];
 }
 
 export type AIProvider = 'openai' | 'google';
@@ -53,4 +92,3 @@ export interface ThemeConfig {
   fontFamily: string;
   backgroundColor: string; // For Sidebar
 }
-

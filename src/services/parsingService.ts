@@ -86,6 +86,7 @@ export const generateMockResponse = (text: string): ResumeData => {
   return {
     personalInfo: {
       name: "Mock User (AI Key Missing)",
+      title: "Software Engineer",
       email: "mock@example.com",
       phone: "123-456-7890",
       address: "Mock City, MK",
@@ -95,6 +96,10 @@ export const generateMockResponse = (text: string): ResumeData => {
     experience: [],
     skills: ["Mock Skill 1", "Mock Skill 2"],
     certifications: [],
-    publications: []
+    publications: [],
+    volunteering: [],
+    languages: [],
+    otherTraining: [],
+    references: [],
   };
 };

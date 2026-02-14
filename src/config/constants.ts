@@ -53,21 +53,26 @@ export const RESUME_SECTIONS = {
 export const INITIAL_RESUME_DATA = {
   personalInfo: {
     name: "Your Name",
+    title: "Your Title",
     email: "email@example.com",
     phone: "(555) 555-5555",
     address: "City, State",
   },
-  summary: "Professional summary goes here...",
+  summary: "",
   education: [],
   experience: [],
   skills: [],
   certifications: [],
-  publications: []
+  publications: [],
+  volunteering: [],
+  languages: [],
+  otherTraining: [],
+  references: [],
 } as const;
 
 export const INITIAL_THEME = {
-  primaryColor: "#1e293b", // Matches Slate from THEME_COLORS
-  backgroundColor: "#1e293b",
+  primaryColor: "#1e40af", // Blue
+  backgroundColor: "#f3f4f6", // Light Gray for Sidebar
   fontFamily: "font-sans",
 } as const;
 

@@ -19,7 +19,7 @@ export const ThemeSwitcher: React.FC = () => {
           {THEME_COLORS.map((c) => (
             <button
               key={c.name}
-              onClick={() => setTheme({ primaryColor: c.value, backgroundColor: c.value })}
+              onClick={() => setTheme({ primaryColor: c.value })}
               className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${theme.primaryColor === c.value ? 'border-slate-800 ring-2 ring-slate-200' : 'border-transparent'}`}
               style={{ backgroundColor: c.value }}
               title={c.name}
@@ -31,7 +31,7 @@ export const ThemeSwitcher: React.FC = () => {
               type="color" 
               className="absolute -top-1 -left-1 w-10 h-10 p-0 border-0 cursor-pointer"
               value={theme.primaryColor}
-              onChange={(e) => setTheme({ primaryColor: e.target.value, backgroundColor: e.target.value })}
+              onChange={(e) => setTheme({ primaryColor: e.target.value })}
             />
           </div>
         </div>

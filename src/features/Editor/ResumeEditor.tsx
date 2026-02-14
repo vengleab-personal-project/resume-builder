@@ -13,7 +13,6 @@ export const ResumeEditor: React.FC = () => {
     resumeData,
     loadingStates,
     skillsText,
-    certsText,
     updatePersonalInfo,
     addItem,
     removeItem,
@@ -21,7 +20,6 @@ export const ResumeEditor: React.FC = () => {
     updateSummary,
     updateSkills,
     handleSkillsChange,
-    handleCertsChange,
     refineWithInstruction,
     generateItems,
     setResumeData,
@@ -32,13 +30,15 @@ export const ResumeEditor: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-2 pb-10">
+      {/* Personal Information */}
       <Section 
         title={t('personalInfo')} 
         defaultOpen={true}
-        onAiClick={() => generateItems('pi-gen', 'Personal Information', (data) => setResumeData({...resumeData, personalInfo: data}), { name: "string", email: "string", phone: "string", address: "string", linkedin: "string" })}
+        onAiClick={() => generateItems('pi-gen', 'Personal Information', (data) => setResumeData({...resumeData, personalInfo: data}), { name: "string", title: "string", email: "string", phone: "string", address: "string", linkedin: "string" })}
         aiLoading={loadingStates['pi-gen']}
       >
         <Input label={t('labels.fullName')} value={resumeData.personalInfo.name} onChange={(e) => updatePersonalInfo('name', e.target.value)} />
+        <Input label={t('labels.jobTitle')} value={resumeData.personalInfo.title || ''} onChange={(e) => updatePersonalInfo('title', e.target.value)} />
         <Input 
           label={t('labels.email')} 
           value={resumeData.personalInfo.email} 
@@ -51,6 +51,7 @@ export const ResumeEditor: React.FC = () => {
         <Input label={t('labels.linkedin')} value={resumeData.personalInfo.linkedin} onChange={(e) => updatePersonalInfo('linkedin', e.target.value)} />
       </Section>
 
+      {/* Summary */}
       <Section 
         title={t('summary')} 
         onAiClick={() => refineWithInstruction('summary', resumeData.summary, "Write a professional 2-3 sentence resume summary for a candidate with these skills: " + resumeData.skills.join(', '), (v) => updateSummary(v))}
@@ -65,6 +66,7 @@ export const ResumeEditor: React.FC = () => {
          />
       </Section>
 
+      {/* Experience */}
       <Section 
         title={`${t('experience')} (${resumeData.experience.length})`}
         onAiClick={() => generateItems('exp-gen', 'Work Experience', (items) => setResumeData({...resumeData, experience: [...resumeData.experience, ...items]}), { items: [{ role: "string", company: "string", dates: "string", bullets: ["string"] }] })}
@@ -81,7 +83,7 @@ export const ResumeEditor: React.FC = () => {
                     ? "bg-indigo-600 text-white border-indigo-600" 
                     : "bg-white text-slate-300 hover:text-indigo-600 border-slate-100"
                 )}
-                title={exp.breakPage ? "Remove page break" : "Add page break after this item"}
+                title={exp.breakPage ? t('actions.removePageBreak') : t('actions.addPageBreak')}
               >
                 <Scissors size={14} />
               </button>
@@ -93,7 +95,7 @@ export const ResumeEditor: React.FC = () => {
               </button>
             </div>
             <Input 
-              label={t('labels.jobTitle')} 
+              label={t('labels.role')} 
               value={exp.role} 
               onChange={(e) => updateItem('experience', idx, 'role', e.target.value)} 
               onAiClick={() => refineWithInstruction(`exp-role-${idx}`, exp.role, "Suggest a more senior-sounding job title for: " + exp.role, (v) => updateItem('experience', idx, 'role', v))}
@@ -122,9 +124,10 @@ export const ResumeEditor: React.FC = () => {
         </button>
       </Section>
 
+      {/* Education */}
       <Section 
         title={`${t('education')} (${resumeData.education.length})`}
-        onAiClick={() => generateItems('edu-gen', 'Education', (items) => setResumeData({...resumeData, education: [...resumeData.education, ...items]}), { items: [{ school: "string", degree: "string", year: "string" }] })}
+        onAiClick={() => generateItems('edu-gen', 'Education', (items) => setResumeData({...resumeData, education: [...resumeData.education, ...items]}), { items: [{ school: "string", degree: "string", year: "string", gpa: "string" }] })}
         aiLoading={loadingStates['edu-gen']}
       >
          {resumeData.education.map((edu: any, idx: number) => (
@@ -136,7 +139,7 @@ export const ResumeEditor: React.FC = () => {
                   "p-1 text-xs transition-colors",
                   edu.breakPage ? "text-indigo-600" : "text-slate-300 hover:text-indigo-600"
                 )}
-                title={edu.breakPage ? "Remove page break" : "Add page break after this item"}
+                title={edu.breakPage ? t('actions.removePageBreak') : t('actions.addPageBreak')}
               >
                 <Scissors size={12} />
               </button>
@@ -149,17 +152,21 @@ export const ResumeEditor: React.FC = () => {
             </div>
             <Input label={t('labels.school')} value={edu.school} onChange={(e) => updateItem('education', idx, 'school', e.target.value)} />
             <Input label={t('labels.degree')} value={edu.degree} onChange={(e) => updateItem('education', idx, 'degree', e.target.value)} />
-            <Input label={t('labels.year')} value={edu.year} onChange={(e) => updateItem('education', idx, 'year', e.target.value)} />
+            <div className="grid grid-cols-2 gap-3">
+              <Input label={t('labels.year')} value={edu.year} onChange={(e) => updateItem('education', idx, 'year', e.target.value)} />
+              <Input label={t('labels.gpa')} value={edu.gpa || ''} onChange={(e) => updateItem('education', idx, 'gpa', e.target.value)} />
+            </div>
           </div>
         ))}
          <button 
-          onClick={() => addItem('education', { school: t('placeholders.newSchool'), degree: '', year: '' })}
+          onClick={() => addItem('education', { school: t('placeholders.newSchool'), degree: '', year: '', gpa: '' })}
           className="w-full py-2.5 text-indigo-600 text-sm font-semibold border-2 border-dashed border-indigo-100 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center justify-center gap-2"
         >
           <Plus size={16} /> {t('actions.addEducation')}
         </button>
       </Section>
 
+      {/* Skills */}
       <Section 
         title={t('skills')}
         onAiClick={() => refineWithInstruction('skills-gen', resumeData.skills.join(', '), "Based on this resume, suggest 5 more relevant technical skills for this candidate.", (v) => setResumeData({...resumeData, skills: [...new Set([...resumeData.skills, ...v.split(',').map((s: string)=>s.trim())])] }))}
@@ -176,16 +183,44 @@ export const ResumeEditor: React.FC = () => {
               onChange={(e) => handleSkillsChange(e.target.value)}
             />
          </div>
-         <div>
-            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">{t('labels.certifications')}</label>
-            <textarea
-              className="w-full text-sm p-3 bg-slate-50/50 border border-slate-200 rounded-md focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 outline-none transition-all min-h-[100px]"
-              value={certsText}
-              onChange={(e) => handleCertsChange(e.target.value)}
-            />
-         </div>
       </Section>
 
+      {/* Certifications */}
+      <Section 
+        title={`${t('certifications')} (${(resumeData.certifications || []).length})`}
+        onAiClick={() => generateItems('cert-gen', 'Professional Certifications', (items) => setResumeData({...resumeData, certifications: [...(resumeData.certifications || []), ...items]}), { items: [{ name: "string", issuer: "string", expireDate: "string", year: "string" }] })}
+        aiLoading={loadingStates['cert-gen']}
+      >
+        {(resumeData.certifications || []).map((cert: any, idx: number) => {
+          const certObj = typeof cert === 'string' ? { name: cert, issuer: '', expireDate: '', year: '' } : cert;
+          return (
+            <div key={idx} className="mb-4 pb-4 border-b border-slate-100 last:border-0 last:pb-0 relative">
+              <div className="absolute top-0 right-0">
+                <button 
+                  onClick={() => removeItem('certifications', idx)}
+                  className="p-1 text-slate-300 hover:text-red-500 transition-colors"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+              <Input label={t('labels.certName')} value={certObj.name} onChange={(e) => updateItem('certifications', idx, 'name', e.target.value)} />
+              <Input label={t('labels.certIssuer')} value={certObj.issuer || ''} onChange={(e) => updateItem('certifications', idx, 'issuer', e.target.value)} />
+              <div className="grid grid-cols-2 gap-3">
+                <Input label={t('labels.certExpire')} value={certObj.expireDate || ''} onChange={(e) => updateItem('certifications', idx, 'expireDate', e.target.value)} />
+                <Input label={t('labels.certYear')} value={certObj.year || ''} onChange={(e) => updateItem('certifications', idx, 'year', e.target.value)} />
+              </div>
+            </div>
+          );
+        })}
+        <button 
+          onClick={() => addItem('certifications', { name: '', issuer: '', expireDate: '', year: '' })}
+          className="w-full py-2.5 text-indigo-600 text-sm font-semibold border-2 border-dashed border-indigo-100 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center justify-center gap-2"
+        >
+          <Plus size={16} /> {t('actions.addCertification')}
+        </button>
+      </Section>
+
+      {/* Publications */}
       <Section 
         title={`${t('publications')} (${resumeData.publications?.length || 0})`}
         onAiClick={() => generateItems('pub-gen', 'Publications', (items) => setResumeData({...resumeData, publications: [...(resumeData.publications || []), ...items]}), { items: [{ title: "string", link: "string", date: "string" }] })}
@@ -200,7 +235,7 @@ export const ResumeEditor: React.FC = () => {
                   "p-1 text-xs transition-colors",
                   pub.breakPage ? "text-indigo-600" : "text-slate-300 hover:text-indigo-600"
                 )}
-                title={pub.breakPage ? "Remove page break" : "Add page break after this item"}
+                title={pub.breakPage ? t('actions.removePageBreak') : t('actions.addPageBreak')}
               >
                 <Scissors size={12} />
               </button>
@@ -220,6 +255,127 @@ export const ResumeEditor: React.FC = () => {
           className="w-full py-2.5 text-indigo-600 text-sm font-semibold border-2 border-dashed border-indigo-100 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center justify-center gap-2"
         >
           <Plus size={16} /> {t('actions.addPublication')}
+        </button>
+      </Section>
+
+      {/* Volunteering */}
+      <Section 
+        title={`${t('volunteering')} (${(resumeData.volunteering || []).length})`}
+        onAiClick={() => generateItems('vol-gen', 'Volunteering', (items) => setResumeData({...resumeData, volunteering: [...(resumeData.volunteering || []), ...items]}), { items: [{ role: "string", organization: "string", topic: "string" }] })}
+        aiLoading={loadingStates['vol-gen']}
+      >
+        {(resumeData.volunteering || []).map((vol: any, idx: number) => (
+          <div key={idx} className="mb-4 pb-4 border-b border-slate-100 last:border-0 last:pb-0 relative">
+            <div className="absolute top-0 right-0">
+              <button 
+                onClick={() => removeItem('volunteering', idx)}
+                className="p-1 text-slate-300 hover:text-red-500 transition-colors"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+            <Input label={t('labels.volRole')} value={vol.role} onChange={(e) => updateItem('volunteering', idx, 'role', e.target.value)} />
+            <Input label={t('labels.volOrganization')} value={vol.organization || ''} onChange={(e) => updateItem('volunteering', idx, 'organization', e.target.value)} />
+            <Input label={t('labels.volTopic')} value={vol.topic || ''} onChange={(e) => updateItem('volunteering', idx, 'topic', e.target.value)} />
+          </div>
+        ))}
+        <button 
+          onClick={() => addItem('volunteering', { role: '', organization: '', topic: '' })}
+          className="w-full py-2.5 text-indigo-600 text-sm font-semibold border-2 border-dashed border-indigo-100 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center justify-center gap-2"
+        >
+          <Plus size={16} /> {t('actions.addVolunteering')}
+        </button>
+      </Section>
+
+      {/* Languages */}
+      <Section 
+        title={`${t('languages')} (${(resumeData.languages || []).length})`}
+        onAiClick={() => generateItems('lang-gen', 'Languages', (items) => setResumeData({...resumeData, languages: [...(resumeData.languages || []), ...items]}), { items: [{ name: "string", proficiency: "string" }] })}
+        aiLoading={loadingStates['lang-gen']}
+      >
+        {(resumeData.languages || []).map((lang: any, idx: number) => (
+          <div key={idx} className="mb-4 pb-4 border-b border-slate-100 last:border-0 last:pb-0 relative">
+            <div className="absolute top-0 right-0">
+              <button 
+                onClick={() => removeItem('languages', idx)}
+                className="p-1 text-slate-300 hover:text-red-500 transition-colors"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Input label={t('labels.langName')} value={lang.name} onChange={(e) => updateItem('languages', idx, 'name', e.target.value)} />
+              <Input label={t('labels.langProficiency')} value={lang.proficiency} onChange={(e) => updateItem('languages', idx, 'proficiency', e.target.value)} />
+            </div>
+          </div>
+        ))}
+        <button 
+          onClick={() => addItem('languages', { name: '', proficiency: '' })}
+          className="w-full py-2.5 text-indigo-600 text-sm font-semibold border-2 border-dashed border-indigo-100 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center justify-center gap-2"
+        >
+          <Plus size={16} /> {t('actions.addLanguage')}
+        </button>
+      </Section>
+
+      {/* Other Training */}
+      <Section 
+        title={`${t('otherTraining')} (${(resumeData.otherTraining || []).length})`}
+        onAiClick={() => generateItems('train-gen', 'Other Training', (items) => setResumeData({...resumeData, otherTraining: [...(resumeData.otherTraining || []), ...items]}), { items: [{ name: "string" }] })}
+        aiLoading={loadingStates['train-gen']}
+      >
+        {(resumeData.otherTraining || []).map((training: any, idx: number) => (
+          <div key={idx} className="mb-4 pb-4 border-b border-slate-100 last:border-0 last:pb-0 relative">
+            <div className="absolute top-0 right-0">
+              <button 
+                onClick={() => removeItem('otherTraining', idx)}
+                className="p-1 text-slate-300 hover:text-red-500 transition-colors"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+            <Input label={t('labels.trainingName')} value={training.name || ''} onChange={(e) => updateItem('otherTraining', idx, 'name', e.target.value)} />
+          </div>
+        ))}
+        <button 
+          onClick={() => addItem('otherTraining', { name: '' })}
+          className="w-full py-2.5 text-indigo-600 text-sm font-semibold border-2 border-dashed border-indigo-100 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center justify-center gap-2"
+        >
+          <Plus size={16} /> {t('actions.addTraining')}
+        </button>
+      </Section>
+
+      {/* References */}
+      <Section 
+        title={`${t('references')} (${(resumeData.references || []).length})`}
+        onAiClick={() => generateItems('ref-gen', 'References', (items) => setResumeData({...resumeData, references: [...(resumeData.references || []), ...items]}), { items: [{ name: "string", title: "string", company: "string", phone: "string", email: "string" }] })}
+        aiLoading={loadingStates['ref-gen']}
+      >
+        {(resumeData.references || []).map((ref: any, idx: number) => (
+          <div key={idx} className="mb-4 pb-4 border-b border-slate-100 last:border-0 last:pb-0 relative">
+            <div className="absolute top-0 right-0">
+              <button 
+                onClick={() => removeItem('references', idx)}
+                className="p-1 text-slate-300 hover:text-red-500 transition-colors"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+            <Input label={t('labels.refName')} value={ref.name} onChange={(e) => updateItem('references', idx, 'name', e.target.value)} />
+            <div className="grid grid-cols-2 gap-3">
+              <Input label={t('labels.refTitle')} value={ref.title || ''} onChange={(e) => updateItem('references', idx, 'title', e.target.value)} />
+              <Input label={t('labels.refCompany')} value={ref.company || ''} onChange={(e) => updateItem('references', idx, 'company', e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Input label={t('labels.refPhone')} value={ref.phone || ''} onChange={(e) => updateItem('references', idx, 'phone', e.target.value)} />
+              <Input label={t('labels.refEmail')} value={ref.email || ''} onChange={(e) => updateItem('references', idx, 'email', e.target.value)} />
+            </div>
+          </div>
+        ))}
+        <button 
+          onClick={() => addItem('references', { name: '', title: '', company: '', phone: '', email: '' })}
+          className="w-full py-2.5 text-indigo-600 text-sm font-semibold border-2 border-dashed border-indigo-100 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center justify-center gap-2"
+        >
+          <Plus size={16} /> {t('actions.addReference')}
         </button>
       </Section>
     </div>
