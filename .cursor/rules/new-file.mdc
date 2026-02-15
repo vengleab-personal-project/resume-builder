@@ -34,6 +34,7 @@ alwaysApply: false
 - **Page/route?** → `src/app/[route]/page.tsx`
 - **API endpoint?** → `src/app/api/[name]/route.ts`
 - **Feature with logic/hooks?** → `src/features/`
+- **Domain sub-component of a feature?** → `src/features/FeatureName/components/`
 - **Generic UI?** → `src/components/ui/`
 - **Custom common hook?** → `src/hooks/`
 - **Business logic?** → `src/services/`

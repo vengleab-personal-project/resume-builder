@@ -30,9 +30,50 @@ Use for all feature modules in `src/features/`.
 
 ```
 FeatureName/
-├── FeatureName.tsx           # View — presentation only
+├── FeatureName.tsx           # View — thin composition layer
 ├── useFeatureNameLogic.ts    # ViewModel — all business logic
+├── components/               # Domain-specific sub-components (when needed)
+│   ├── SectionA.tsx
+│   ├── SectionB.tsx
+│   └── index.ts
 └── index.ts                  # Public exports
+```
+
+### Feature View Decomposition
+
+When a feature View exceeds ~150 lines or contains repeated section patterns, decompose it:
+
+1. Extract each logical section into a **domain-specific sub-component** in `FeatureName/components/`
+2. Sub-components receive data via **props** (not direct store/context access) — this keeps them testable and reusable
+3. The parent View becomes a **thin composition layer** that reads from store/hooks and passes data down
+4. Extract repeated visual patterns (headings, list items, timeline markers) into shared sub-components
+5. Use proper TypeScript types for all props — no `any`
+
+```tsx
+// ✅ Parent View — thin composition
+const ResumePreview = () => {
+  const { resumeData, theme } = useResumeStore()
+  return (
+    <div>
+      <ResumeHeader name={resumeData.personalInfo.name} primaryColor={theme.primaryColor} />
+      <SkillsSection skills={resumeData.skills} />
+      <EducationSection education={resumeData.education} primaryColor={theme.primaryColor} />
+    </div>
+  )
+}
+
+// ✅ Sub-component — props-driven, no store access
+const SkillsSection = ({ skills, title }: SkillsSectionProps) => (
+  <section>
+    <SidebarSectionHeading title={title} />
+    <ul>{skills.map((s, i) => <li key={i}>{s}</li>)}</ul>
+  </section>
+)
+
+// ❌ Sub-component should NOT access store directly
+const SkillsSection = () => {
+  const { resumeData } = useResumeStore() // ← wrong
+}
 ```
 
 ### Layer Responsibilities
