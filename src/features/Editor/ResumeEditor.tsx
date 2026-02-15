@@ -472,7 +472,7 @@ export const ResumeEditor: React.FC = () => {
       <Section 
         title={t('personalInfo')} 
         defaultOpen={true}
-        onAiClick={() => generateItems('pi-gen', 'Personal Information', (data) => setResumeData({...resumeData, personalInfo: data}))}
+        onAiClick={() => generateItems('pi-gen', 'Personal Information', (data) => setResumeData({...resumeData, personalInfo: data}), { name: "string", title: "string", email: "string", phone: "string", address: "string", linkedin: "string", website: "string" })}
         aiLoading={loadingStates['pi-gen']}
       >
         <div className="mb-4">

@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Mark packages that rely on Node.js native modules as external
+  // so they are not bundled into the serverless function
+  serverExternalPackages: ["pdf-parse", "mammoth"],
 };
 
 export default nextConfig;
