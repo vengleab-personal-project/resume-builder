@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 import { ENV } from '@/config/env';
 import { AI_MODELS, AI_PROVIDERS, GEMINI_MODEL_IDS } from '@/config/constants';
 
@@ -12,14 +12,36 @@ const JSON_RESPONSE_CONFIG = {
   responseMimeType: "application/json",
 };
 
+// Safety settings (Guardrails)
+const SAFETY_SETTINGS = [
+  {
+    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+  },
+];
+
 export const geminiModel = genAI.getGenerativeModel({ 
   model: GEMINI_MODEL_IDS.FLASH_PREVIEW, 
-  generationConfig: JSON_RESPONSE_CONFIG
+  generationConfig: JSON_RESPONSE_CONFIG,
+  safetySettings: SAFETY_SETTINGS,
 });
 
 // Helper for single text response (override config)
 export const geminiTextModel = genAI.getGenerativeModel({ 
-  model: GEMINI_MODEL_IDS.FLASH_PREVIEW
+  model: GEMINI_MODEL_IDS.FLASH_PREVIEW,
+  safetySettings: SAFETY_SETTINGS,
 });
 
 // Get model by ID
@@ -30,6 +52,7 @@ export const getGeminiModel = (modelId: string) => {
 
   return genAI.getGenerativeModel({ 
     model: modelId,
-    generationConfig: JSON_RESPONSE_CONFIG
+    generationConfig: JSON_RESPONSE_CONFIG,
+    safetySettings: SAFETY_SETTINGS,
   });
 };

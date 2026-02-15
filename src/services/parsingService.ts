@@ -14,11 +14,11 @@ export const extractTextFromFile = async (
 ): Promise<string> => {
   if (fileType === FILE_PARSING.SUPPORTED_MIME_TYPES.PDF) {
     try {
-      // Dynamic import of pdf-parse for Next.js compatibility
-      const { PDFParse } = await import('pdf-parse');
-      const parser = new PDFParse({ data: buffer });
-      const result = await parser.getText();
-      return result.text;
+      // unpdf is serverless-compatible (no native canvas/DOM dependencies)
+      const { extractText, getDocumentProxy } = await import('unpdf');
+      const pdf = await getDocumentProxy(new Uint8Array(buffer));
+      const { text } = await extractText(pdf, { mergePages: true });
+      return text;
     } catch (e: unknown) {
       console.error("PDF Parse Error:", e);
       throw new Error(API_ERROR_MESSAGES.PDF_PARSING_NOT_SUPPORTED);
@@ -76,7 +76,18 @@ export const parseResumeWithGemini = async (
 
   const response = await result.response;
   const text = response.text();
-  return JSON.parse(text);
+  
+  try {
+    const parsed = JSON.parse(text);
+    if (parsed.error) {
+      throw new Error(`AI processing error: ${parsed.error}`);
+    }
+    return parsed;
+  } catch (e: any) {
+    if (e.message?.includes('AI processing error')) throw e;
+    console.error("Failed to parse Gemini JSON response:", text);
+    throw new Error("Failed to parse the resume data. The content might be invalid or unsupported.");
+  }
 };
 
 /**

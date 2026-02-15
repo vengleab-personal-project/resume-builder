@@ -33,8 +33,18 @@ export const refineWithGemini = async (
   const response = await result.response;
   const text = response.text();
 
+  // Guard against unwanted output (refusal or error messages)
+  if (text.toLowerCase().includes("cannot assist") || text.toLowerCase().includes("refuse") || text.toLowerCase().includes("unrelated")) {
+    throw new Error("The request was declined as it is outside the professional scope of this resume builder.");
+  }
+
   if (isJson) {
-    return JSON.parse(text);
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      console.error("Failed to parse AI JSON response:", text);
+      throw new Error("Failed to process the AI response. Please try again with a different instruction.");
+    }
   }
   return { result: text.trim() };
 };
