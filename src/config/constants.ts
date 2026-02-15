@@ -6,8 +6,8 @@ export const AI_PROVIDERS = {
 
 export const AI_MODELS = {
   [AI_PROVIDERS.OPENAI]: [
-    { id: 'gpt-4o', name: 'GPT-4o (Smartest)' },
-    { id: 'gpt-3.5-turbo', name: 'GPT-3.5 (Fast)' },
+    // { id: 'gpt-4o', name: 'GPT-4o (Smartest)' },
+    // { id: 'gpt-3.5-turbo', name: 'GPT-3.5 (Fast)' },
   ],
   [AI_PROVIDERS.GOOGLE]: [
     { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash (Fast & Smart)' },

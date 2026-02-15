@@ -41,6 +41,9 @@ export const Upload: React.FC = () => {
         </label>
         <div className="grid grid-cols-2 gap-2">
           {Object.values(AI_PROVIDERS).map((providerId) => {
+            if (AI_MODELS[providerId as keyof typeof AI_MODELS].length === 0) {
+              return null;
+            }
             const Icon = providerIcons[providerId];
             const isSelected = aiConfig.provider === providerId;
             return (
