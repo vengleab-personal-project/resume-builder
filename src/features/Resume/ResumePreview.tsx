@@ -34,8 +34,72 @@ export const ResumePreview = () => {
     languages = [],
     otherTraining = [],
     references = [],
+    sectionOrder = ['summary', 'experience', 'education', 'skills', 'certifications', 'publications', 'volunteering', 'languages', 'otherTraining', 'references'],
   } = resumeData;
   const { t } = useTranslations('editor');
+
+  // Define which sections go where
+  const sidebarSectionIds = ['skills', 'certifications', 'volunteering', 'languages', 'otherTraining', 'references', 'publications'];
+  const mainSectionIds = ['summary', 'experience', 'education'];
+
+  // Filter and sort sections based on sectionOrder
+  const sortedSidebarSections = sectionOrder.filter(id => sidebarSectionIds.includes(id));
+  const sortedMainSections = sectionOrder.filter(id => mainSectionIds.includes(id));
+
+  const renderSection = (sectionId: string) => {
+    switch (sectionId) {
+      case 'summary':
+        return summary ? <SummarySection key="summary" summary={summary} title={t('preview.profile')} /> : null;
+      case 'experience':
+        return hasData(experience) ? (
+          <ExperienceSection
+            key="experience"
+            experience={experience}
+            primaryColor={theme.primaryColor}
+            title={t('preview.experience')}
+          />
+        ) : null;
+      case 'education':
+        return hasData(education) ? (
+          <EducationSection
+            key="education"
+            education={education}
+            primaryColor={theme.primaryColor}
+            title={t('preview.education')}
+          />
+        ) : null;
+      case 'skills':
+        return hasData(skills) ? <SkillsSection key="skills" skills={skills} title={t('preview.skills')} /> : null;
+      case 'certifications':
+        return hasData(certifications) ? (
+          <CertificationsSection
+            key="certifications"
+            certifications={certifications}
+            primaryColor={theme.primaryColor}
+            title={t('preview.certifications')}
+          />
+        ) : null;
+      case 'volunteering':
+        return hasData(volunteering) ? <VolunteeringSection key="volunteering" volunteering={volunteering} title={t('preview.volunteering')} /> : null;
+      case 'languages':
+        return hasData(languages) ? <LanguagesSection key="languages" languages={languages} title={t('preview.languages')} /> : null;
+      case 'otherTraining':
+        return hasData(otherTraining) ? <OtherTrainingSection key="otherTraining" otherTraining={otherTraining} title={t('preview.otherTraining')} /> : null;
+      case 'references':
+        return hasData(references) ? <ReferencesSection key="references" references={references} title={t('preview.references')} /> : null;
+      case 'publications':
+        return hasData(publications) ? (
+          <PublicationsSection
+            key="publications"
+            publications={publications}
+            title={t('preview.publications')}
+            viewLabel={t('preview.view')}
+          />
+        ) : null;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div
@@ -69,41 +133,7 @@ export const ResumePreview = () => {
             title={t('preview.contact')}
           />
 
-          {hasData(skills) && (
-            <SkillsSection skills={skills} title={t('preview.skills')} />
-          )}
-
-          {hasData(certifications) && (
-            <CertificationsSection
-              certifications={certifications}
-              primaryColor={theme.primaryColor}
-              title={t('preview.certifications')}
-            />
-          )}
-
-          {hasData(volunteering) && (
-            <VolunteeringSection volunteering={volunteering} title={t('preview.volunteering')} />
-          )}
-
-          {hasData(languages) && (
-            <LanguagesSection languages={languages} title={t('preview.languages')} />
-          )}
-
-          {hasData(otherTraining) && (
-            <OtherTrainingSection otherTraining={otherTraining} title={t('preview.otherTraining')} />
-          )}
-
-          {hasData(references) && (
-            <ReferencesSection references={references} title={t('preview.references')} />
-          )}
-
-          {hasData(publications) && (
-            <PublicationsSection
-              publications={publications}
-              title={t('preview.publications')}
-              viewLabel={t('preview.view')}
-            />
-          )}
+          {sortedSidebarSections.map(renderSection)}
 
           {/* Sidebar Background Extension for Print */}
           <div
@@ -114,26 +144,7 @@ export const ResumePreview = () => {
 
         {/* Main Content (Right) */}
         <main className="flex-1 p-8 pb-16 bg-white shrink-0 relative z-0">
-
-          {hasData(education) && (
-            <EducationSection
-              education={education}
-              primaryColor={theme.primaryColor}
-              title={t('preview.education')}
-            />
-          )}
-
-          {hasData(experience) && (
-            <ExperienceSection
-              experience={experience}
-              primaryColor={theme.primaryColor}
-              title={t('preview.experience')}
-            />
-          )}
-
-          {summary && (
-            <SummarySection summary={summary} title={t('preview.profile')} />
-          )}
+          {sortedMainSections.map(renderSection)}
 
           {/* White Background Extension for Print */}
           <div

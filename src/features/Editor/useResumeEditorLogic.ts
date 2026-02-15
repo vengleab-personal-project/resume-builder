@@ -98,6 +98,10 @@ export const useResumeEditorLogic = () => {
     setResumeData({ ...resumeData, [key]: list });
   };
 
+  const updateSectionOrder = (newOrder: string[]) => {
+    setResumeData({ ...resumeData, sectionOrder: newOrder });
+  };
+
   const updateSummary = (v: string) => setResumeData({...resumeData, summary: v});
   
   const updateSkills = (v: string) => setResumeData({...resumeData, skills: v.split(',').map(s => s.trim()).filter(Boolean)});
@@ -122,5 +126,6 @@ export const useResumeEditorLogic = () => {
     generateItems,
     setResumeData,
     toggleBreakPage,
+    updateSectionOrder,
   };
 };

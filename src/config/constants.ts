@@ -68,6 +68,7 @@ export const INITIAL_RESUME_DATA = {
   languages: [],
   otherTraining: [],
   references: [],
+  sectionOrder: ['summary', 'experience', 'education', 'skills', 'certifications', 'publications', 'volunteering', 'languages', 'otherTraining', 'references'],
 } as const;
 
 export const INITIAL_THEME = {
