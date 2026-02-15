@@ -42,6 +42,7 @@ export const ResumeEditor: React.FC = () => {
     setResumeData,
     toggleBreakPage,
     updateSectionOrder,
+    sectionOrder,
   } = useResumeEditorLogic();
 
   const { t } = useTranslations('editor');
@@ -61,11 +62,11 @@ export const ResumeEditor: React.FC = () => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      const oldIndex = resumeData.sectionOrder?.indexOf(active.id as string) ?? -1;
-      const newIndex = resumeData.sectionOrder?.indexOf(over.id as string) ?? -1;
+      const oldIndex = sectionOrder?.indexOf(active.id as string) ?? -1;
+      const newIndex = sectionOrder?.indexOf(over.id as string) ?? -1;
 
       if (oldIndex !== -1 && newIndex !== -1) {
-        const newOrder = arrayMove(resumeData.sectionOrder!, oldIndex, newIndex);
+        const newOrder = arrayMove(sectionOrder!, oldIndex, newIndex);
         updateSectionOrder(newOrder);
       }
     }
@@ -89,14 +90,14 @@ export const ResumeEditor: React.FC = () => {
           <SortableSection id="summary" key="summary">
             <Section 
               title={t('summary')} 
-              onAiClick={() => refineWithInstruction('summary', resumeData.summary, "Write a professional 2-3 sentence resume summary for a candidate with these skills: " + resumeData.skills.join(', '), (v) => updateSummary(v))}
+              onAiClick={() => refineWithInstruction('summary', resumeData.summary, "Write a professional 2-3 sentence resume summary for a candidate with these skills: " + resumeData.skills.join(', '), (v) => setResumeData({...resumeData, summary: v}))}
               aiLoading={loadingStates['summary']}
             >
                <TextArea 
                   label={t('labels.summary')} 
                   value={resumeData.summary} 
                   onChange={(e) => updateSummary(e.target.value)}
-                  onAiClick={() => refineWithInstruction('summary-refine', resumeData.summary, "Make this summary more impactful and professional", (v) => updateSummary(v))}
+                  onAiClick={() => refineWithInstruction('summary-refine', resumeData.summary, "Make this summary more impactful and professional", (v) => setResumeData({...resumeData, summary: v}))}
                   aiLoading={loadingStates['summary-refine']}
                />
             </Section>
@@ -108,7 +109,7 @@ export const ResumeEditor: React.FC = () => {
           <SortableSection id="experience" key="experience">
             <Section 
               title={`${t('experience')} (${resumeData.experience.length})`}
-              onAiClick={() => generateItems('exp-gen', 'Work Experience', (items) => setResumeData({...resumeData, experience: [...resumeData.experience, ...items], sectionOrder: resumeData.sectionOrder}), { items: [{ role: "string", company: "string", dates: "string", bullets: ["string"] }] })}
+              onAiClick={() => generateItems('exp-gen', 'Work Experience', (items) => setResumeData({...resumeData, experience: [...resumeData.experience, ...items]}), { items: [{ role: "string", company: "string", dates: "string", bullets: ["string"] }] })}
               aiLoading={loadingStates['exp-gen']}
             >
               {resumeData.experience.map((exp: any, idx: number) => (
@@ -137,7 +138,11 @@ export const ResumeEditor: React.FC = () => {
                     label={t('labels.role')} 
                     value={exp.role} 
                     onChange={(e) => updateItem('experience', idx, 'role', e.target.value)} 
-                    onAiClick={() => refineWithInstruction(`exp-role-${idx}`, exp.role, "Suggest a more senior-sounding job title for: " + exp.role, (v) => updateItem('experience', idx, 'role', v))}
+                    onAiClick={() => refineWithInstruction(`exp-role-${idx}`, exp.role, "Suggest a more senior-sounding job title for: " + exp.role, (v) => {
+                      const newList = [...resumeData.experience];
+                      newList[idx] = { ...newList[idx], role: v };
+                      setResumeData({...resumeData, experience: newList});
+                    })}
                     aiLoading={loadingStates[`exp-role-${idx}`]}
                   />
                   <Input label={t('labels.company')} value={exp.company} onChange={(e) => updateItem('experience', idx, 'company', e.target.value)} />
@@ -150,7 +155,11 @@ export const ResumeEditor: React.FC = () => {
                     value={(exp.bullets || []).join('\n')} 
                     onChange={(e) => updateItem('experience', idx, 'bullets', e.target.value.split('\n'))} 
                     placeholder={t('placeholders.bullets')}
-                    onAiClick={() => refineWithInstruction(`exp-bullets-${idx}`, (exp.bullets || []).join('\n'), "Turn these into strong, achievement-oriented bullet points starting with action verbs", (v) => updateItem('experience', idx, 'bullets', v.split('\n')))}
+                    onAiClick={() => refineWithInstruction(`exp-bullets-${idx}`, (exp.bullets || []).join('\n'), "Turn these into strong, achievement-oriented bullet points starting with action verbs", (v) => {
+                      const newList = [...resumeData.experience];
+                      newList[idx] = { ...newList[idx], bullets: v.split('\n') };
+                      setResumeData({...resumeData, experience: newList});
+                    })}
                     aiLoading={loadingStates[`exp-bullets-${idx}`]}
                   />
                 </div>
@@ -170,7 +179,7 @@ export const ResumeEditor: React.FC = () => {
           <SortableSection id="education" key="education">
             <Section 
               title={`${t('education')} (${resumeData.education.length})`}
-              onAiClick={() => generateItems('edu-gen', 'Education', (items) => setResumeData({...resumeData, education: [...resumeData.education, ...items], sectionOrder: resumeData.sectionOrder}), { items: [{ school: "string", degree: "string", year: "string", gpa: "string" }] })}
+              onAiClick={() => generateItems('edu-gen', 'Education', (items) => setResumeData({...resumeData, education: [...resumeData.education, ...items]}), { items: [{ school: "string", degree: "string", year: "string", gpa: "string" }] })}
               aiLoading={loadingStates['edu-gen']}
             >
                {resumeData.education.map((edu: any, idx: number) => (
@@ -216,13 +225,13 @@ export const ResumeEditor: React.FC = () => {
           <SortableSection id="skills" key="skills">
             <Section 
               title={t('skills')}
-              onAiClick={() => refineWithInstruction('skills-gen', resumeData.skills.join(', '), "Based on this resume, suggest 5 more relevant technical skills for this candidate.", (v) => setResumeData({...resumeData, skills: [...new Set([...resumeData.skills, ...v.split(',').map((s: string)=>s.trim())])], sectionOrder: resumeData.sectionOrder }))}
+              onAiClick={() => refineWithInstruction('skills-gen', resumeData.skills.join(', '), "Based on this resume, suggest 5 more relevant technical skills for this candidate.", (v) => setResumeData({...resumeData, skills: [...new Set([...resumeData.skills, ...v.split(',').map((s: string)=>s.trim())])]}))}
               aiLoading={loadingStates['skills-gen']}
             >
                <div className="mb-6">
                   <div className="flex items-center justify-between mb-2">
                     <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t('labels.skills')}</label>
-                    <AIButton label={t('actions.clean')} onClick={() => refineWithInstruction('skills-fix', resumeData.skills.join(', '), "Format these skills nicely, remove duplicates, and capitalize correctly. Return comma separated.", (v) => updateSkills(v))} loading={loadingStates['skills-fix']} />
+                    <AIButton label={t('actions.clean')} onClick={() => refineWithInstruction('skills-fix', resumeData.skills.join(', '), "Format these skills nicely, remove duplicates, and capitalize correctly. Return comma separated.", (v) => setResumeData({...resumeData, skills: v.split(',').map(s => s.trim()).filter(Boolean)}))} loading={loadingStates['skills-fix']} />
                   </div>
                   <textarea
                     className="w-full text-sm p-3 bg-slate-50/50 border border-slate-200 rounded-md focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 outline-none transition-all min-h-[100px]"
@@ -239,7 +248,7 @@ export const ResumeEditor: React.FC = () => {
           <SortableSection id="certifications" key="certifications">
             <Section 
               title={`${t('certifications')} (${(resumeData.certifications || []).length})`}
-              onAiClick={() => generateItems('cert-gen', 'Professional Certifications', (items) => setResumeData({...resumeData, certifications: [...(resumeData.certifications || []), ...items], sectionOrder: resumeData.sectionOrder}), { items: [{ name: "string", issuer: "string", expireDate: "string", year: "string" }] })}
+              onAiClick={() => generateItems('cert-gen', 'Professional Certifications', (items) => setResumeData({...resumeData, certifications: [...(resumeData.certifications || []), ...items]}), { items: [{ name: "string", issuer: "string", expireDate: "string", year: "string" }] })}
               aiLoading={loadingStates['cert-gen']}
             >
               {(resumeData.certifications || []).map((cert: any, idx: number) => {
@@ -278,7 +287,7 @@ export const ResumeEditor: React.FC = () => {
           <SortableSection id="publications" key="publications">
             <Section 
               title={`${t('publications')} (${resumeData.publications?.length || 0})`}
-              onAiClick={() => generateItems('pub-gen', 'Publications', (items) => setResumeData({...resumeData, publications: [...(resumeData.publications || []), ...items], sectionOrder: resumeData.sectionOrder}), { items: [{ title: "string", link: "string", date: "string" }] })}
+              onAiClick={() => generateItems('pub-gen', 'Publications', (items) => setResumeData({...resumeData, publications: [...(resumeData.publications || []), ...items]}), { items: [{ title: "string", link: "string", date: "string" }] })}
               aiLoading={loadingStates['pub-gen']}
             >
               {(resumeData.publications || []).map((pub: any, idx: number) => (
@@ -320,7 +329,7 @@ export const ResumeEditor: React.FC = () => {
           <SortableSection id="volunteering" key="volunteering">
             <Section 
               title={`${t('volunteering')} (${(resumeData.volunteering || []).length})`}
-              onAiClick={() => generateItems('vol-gen', 'Volunteering', (items) => setResumeData({...resumeData, volunteering: [...(resumeData.volunteering || []), ...items], sectionOrder: resumeData.sectionOrder}), { items: [{ role: "string", organization: "string", topic: "string" }] })}
+              onAiClick={() => generateItems('vol-gen', 'Volunteering', (items) => setResumeData({...resumeData, volunteering: [...(resumeData.volunteering || []), ...items]}), { items: [{ role: "string", organization: "string", topic: "string" }] })}
               aiLoading={loadingStates['vol-gen']}
             >
               {(resumeData.volunteering || []).map((vol: any, idx: number) => (
@@ -353,7 +362,7 @@ export const ResumeEditor: React.FC = () => {
           <SortableSection id="languages" key="languages">
             <Section 
               title={`${t('languages')} (${(resumeData.languages || []).length})`}
-              onAiClick={() => generateItems('lang-gen', 'Languages', (items) => setResumeData({...resumeData, languages: [...(resumeData.languages || []), ...items], sectionOrder: resumeData.sectionOrder}), { items: [{ name: "string", proficiency: "string" }] })}
+              onAiClick={() => generateItems('lang-gen', 'Languages', (items) => setResumeData({...resumeData, languages: [...(resumeData.languages || []), ...items]}), { items: [{ name: "string", proficiency: "string" }] })}
               aiLoading={loadingStates['lang-gen']}
             >
               {(resumeData.languages || []).map((lang: any, idx: number) => (
@@ -387,7 +396,7 @@ export const ResumeEditor: React.FC = () => {
           <SortableSection id="otherTraining" key="otherTraining">
             <Section 
               title={`${t('otherTraining')} (${(resumeData.otherTraining || []).length})`}
-              onAiClick={() => generateItems('train-gen', 'Other Training', (items) => setResumeData({...resumeData, otherTraining: [...(resumeData.otherTraining || []), ...items], sectionOrder: resumeData.sectionOrder}), { items: [{ name: "string" }] })}
+              onAiClick={() => generateItems('train-gen', 'Other Training', (items) => setResumeData({...resumeData, otherTraining: [...(resumeData.otherTraining || []), ...items]}), { items: [{ name: "string" }] })}
               aiLoading={loadingStates['train-gen']}
             >
               {(resumeData.otherTraining || []).map((training: any, idx: number) => (
@@ -418,7 +427,7 @@ export const ResumeEditor: React.FC = () => {
           <SortableSection id="references" key="references">
             <Section 
               title={`${t('references')} (${(resumeData.references || []).length})`}
-              onAiClick={() => generateItems('ref-gen', 'References', (items) => setResumeData({...resumeData, references: [...(resumeData.references || []), ...items], sectionOrder: resumeData.sectionOrder}), { items: [{ name: "string", title: "string", company: "string", phone: "string", email: "string" }] })}
+              onAiClick={() => generateItems('ref-gen', 'References', (items) => setResumeData({...resumeData, references: [...(resumeData.references || []), ...items]}), { items: [{ name: "string", title: "string", company: "string", phone: "string", email: "string" }] })}
               aiLoading={loadingStates['ref-gen']}
             >
               {(resumeData.references || []).map((ref: any, idx: number) => (
@@ -463,7 +472,7 @@ export const ResumeEditor: React.FC = () => {
       <Section 
         title={t('personalInfo')} 
         defaultOpen={true}
-        onAiClick={() => generateItems('pi-gen', 'Personal Information', (data) => setResumeData({...resumeData, personalInfo: data, sectionOrder: resumeData.sectionOrder}), { name: "string", title: "string", email: "string", phone: "string", address: "string", linkedin: "string" })}
+        onAiClick={() => generateItems('pi-gen', 'Personal Information', (data) => setResumeData({...resumeData, personalInfo: data}))}
         aiLoading={loadingStates['pi-gen']}
       >
         <div className="mb-4">
@@ -502,7 +511,7 @@ export const ResumeEditor: React.FC = () => {
           label={t('labels.email')} 
           value={resumeData.personalInfo.email} 
           onChange={(e) => updatePersonalInfo('email', e.target.value)} 
-          onAiClick={() => refineWithInstruction('email', resumeData.personalInfo.email, "Format this email address correctly", (v) => updatePersonalInfo('email', v))}
+          onAiClick={() => refineWithInstruction('email', resumeData.personalInfo.email, "Format this email address correctly", (v) => setResumeData({...resumeData, personalInfo: {...resumeData.personalInfo, email: v}}))}
           aiLoading={loadingStates['email']}
         />
         <Input label={t('labels.phone')} value={resumeData.personalInfo.phone} onChange={(e) => updatePersonalInfo('phone', e.target.value)} />
@@ -517,11 +526,11 @@ export const ResumeEditor: React.FC = () => {
         modifiers={[restrictToVerticalAxis, restrictToWindowEdges]}
       >
         <SortableContext
-          items={resumeData.sectionOrder || []}
+          items={sectionOrder || []}
           strategy={verticalListSortingStrategy}
         >
           <div className="flex flex-col gap-2">
-            {(resumeData.sectionOrder || []).map((sectionId) => renderSection(sectionId))}
+            {(sectionOrder || []).map((sectionId) => renderSection(sectionId))}
           </div>
         </SortableContext>
       </DndContext>

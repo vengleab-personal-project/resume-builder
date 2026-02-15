@@ -82,7 +82,6 @@ export interface ResumeData {
   languages: Language[];
   otherTraining: Training[];
   references: Reference[];
-  sectionOrder?: string[];
 }
 
 export type AIProvider = 'openai' | 'google';

@@ -4,7 +4,10 @@
         "exportPrint": "Export / Print",
         "loading": "Loading...",
         "error": "Error",
-        "exporting": "Exporting..."
+        "exporting": "Exporting...",
+        "clear": "Clear",
+        "clearData": "Clear all data",
+        "confirmClearData": "Are you sure you want to clear all data? This action cannot be undone."
     },
     "viewMode": {
         "editor": "Editor",

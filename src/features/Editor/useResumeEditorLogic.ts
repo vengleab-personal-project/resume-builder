@@ -8,7 +8,7 @@ type SectionKey = 'experience' | 'education' | 'publications' | 'skills' | 'cert
 type BreakPageKey = 'experience' | 'education' | 'publications' | 'volunteering' | 'otherTraining';
 
 export const useResumeEditorLogic = () => {
-  const { resumeData, setResumeData, aiConfig } = useResumeStore();
+  const { resumeData, setResumeData, aiConfig, sectionOrder, setSectionOrder } = useResumeStore();
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
   
   // Local state for skills text input
@@ -99,7 +99,7 @@ export const useResumeEditorLogic = () => {
   };
 
   const updateSectionOrder = (newOrder: string[]) => {
-    setResumeData({ ...resumeData, sectionOrder: newOrder });
+    setSectionOrder(newOrder);
   };
 
   const updateSummary = (v: string) => setResumeData({...resumeData, summary: v});
@@ -127,5 +127,6 @@ export const useResumeEditorLogic = () => {
     setResumeData,
     toggleBreakPage,
     updateSectionOrder,
+    sectionOrder,
   };
 };

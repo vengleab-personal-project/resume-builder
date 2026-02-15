@@ -21,7 +21,7 @@ import {
 const hasData = (arr: unknown[] | undefined) => arr && arr.filter(Boolean).length > 0;
 
 export const ResumePreview = () => {
-  const { resumeData, theme } = useResumeStore();
+  const { resumeData, theme, sectionOrder } = useResumeStore();
   const {
     personalInfo,
     education,
@@ -34,7 +34,6 @@ export const ResumePreview = () => {
     languages = [],
     otherTraining = [],
     references = [],
-    sectionOrder = ['summary', 'experience', 'education', 'skills', 'certifications', 'publications', 'volunteering', 'languages', 'otherTraining', 'references'],
   } = resumeData;
   const { t } = useTranslations('editor');
 

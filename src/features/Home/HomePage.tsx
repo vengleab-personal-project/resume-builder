@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Printer, FileText, Eye, Download, Loader2 } from 'lucide-react';
+import { Printer, FileText, Eye, Download, Loader2, Trash2 } from 'lucide-react';
 import { Upload } from '@/features/Upload';
 import { ResumeEditor, ThemeSwitcher } from '@/features/Editor';
 import { ResumePreview } from '@/features/Resume';
@@ -15,7 +15,13 @@ export default function HomePage() {
   const { t: tHome } = useTranslations('home');
   const { t: tCommon } = useTranslations('common');
   const { t: tViewMode } = useTranslations('viewMode');
-  const { viewMode, setViewMode } = useResumeStore();
+  const { viewMode, setViewMode, resetData } = useResumeStore();
+
+  const handleClearData = () => {
+    if (window.confirm(tCommon('confirmClearData'))) {
+      resetData();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans text-slate-900">
@@ -56,6 +62,15 @@ export default function HomePage() {
               {tViewMode('preview')}
             </button>
           </div>
+
+          <button 
+            onClick={handleClearData}
+            className="flex items-center gap-2 px-3 py-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-md text-sm font-medium transition-all"
+            title={tCommon('clearData')}
+          >
+            <Trash2 size={16} />
+            <span className="hidden md:inline">{tCommon('clear')}</span>
+          </button>
 
           <button 
             onClick={handleExportPDF}

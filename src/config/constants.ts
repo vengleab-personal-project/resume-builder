@@ -68,8 +68,9 @@ export const INITIAL_RESUME_DATA = {
   languages: [],
   otherTraining: [],
   references: [],
-  sectionOrder: ['summary', 'experience', 'education', 'skills', 'certifications', 'publications', 'volunteering', 'languages', 'otherTraining', 'references'],
 } as const;
+
+export const INITIAL_SECTION_ORDER = ['summary', 'experience', 'education', 'skills', 'certifications', 'publications', 'volunteering', 'languages', 'otherTraining', 'references'];
 
 export const INITIAL_THEME = {
   primaryColor: "#1e40af", // Blue
