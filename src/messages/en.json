@@ -82,6 +82,7 @@
             "newReferenceCompany": "Company"
         },
         "labels": {
+            "photo": "Profile Photo",
             "fullName": "Full Name",
             "jobTitle": "Job Title / Professional Headline",
             "email": "Email",
@@ -130,6 +131,8 @@
             "addTraining": "Add Training",
             "addReference": "Add Reference",
             "clean": "Clean",
+            "upload": "Upload",
+            "change": "Change",
             "removePageBreak": "Remove page break",
             "addPageBreak": "Add page break after this item"
         },

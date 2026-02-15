@@ -26,12 +26,16 @@ export const ThemeSwitcher: React.FC = () => {
             />
           ))}
           {/* Custom Color Picker */}
-          <div className="relative w-8 h-8 overflow-hidden rounded-full border-2 border-slate-200">
+          <div 
+            className="relative w-8 h-8 overflow-hidden rounded-full border-2 border-slate-200 transition-transform hover:scale-110"
+            style={{ background: 'linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet)' }}
+          >
             <input 
               type="color" 
-              className="absolute -top-1 -left-1 w-10 h-10 p-0 border-0 cursor-pointer"
+              className="absolute -top-1 -left-1 w-10 h-10 p-0 border-0 cursor-pointer opacity-0"
               value={theme.primaryColor}
               onChange={(e) => setTheme({ primaryColor: e.target.value })}
+              title={t('theme.customColor')}
             />
           </div>
         </div>

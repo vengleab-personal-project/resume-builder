@@ -39,9 +39,9 @@ export const THEME_COLORS = [
 ];
 
 export const THEME_FONTS = [
-  { name: 'Sans', value: 'font-sans' },
-  { name: 'Serif', value: 'font-serif' },
-  { name: 'Mono', value: 'font-mono' },
+  { name: 'Sans', value: 'var(--font-sans)' },
+  { name: 'Serif', value: 'var(--font-serif)' },
+  { name: 'Mono', value: 'var(--font-mono)' },
 ];
 
 export const RESUME_SECTIONS = {
@@ -73,7 +73,7 @@ export const INITIAL_RESUME_DATA = {
 export const INITIAL_THEME = {
   primaryColor: "#1e40af", // Blue
   backgroundColor: "#f3f4f6", // Light Gray for Sidebar
-  fontFamily: "font-sans",
+  fontFamily: "var(--font-sans)",
 } as const;
 
 export const INITIAL_AI_CONFIG = {

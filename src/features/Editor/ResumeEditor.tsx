@@ -26,6 +26,17 @@ export const ResumeEditor: React.FC = () => {
     toggleBreakPage
   } = useResumeEditorLogic();
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updatePersonalInfo('photoUrl', reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const { t } = useTranslations('editor');
 
   return (
@@ -37,6 +48,36 @@ export const ResumeEditor: React.FC = () => {
         onAiClick={() => generateItems('pi-gen', 'Personal Information', (data) => setResumeData({...resumeData, personalInfo: data}), { name: "string", title: "string", email: "string", phone: "string", address: "string", linkedin: "string" })}
         aiLoading={loadingStates['pi-gen']}
       >
+        <div className="mb-4">
+          <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 block">
+            {t('labels.photo')}
+          </label>
+          <div className="flex items-center gap-4">
+            {resumeData.personalInfo.photoUrl ? (
+              <div className="relative w-16 h-16 group">
+                <img 
+                  src={resumeData.personalInfo.photoUrl} 
+                  alt="Profile" 
+                  className="w-full h-full rounded-full object-cover border border-slate-200"
+                />
+                <button 
+                  onClick={() => updatePersonalInfo('photoUrl', '')}
+                  className="absolute -top-1 -right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                >
+                  <Trash2 size={10} />
+                </button>
+              </div>
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-slate-100 border border-dashed border-slate-300 flex items-center justify-center text-slate-400">
+                <Plus size={20} />
+              </div>
+            )}
+            <label className="cursor-pointer bg-white border border-slate-200 px-3 py-1.5 rounded text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors shadow-sm">
+              {resumeData.personalInfo.photoUrl ? t('actions.change') : t('actions.upload')}
+              <input type="file" className="hidden" accept="image/*" onChange={handlePhotoChange} />
+            </label>
+          </div>
+        </div>
         <Input label={t('labels.fullName')} value={resumeData.personalInfo.name} onChange={(e) => updatePersonalInfo('name', e.target.value)} />
         <Input label={t('labels.jobTitle')} value={resumeData.personalInfo.title || ''} onChange={(e) => updatePersonalInfo('title', e.target.value)} />
         <Input 
