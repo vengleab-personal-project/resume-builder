@@ -15,7 +15,12 @@ export const ResumeHeader = ({
 }: ResumeHeaderProps) => (
   <header
     className="w-full h-40 shrink-0 relative print:h-40"
-    style={{ backgroundColor: primaryColor, WebkitPrintColorAdjust: 'exact' }}
+    style={{ 
+      backgroundColor: primaryColor,
+      WebkitPrintColorAdjust: 'exact',
+      printColorAdjust: 'exact',
+      colorAdjust: 'exact',
+    } as React.CSSProperties}
   >
     <div className="flex w-full h-full items-center">
       {/* Left Spacer for Sidebar width */}

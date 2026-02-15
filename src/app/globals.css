@@ -36,7 +36,30 @@ body {
   }
   
   /* Force exact colors to print (backgrounds, etc.) */
-  * {
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  /* Ensure header and sidebar background colors are preserved */
+  #resume-preview header,
+  #resume-preview aside {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  /* Force backgrounds to render */
+  html {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
@@ -78,12 +101,12 @@ body {
     position: relative !important;
   }
   
-  /* Ensure backgrounds extend for multi-page prints */
-  #resume-preview main > div:first-child {
+  /* Ensure white background extends for multi-page prints (below header) */
+  #resume-preview main > div:last-child {
     position: fixed !important;
     left: 32% !important;
     right: 0 !important;
-    top: 0 !important;
+    top: 10rem !important;
     bottom: 0 !important;
     height: 200vh !important;
     background: white !important;

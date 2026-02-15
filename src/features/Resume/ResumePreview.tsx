@@ -120,24 +120,51 @@ export const ResumePreview = () => {
 
         {/* Sidebar (Left) */}
         <aside
-          className="w-[32%] py-8 px-6 flex flex-col gap-8 shrink-0 relative z-0"
-          style={{ backgroundColor: theme.backgroundColor, WebkitPrintColorAdjust: 'exact' }}
+          className="w-[32%] py-8 px-6 flex flex-col gap-8 shrink-0 relative overflow-hidden"
+          style={{ 
+            backgroundColor: theme.backgroundColor,
+            WebkitPrintColorAdjust: 'exact',
+            printColorAdjust: 'exact',
+            colorAdjust: 'exact',
+          } as React.CSSProperties}
         >
-          {/* Spacer for Photo overlap */}
-          <div className="h-20" />
-
-          <ContactSection
-            personalInfo={personalInfo}
-            primaryColor={theme.primaryColor}
-            title={t('preview.contact')}
+          {/* Box shadow fallback */}
+          <div 
+            className="absolute inset-0 pointer-events-none" 
+            style={{ 
+              boxShadow: `inset 0 0 0 2000px ${theme.backgroundColor}`,
+              WebkitPrintColorAdjust: 'exact',
+              printColorAdjust: 'exact',
+              colorAdjust: 'exact',
+            } as React.CSSProperties} 
           />
+          
+          {/* Spacer for Photo overlap */}
+          <div className="h-20 relative z-10" />
 
-          {sortedSidebarSections.map(renderSection)}
+          <div className="relative z-10">
+            <ContactSection
+              personalInfo={personalInfo}
+              primaryColor={theme.primaryColor}
+              title={t('preview.contact')}
+            />
+          </div>
+
+          <div className="relative z-10 flex flex-col gap-8">
+            {sortedSidebarSections.map(renderSection)}
+          </div>
 
           {/* Sidebar Background Extension for Print */}
           <div
-            className="absolute inset-y-0 left-0 w-full -z-10 bg-inherit print:fixed print:left-0 print:h-screen print:w-[32%]"
-            style={{ backgroundColor: theme.backgroundColor, WebkitPrintColorAdjust: 'exact' }}
+            className="absolute inset-y-0 left-0 w-full bg-inherit print:fixed print:left-0 print:h-screen print:w-[32%] pointer-events-none"
+            style={{ 
+              backgroundColor: theme.backgroundColor,
+              boxShadow: `inset 0 0 0 2000px ${theme.backgroundColor}`,
+              WebkitPrintColorAdjust: 'exact',
+              printColorAdjust: 'exact',
+              colorAdjust: 'exact',
+              zIndex: -20,
+            } as React.CSSProperties}
           />
         </aside>
 
@@ -145,10 +172,13 @@ export const ResumePreview = () => {
         <main className="flex-1 p-8 pb-16 bg-white shrink-0 relative z-0">
           {sortedMainSections.map(renderSection)}
 
-          {/* White Background Extension for Print */}
+          {/* White Background Extension for Print - starts below header (h-40 = 10rem = 160px) */}
           <div
-            className="absolute inset-0 -z-10 bg-white print:fixed print:left-[32%] print:right-0 print:top-0 print:bottom-0 print:h-[200vh]"
-            style={{ WebkitPrintColorAdjust: 'exact' }}
+            className="absolute inset-0 -z-10 bg-white print:fixed print:left-[32%] print:right-0 print:bottom-0 print:h-[200vh]"
+            style={{ 
+              WebkitPrintColorAdjust: 'exact',
+              top: 0,
+            }}
           />
         </main>
       </div>
