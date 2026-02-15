@@ -1,8 +1,7 @@
 ---
-trigger: model_decision
-description: Project folder structure
+description: Folder organization
+alwaysApply: false
 ---
-
 # Next.js App Router - File Placement Guide
 
 ## Directory Structure

@@ -1,8 +1,6 @@
 ---
-trigger: always_on
-description: General coding conventions and best practices for the project
+alwaysApply: true
 ---
-
 # General Coding Conventions
 
 ## Hard-coded Strings and Constants

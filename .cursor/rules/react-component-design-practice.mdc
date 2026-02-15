@@ -1,0 +1,184 @@
+---
+alwaysApply: true
+---
+
+# React Component Design Guide
+
+## Decision Tree (Start Here)
+
+When creating or modifying a component, follow this order:
+
+1. **Feature with business logic?** (form, page section, data flow)
+   → Use **MVVM Pattern** (Section 1)
+
+2. **Reusable UI with logical sub-parts?** (Modal, Tabs, Menu, Accordion)
+   → Use **Compound Component Pattern** (Section 2)
+
+3. **Simple presentational component?** (Button, Badge, Card)
+   → Plain functional component with props
+
+4. **Reusable logic shared across components?**
+   → Extract to a custom hook (`use*.ts`)
+
+---
+
+## 1. MVVM Pattern (Feature Components)
+
+Use for all feature modules in `src/features/`.
+
+### File Structure
+
+```
+FeatureName/
+├── FeatureName.tsx           # View — presentation only
+├── useFeatureNameLogic.ts    # ViewModel — all business logic
+└── index.ts                  # Public exports
+```
+
+### Layer Responsibilities
+
+| Layer | Location | Allowed | Prohibited |
+|-------|----------|---------|------------|
+| **View** | `FeatureName.tsx` | Render UI, trigger events, call logic hook | `useState`/`useEffect` for business logic, API calls, complex calculations |
+| **ViewModel** | `useFeatureNameLogic.ts` | All state, effects, handlers, data transformation | UI rendering, direct DOM manipulation |
+| **Model** | `src/services/` | Pure async functions | UI logic, state management |
+
+### Example
+
+```tsx
+// useContactFormLogic.ts (ViewModel)
+export const useContactFormLogic = ({ onSubmit }: ContactFormLogicProps) => {
+  const [name, setName] = useState('')
+
+  const handleSubmit = () => {
+    if (!name.trim()) return
+    onSubmit(name)
+    setName('')
+  }
+
+  return { name, setName, handleSubmit }
+}
+
+// ContactForm.tsx (View)
+const ContactForm = ({ onSubmit }: ContactFormProps) => {
+  const { name, setName, handleSubmit } = useContactFormLogic({ onSubmit })
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <Input value={name} onChange={(e) => setName(e.target.value)} />
+      <Button type="submit">Send</Button>
+    </form>
+  )
+}
+```
+
+---
+
+## 2. Compound Component Pattern (Reusable UI)
+
+Use for reusable UI components in `src/components/ui/` that have logical sub-parts.
+
+### When to Use
+
+- Component has 2+ related sub-parts that share internal state
+- API should be declarative and composable (composition over configuration)
+
+### When NOT to Use
+
+- No sub-parts or no shared internal state
+- Purely presentational
+- Simpler props API is clearer
+
+### Implementation
+
+- Use Context for shared internal state (never prop-drill)
+- Expose sub-components as static properties
+- Create `useComponentContext()` hook that throws if used outside provider
+
+```tsx
+// List.context.ts
+const ListContext = createContext<ListContextType | null>(null)
+
+export const useListContext = () => {
+  const ctx = useContext(ListContext)
+  if (!ctx) throw new Error('List sub-components must be used within <List>')
+  return ctx
+}
+
+// List.tsx
+const ListRoot = ({ children }: ListProps) => (
+  <ListContext.Provider value={value}>
+    <ul>{children}</ul>
+  </ListContext.Provider>
+)
+
+ListRoot.Item = ListItem
+ListRoot.Header = ListHeader
+
+export const List = ListRoot
+```
+
+### Usage
+
+```tsx
+// ✅ Composition (preferred)
+<List>
+  <List.Header>Users</List.Header>
+  <List.Item>John</List.Item>
+</List>
+
+// ❌ Configuration props (avoid)
+<List items={[]} header="Users" selectable />
+```
+
+---
+
+## 3. Code Standards
+
+### TypeScript
+
+- Explicit prop types using named `type` or `interface`, exported
+- Use `ReactNode` for children
+- Use discriminated unions for variants
+- No `any`, no `React.FC`
+
+```tsx
+// ✅ Correct
+type ButtonProps = { label: string; onClick: () => void }
+const Button = ({ label, onClick }: ButtonProps) => { ... }
+
+// ❌ Wrong — do not use React.FC
+const Button: React.FC<Props> = ({ label, onClick }) => { ... }
+```
+
+### Components
+
+- Function components only (no class components)
+- Prefer named exports
+- No HOCs unless strictly required
+- Keep components focused (< 300 lines)
+
+### Imports
+
+- Always use `@/` alias for cross-folder imports (never relative `../../`)
+- Order: React & externals → `@/components/ui` → `@/features/*` → `@/types` → `@/services` → Local `./`
+
+### Naming
+
+- Components: `PascalCase.tsx`
+- Hooks: `useCamelCase.ts`
+- Types: `PascalCase`
+- Services: `camelCase`
+
+---
+
+## 4. Anti-Patterns
+
+- ❌ Business logic or API calls in view components
+- ❌ Prop drilling shared internal state (use Context for compound components, store for global)
+- ❌ Relative imports across folders (`../../`)
+- ❌ Monolithic components (> 300 lines)
+- ❌ Boolean prop explosions on UI components
+- ❌ Using `React.FC` for component signatures
+- ❌ Overusing Context for global state (use Zustand store instead)
+- ❌ Premature memoization — only memoize when measured

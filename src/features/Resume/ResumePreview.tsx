@@ -349,7 +349,7 @@ export const ResumePreview: React.FC = () => {
                 </h2>
                 <div className="space-y-6 relative pl-2">
                     {/* Timeline Vertical Line */}
-                    <div className="absolute left-[5px] top-3 bottom-4 w-0.5 bg-slate-200" />
+                    <div className="absolute left-[13px] top-3 bottom-4 w-0.5 bg-slate-200" />
                     
                     {(education || []).map((edu: any, idx: number) => (
                         <React.Fragment key={idx}>
@@ -400,7 +400,7 @@ export const ResumePreview: React.FC = () => {
                 </h2>
                 <div className="space-y-8 relative pl-2">
                     {/* Timeline Vertical Line */}
-                    <div className="absolute left-[5px] top-3 bottom-0 w-0.5 bg-slate-200" />
+                    <div className="absolute left-[13px] top-3 bottom-0 w-0.5 bg-slate-200" />
 
                     {(experience || []).map((exp: any, idx: number) => (
                         <React.Fragment key={idx}>
