@@ -85,7 +85,7 @@ export interface ResumeData {
 }
 
 export type AIProvider = 'openai' | 'google';
-export type AIModel = 'gpt-4o' | 'gpt-3.5-turbo' | 'gemini-3-flash' | 'gemini-3-pro' | 'gemini-2.0-flash' | 'gemini-2.0-pro' | 'gemini-2.5-flash' | 'gemini-2.5-pro' | 'gemini-1.5-pro' | 'gemini-1.5-flash' | 'gemini-3-flash-preview';
+export type AIModel = 'gpt-4o' | 'gpt-3.5-turbo' | 'gemini-3-flash-preview' | 'gemini-3-pro-preview';
 
 export interface AIConfig {
   provider: AIProvider;

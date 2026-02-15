@@ -1,33 +1,35 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { ENV } from '@/config/env';
+import { AI_MODELS, AI_PROVIDERS, GEMINI_MODEL_IDS } from '@/config/constants';
 
 const genAI = new GoogleGenerativeAI(ENV.GEMINI_API_KEY || "");
 
+// Allowed model IDs for validation
+const ALLOWED_GEMINI_MODELS = AI_MODELS[AI_PROVIDERS.GOOGLE].map(m => m.id);
+
+// Default configuration for JSON response
+const JSON_RESPONSE_CONFIG = {
+  responseMimeType: "application/json",
+};
+
 export const geminiModel = genAI.getGenerativeModel({ 
-  model: "gemini-3-flash-preview", 
-  generationConfig: {
-    responseMimeType: "application/json",
-  }
+  model: GEMINI_MODEL_IDS.FLASH_PREVIEW, 
+  generationConfig: JSON_RESPONSE_CONFIG
 });
 
 // Helper for single text response (override config)
 export const geminiTextModel = genAI.getGenerativeModel({ 
-  model: "gemini-3-flash-preview"
+  model: GEMINI_MODEL_IDS.FLASH_PREVIEW
 });
 
 // Get model by ID
 export const getGeminiModel = (modelId: string) => {
-  return genAI.getGenerativeModel({ 
-    model: modelId === 'gemini-3-flash' ? 'gemini-3-flash-preview' : modelId,
-    generationConfig: {
-      responseMimeType: "application/json",
-    }
-  });
-};
+  if (!ALLOWED_GEMINI_MODELS.includes(modelId as any)) {
+    throw new Error(`Model ${modelId} is not allowed`);
+  }
 
-// Get text model by ID
-export const getGeminiTextModel = (modelId: string) => {
   return genAI.getGenerativeModel({ 
-    model: modelId === 'gemini-3-flash' ? 'gemini-3-flash-preview' : modelId
+    model: modelId,
+    generationConfig: JSON_RESPONSE_CONFIG
   });
 };

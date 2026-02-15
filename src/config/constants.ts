@@ -10,12 +10,14 @@ export const AI_MODELS = {
     { id: 'gpt-3.5-turbo', name: 'GPT-3.5 (Fast)' },
   ],
   [AI_PROVIDERS.GOOGLE]: [
-    { id: 'gemini-3-flash', name: 'Gemini 3 Flash (Fast & Smart)' },
-    { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview' },
-    { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
-    { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
-    { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
+    { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash (Fast & Smart)' },
+    { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro (Advanced)' },
   ],
+} as const;
+
+export const GEMINI_MODEL_IDS = {
+  FLASH_PREVIEW: 'gemini-3-flash-preview',
+  PRO_PREVIEW: 'gemini-3-pro-preview',
 } as const;
 
 export const DEFAULT_AI_CONFIG = {
@@ -80,7 +82,7 @@ export const INITIAL_THEME = {
 
 export const INITIAL_AI_CONFIG = {
   provider: AI_PROVIDERS.GOOGLE,
-  model: 'gemini-3-flash',
+  model: GEMINI_MODEL_IDS.FLASH_PREVIEW,
 } as const;
 
 // PDF Export Configuration
