@@ -8,13 +8,14 @@ import { ResumePreview } from '@/features/Resume';
 import { useHomeLogic } from './useHomeLogic';
 import { useTranslations } from '@/hooks/useTranslations';
 import { useResumeStore } from '@/store/resume-store';
+import { ViewMode } from '@/types';
 
 export default function HomePage() {
   const { handleExportPDF, isExporting } = useHomeLogic();
   const { t: tHome } = useTranslations('home');
   const { t: tCommon } = useTranslations('common');
   const { t: tViewMode } = useTranslations('viewMode');
-  const { originalFileUrl, exportedFileUrl, viewMode, setViewMode } = useResumeStore();
+  const { viewMode, setViewMode } = useResumeStore();
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans text-slate-900">
@@ -33,37 +34,26 @@ export default function HomePage() {
         <div className="flex items-center gap-3">
           <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
             <button
-              onClick={() => setViewMode('parsed')}
+              onClick={() => setViewMode(ViewMode.EDITOR)}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                viewMode === 'parsed' 
-                  ? 'bg-white text-indigo-600 shadow-sm' 
-                  : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              <Eye size={16} />
-              {tViewMode('editor')}
-            </button>
-            <button
-              onClick={() => setViewMode('original')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                viewMode === 'original' 
+                viewMode === ViewMode.EDITOR 
                   ? 'bg-white text-indigo-600 shadow-sm' 
                   : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               <FileText size={16} />
-              {tViewMode('originalPdf')}
+              {tViewMode('editor')}
             </button>
             <button
-              onClick={() => setViewMode('exported')}
+              onClick={() => setViewMode(ViewMode.PREVIEW)}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                viewMode === 'exported' 
+                viewMode === ViewMode.PREVIEW 
                   ? 'bg-white text-indigo-600 shadow-sm' 
                   : 'text-slate-500 hover:text-slate-700'
               }`}
             >
-              <Download size={16} />
-              {tViewMode('exportedPdf')}
+              <Eye size={16} />
+              {tViewMode('preview')}
             </button>
           </div>
 
@@ -86,41 +76,43 @@ export default function HomePage() {
       <div className="flex-1 flex overflow-hidden">
         
         {/* Left Panel: Controls (Scrollable) */}
-        <div className="w-[450px] bg-slate-50 border-r border-slate-200 flex flex-col flex-shrink-0 h-[calc(100vh-64px)] overflow-y-auto print:hidden">
-          <div className="p-6 space-y-6">
-            
-            <section>
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">
-                {tHome('sections.ingest')}
-              </h2>
-              <Upload />
-            </section>
+        {viewMode === ViewMode.EDITOR && (
+          <div className="w-[450px] bg-slate-50 border-r border-slate-200 flex flex-col flex-shrink-0 h-[calc(100vh-64px)] overflow-y-auto print:hidden">
+            <div className="p-6 space-y-6">
+              
+              <section>
+                <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">
+                  {tHome('sections.ingest')}
+                </h2>
+                <Upload />
+              </section>
 
-            <section>
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">
-                {tHome('sections.customize')}
-              </h2>
-              <ThemeSwitcher />
-            </section>
+              <section>
+                <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">
+                  {tHome('sections.customize')}
+                </h2>
+                <ThemeSwitcher />
+              </section>
 
-            <section>
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">
-                {tHome('sections.edit')}
-              </h2>
-              <ResumeEditor />
-            </section>
-            
+              <section>
+                <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">
+                  {tHome('sections.edit')}
+                </h2>
+                <ResumeEditor />
+              </section>
+              
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Right Panel: Live Preview (Centered) */}
-    <div className="flex-1 bg-slate-200/50 p-8 overflow-y-auto h-[calc(100vh-64px)] flex justify-center items-start print:p-0 print:h-auto print:bg-white print:overflow-visible relative">
-      <div className="print:w-full print:h-full w-[210mm] min-h-[297mm] shadow-2xl bg-white origin-top items-center justify-center flex transition-all print:shadow-none print:transform-none">
-         <div className="w-full h-full"> 
-           <ResumePreview />
-         </div>
-      </div>
-    </div>
+        <div className="flex-1 bg-slate-200/50 p-8 overflow-y-auto h-[calc(100vh-64px)] flex justify-center items-start print:p-0 print:h-auto print:bg-white print:overflow-visible relative">
+          <div className="print:w-full print:h-full w-[210mm] min-h-[297mm] shadow-2xl bg-white origin-top items-center justify-center flex transition-all print:shadow-none print:transform-none">
+             <div className="w-full h-full"> 
+               <ResumePreview />
+             </div>
+          </div>
+        </div>
       </div>
 
     </div>

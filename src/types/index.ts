@@ -1,3 +1,8 @@
+export enum ViewMode {
+  EDITOR = 'editor',
+  PREVIEW = 'preview',
+}
+
 export interface Education {
   degree: string;
   school: string;

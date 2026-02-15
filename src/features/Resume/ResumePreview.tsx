@@ -5,7 +5,6 @@ import { useTranslations } from '@/hooks/useTranslations';
 
 import {
   ResumeHeader,
-  OriginalFileView,
   ContactSection,
   SkillsSection,
   CertificationsSection,
@@ -22,7 +21,7 @@ import {
 const hasData = (arr: unknown[] | undefined) => arr && arr.filter(Boolean).length > 0;
 
 export const ResumePreview = () => {
-  const { resumeData, theme, originalFileUrl, viewMode } = useResumeStore();
+  const { resumeData, theme } = useResumeStore();
   const {
     personalInfo,
     education,
@@ -37,17 +36,6 @@ export const ResumePreview = () => {
     references = [],
   } = resumeData;
   const { t } = useTranslations('editor');
-  const { t: tPreview } = useTranslations('preview');
-
-  if (viewMode === 'original') {
-    return (
-      <OriginalFileView
-        originalFileUrl={originalFileUrl}
-        noPdfTitle={tPreview('noPdfUploaded.title')}
-        noPdfDescription={tPreview('noPdfUploaded.description')}
-      />
-    );
-  }
 
   return (
     <div

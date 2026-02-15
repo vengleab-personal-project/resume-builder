@@ -1,6 +1,5 @@
 export { SidebarSectionHeading, MainSectionHeading } from './SectionHeading'
 export { ResumeHeader } from './ResumeHeader'
-export { OriginalFileView } from './OriginalFileView'
 export { ContactSection } from './ContactSection'
 export { SkillsSection } from './SkillsSection'
 export { CertificationsSection } from './CertificationsSection'

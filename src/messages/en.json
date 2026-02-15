@@ -8,8 +8,7 @@
     },
     "viewMode": {
         "editor": "Editor",
-        "originalPdf": "Original PDF",
-        "exportedPdf": "Print Preview"
+        "preview": "Preview"
     },
     "preview": {
         "noExportedPdf": {

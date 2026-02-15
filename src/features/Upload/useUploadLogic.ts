@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react';
 import { useResumeStore } from '@/store/resume-store';
 import { parseResume } from '@/services/resumeService';
-import { AIProvider, AIModel } from '@/types';
+import { AIProvider, AIModel, ViewMode } from '@/types';
 
 export const useUploadLogic = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -13,8 +13,6 @@ export const useUploadLogic = () => {
     isParsing, 
     aiConfig, 
     setAIConfig, 
-    setOriginalFileUrl, 
-    originalFileUrl,
     setViewMode 
   } = useResumeStore();
   const [error, setError] = useState<string | null>(null);
@@ -37,18 +35,7 @@ export const useUploadLogic = () => {
   const processInput = async (input: File | string) => {
     setIsParsing(true);
     setError(null);
-    setViewMode('parsed');
-
-    if (input instanceof File) {
-      // Create a preview URL for the original file
-      if (originalFileUrl) {
-        URL.revokeObjectURL(originalFileUrl);
-      }
-      const fileUrl = URL.createObjectURL(input);
-      setOriginalFileUrl(fileUrl);
-    } else {
-      setOriginalFileUrl(null);
-    }
+    setViewMode(ViewMode.EDITOR);
 
     try {
       const data = await parseResume(input, aiConfig);
