@@ -40,10 +40,10 @@ export const EducationSection = ({ education, primaryColor, title }: EducationSe
               {edu.school}{edu.location ? `, ${edu.location}` : ''}
             </div>
 
-            {edu.gpa && (
-              <p className="text-sm text-slate-500 font-medium mt-1">
-                <span className="font-bold text-slate-700">GPA:</span> {edu.gpa}
-              </p>
+            {edu.description && (
+              <div className="text-sm text-slate-500 font-medium mt-1 break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                <span dangerouslySetInnerHTML={{ __html: edu.description }} />
+              </div>
             )}
           </div>
           {edu.breakPage && <div className="hidden print:block h-0" />}

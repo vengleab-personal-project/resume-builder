@@ -17,7 +17,7 @@ export const RESUME_SCHEMA_EXAMPLE = {
       school: "University of Tech",
       year: "2018 - 2022",
       location: "San Francisco, CA",
-      gpa: "3.8 / 4.0"
+      description: "GPA: 3.8 / 4.0"
     }
   ],
   experience: [
@@ -26,10 +26,7 @@ export const RESUME_SCHEMA_EXAMPLE = {
       company: "Tech Corp",
       dates: "Jan 2023 - Present",
       location: "Remote",
-      bullets: [
-        "Built a feature that increased revenue by 20%",
-        "Refactored legacy code"
-      ]
+      description: "<ul><li>Built a feature that increased revenue by 20%</li><li>Refactored legacy code</li></ul>"
     }
   ],
   skills: ["React", "TypeScript", "Node.js"],
@@ -93,11 +90,11 @@ ${JSON.stringify(RESUME_SCHEMA_EXAMPLE, null, 2)}
 
 **Formatting Notes:**
 - "title" in personalInfo should be the candidate's current or most recent job title or professional headline.
-- "bullets" in experience should be individual actionable items found in the job description.
+- "description" in experience should be HTML richtext with bullet points using <ul><li> tags for achievements and responsibilities.
 - "skills" should be a flat array of strings.
 - "summary" should be a cohesive paragraph if available, or a constructed summary from the objective/intro. Use empty string if not found.
 - "certifications" should be an array of objects with name, issuer, location, expireDate or year.
-- "gpa" in education should be a string like "3.8 / 4.0" if found.
+- "description" in education should capture GPA, honors, or a brief description of the program. It should be a string like "GPA: 3.8 / 4.0" or "First Class Honours" if found.
 - "volunteering" should capture speaking engagements, community roles, etc.
 - "languages" should include the language name and proficiency level (e.g., Fluent, Native, Good, Fair).
 - "otherTraining" should capture additional courses, workshops, or training programs.

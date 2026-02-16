@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 import { ENV } from '@/config/env';
-import { AI_MODELS, AI_PROVIDERS, GEMINI_MODEL_IDS } from '@/config/constants';
+import { AI_MODELS, AI_PROVIDERS, GEMINI_MODEL_IDS, AI_CONFIG } from '@/config/constants';
 
 const genAI = new GoogleGenerativeAI(ENV.GEMINI_API_KEY || "");
 
@@ -10,6 +10,7 @@ const ALLOWED_GEMINI_MODELS = AI_MODELS[AI_PROVIDERS.GOOGLE].map(m => m.id);
 // Default configuration for JSON response
 const JSON_RESPONSE_CONFIG = {
   responseMimeType: "application/json",
+  maxOutputTokens: AI_CONFIG.MAX_OUTPUT_TOKENS,
 };
 
 // Safety settings (Guardrails)
@@ -42,11 +43,14 @@ export const geminiModel = genAI.getGenerativeModel({
 export const geminiTextModel = genAI.getGenerativeModel({ 
   model: GEMINI_MODEL_IDS.FLASH_PREVIEW,
   safetySettings: SAFETY_SETTINGS,
+  generationConfig: {
+    maxOutputTokens: AI_CONFIG.MAX_OUTPUT_TOKENS,
+  },
 });
 
 // Get model by ID
 export const getGeminiModel = (modelId: string) => {
-  if (!ALLOWED_GEMINI_MODELS.includes(modelId as any)) {
+  if (!ALLOWED_GEMINI_MODELS.includes(modelId)) {
     throw new Error(`Model ${modelId} is not allowed`);
   }
 

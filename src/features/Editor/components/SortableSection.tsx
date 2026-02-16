@@ -4,6 +4,8 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical } from 'lucide-react';
+import { useTranslations } from '@/hooks/useTranslations';
+import { EDITOR_CONFIG } from '@/config/constants';
 
 interface SortableSectionProps {
   id: string;
@@ -11,6 +13,7 @@ interface SortableSectionProps {
 }
 
 export const SortableSection: React.FC<SortableSectionProps> = ({ id, children }) => {
+  const { t } = useTranslations('editor');
   const {
     attributes,
     listeners,
@@ -33,9 +36,9 @@ export const SortableSection: React.FC<SortableSectionProps> = ({ id, children }
         {...attributes}
         {...listeners}
         className="absolute -left-8 top-4 p-2 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-slate-600"
-        title="Drag to reorder"
+        title={t('drag.reorder')}
       >
-        <GripVertical size={20} />
+        <GripVertical size={EDITOR_CONFIG.ICON_SIZE_XL} />
       </div>
       {children}
     </div>

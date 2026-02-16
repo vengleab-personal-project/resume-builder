@@ -11,11 +11,17 @@ export const OtherTrainingSection = ({ otherTraining, title }: OtherTrainingSect
   <section>
     <SidebarSectionHeading title={title} />
     <ul className="list-disc list-outside ml-4 text-xs space-y-2 text-slate-700 font-medium">
-      {otherTraining.filter(Boolean).map((train, idx) => (
-        <li key={idx} className="pl-1">
-          {typeof train === 'string' ? train : train.name}
-        </li>
-      ))}
+      {otherTraining.filter(Boolean).map((train, idx) => {
+        const content = typeof train === 'string' ? train : train.name;
+        return (
+          <li 
+            key={idx} 
+            className="pl-1 break-words" 
+            style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+            dangerouslySetInnerHTML={{ __html: content }} 
+          />
+        );
+      })}
     </ul>
   </section>
 )

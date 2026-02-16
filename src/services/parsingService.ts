@@ -1,9 +1,12 @@
 import mammoth from 'mammoth';
 import { SYSTEM_PROMPT } from '@/lib/ai-config';
-import { AI_PROVIDERS, AI_CONFIG, FILE_PARSING, API_ERROR_MESSAGES } from '@/config/constants';
-import { AIConfig, ResumeData } from '@/types';
-import { openaiClient } from '@/integrations/openai';
+import { AI_CONFIG, FILE_PARSING, API_ERROR_MESSAGES } from '@/config/constants';
+import { ResumeData } from '@/types';
+import { openaiClient, OPENAI_CONFIG } from '@/integrations/openai';
 import { getGeminiModel } from '@/integrations/gemini';
+import { validateTokenLimit, truncateToTokenLimit } from '@/lib/tokenCounter';
+import { validatePromptSafety, sanitizePromptInput } from '@/lib/promptGuard';
+import { ENV } from '@/config/env';
 
 /**
  * Extract text from uploaded file based on file type
@@ -40,14 +43,27 @@ export const parseResumeWithOpenAI = async (
   rawText: string,
   model: string
 ): Promise<ResumeData> => {
+  const safetyCheck = validatePromptSafety(rawText);
+  if (!safetyCheck.safe) {
+    throw new Error(`Security validation failed: ${safetyCheck.reason}`);
+  }
+
+  const tokenValidation = validateTokenLimit(rawText, ENV.MAX_AI_TOKENS);
+  const processedText = tokenValidation.valid 
+    ? rawText 
+    : truncateToTokenLimit(rawText, ENV.MAX_AI_TOKENS);
+
+  const sanitizedText = sanitizePromptInput(processedText);
+
   const completion = await openaiClient.chat.completions.create({
     model,
     messages: [
       { role: "system", content: SYSTEM_PROMPT },
-      { role: "user", content: `Here is the resume text:\n\n${rawText}` }
+      { role: "user", content: `Here is the resume text:\n\n${sanitizedText}` }
     ],
     temperature: AI_CONFIG.TEMPERATURE_PARSING,
-    response_format: { type: AI_CONFIG.RESPONSE_FORMAT_JSON }
+    response_format: { type: AI_CONFIG.RESPONSE_FORMAT_JSON },
+    max_tokens: OPENAI_CONFIG.MAX_TOKENS,
   });
 
   const content = completion.choices[0].message.content;
@@ -63,30 +79,52 @@ export const parseResumeWithGemini = async (
   rawText: string,
   model: string
 ): Promise<ResumeData> => {
+  const safetyCheck = validatePromptSafety(rawText);
+  if (!safetyCheck.safe) {
+    throw new Error(`Security validation failed: ${safetyCheck.reason}`);
+  }
+
+  const tokenValidation = validateTokenLimit(rawText, ENV.MAX_AI_TOKENS);
+  const processedText = tokenValidation.valid 
+    ? rawText 
+    : truncateToTokenLimit(rawText, ENV.MAX_AI_TOKENS);
+
+  const sanitizedText = sanitizePromptInput(processedText);
+
   const geminiModel = getGeminiModel(model);
-  const prompt = `${SYSTEM_PROMPT}\n\nHere is the resume text:\n\n${rawText}`;
+  const prompt = `${SYSTEM_PROMPT}\n\nHere is the resume text:\n\n${sanitizedText}`;
 
   const result = await geminiModel.generateContent({
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
     generationConfig: {
       temperature: AI_CONFIG.TEMPERATURE_PARSING,
       responseMimeType: "application/json",
+      maxOutputTokens: AI_CONFIG.MAX_OUTPUT_TOKENS,
     },
   });
 
   const response = await result.response;
-  const text = response.text();
+  let text = response.text();
   
+  // Clean up potential markdown blocks if they exist even with application/json mime type
+  if (text.includes('```json')) {
+    text = text.split('```json')[1].split('```')[0].trim();
+  } else if (text.includes('```')) {
+    text = text.split('```')[1].split('```')[0].trim();
+  }
+
   try {
     const parsed = JSON.parse(text);
     if (parsed.error) {
       throw new Error(`AI processing error: ${parsed.error}`);
     }
     return parsed;
-  } catch (e: any) {
-    if (e.message?.includes('AI processing error')) throw e;
-    console.error("Failed to parse Gemini JSON response:", text);
-    throw new Error("Failed to parse the resume data. The content might be invalid or unsupported.");
+  } catch (e: unknown) {
+    const error = e as Error;
+    if (error.message?.includes('AI processing error')) throw e;
+    console.error("Failed to parse Gemini JSON response. Text received:", text);
+    console.error("Parse error:", error.message);
+    throw new Error("Failed to parse the resume data. The content might be truncated or invalid.");
   }
 };
 

@@ -11,8 +11,6 @@ type ExperienceSectionProps = {
   title: string
 }
 
-const hasData = (arr: unknown[] | undefined) => arr && arr.filter(Boolean).length > 0
-
 export const ExperienceSection = ({ experience, primaryColor, title }: ExperienceSectionProps) => (
   <section className="mb-10">
     <MainSectionHeading title={title} icon={<Briefcase size={20} />} primaryColor={primaryColor} />
@@ -42,12 +40,12 @@ export const ExperienceSection = ({ experience, primaryColor, title }: Experienc
               {exp.role}
             </p>
 
-            {hasData(exp.bullets) && (
-              <ul className="list-disc list-outside ml-4 space-y-1.5 text-sm text-slate-600 leading-relaxed">
-                {exp.bullets.map((bullet, bIdx) => (
-                  <li key={bIdx}>{bullet}</li>
-                ))}
-              </ul>
+            {exp.description && (
+              <div 
+                className="text-sm text-slate-600 leading-relaxed prose prose-sm prose-slate max-w-none [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:space-y-1.5 [&_li]:break-words"
+                style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+                dangerouslySetInnerHTML={{ __html: exp.description }} 
+              />
             )}
           </div>
           {exp.breakPage && <div className="hidden print:block h-0" />}

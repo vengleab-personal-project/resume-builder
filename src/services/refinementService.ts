@@ -1,7 +1,10 @@
 import { REFINEMENT_PROMPT } from '@/lib/ai-config';
 import { AI_CONFIG } from '@/config/constants';
-import { openaiClient } from '@/integrations/openai';
+import { openaiClient, OPENAI_CONFIG } from '@/integrations/openai';
 import { geminiModel, geminiTextModel } from '@/integrations/gemini';
+import { validateTokenLimit, truncateToTokenLimit } from '@/lib/tokenCounter';
+import { validatePromptSafety, sanitizePromptInput } from '@/lib/promptGuard';
+import { ENV } from '@/config/env';
 
 interface RefinementRequest {
   instruction: string;
@@ -20,10 +23,22 @@ interface RefinementResponse {
 export const refineWithGemini = async (
   systemPrompt: string,
   isJson: boolean,
-  schema?: any
+  schema?: unknown
 ): Promise<RefinementResponse> => {
+  const safetyCheck = validatePromptSafety(systemPrompt);
+  if (!safetyCheck.safe) {
+    throw new Error(`Security validation failed: ${safetyCheck.reason}`);
+  }
+
+  const tokenValidation = validateTokenLimit(systemPrompt, ENV.MAX_AI_TOKENS);
+  const processedPrompt = tokenValidation.valid 
+    ? systemPrompt 
+    : truncateToTokenLimit(systemPrompt, ENV.MAX_AI_TOKENS);
+
+  const sanitizedPrompt = sanitizePromptInput(processedPrompt);
+
   const model = isJson ? geminiModel : geminiTextModel;
-  const prompt = `${systemPrompt}\n\n${
+  const prompt = `${sanitizedPrompt}\n\n${
     isJson 
       ? `Refine/Generate and return as JSON matching this schema: ${JSON.stringify(schema)}` 
       : "Refine the content directly."
@@ -55,12 +70,24 @@ export const refineWithGemini = async (
 export const refineWithOpenAI = async (
   systemPrompt: string,
   isJson: boolean,
-  schema?: any
+  schema?: unknown
 ): Promise<RefinementResponse> => {
+  const safetyCheck = validatePromptSafety(systemPrompt);
+  if (!safetyCheck.safe) {
+    throw new Error(`Security validation failed: ${safetyCheck.reason}`);
+  }
+
+  const tokenValidation = validateTokenLimit(systemPrompt, ENV.MAX_AI_TOKENS);
+  const processedPrompt = tokenValidation.valid 
+    ? systemPrompt 
+    : truncateToTokenLimit(systemPrompt, ENV.MAX_AI_TOKENS);
+
+  const sanitizedPrompt = sanitizePromptInput(processedPrompt);
+
   const completion = await openaiClient.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      { role: "system", content: systemPrompt },
+      { role: "system", content: sanitizedPrompt },
       { 
         role: "user", 
         content: isJson 
@@ -71,7 +98,8 @@ export const refineWithOpenAI = async (
     temperature: AI_CONFIG.TEMPERATURE_REFINEMENT,
     response_format: isJson 
       ? { type: AI_CONFIG.RESPONSE_FORMAT_JSON } 
-      : { type: AI_CONFIG.RESPONSE_FORMAT_TEXT }
+      : { type: AI_CONFIG.RESPONSE_FORMAT_TEXT },
+    max_tokens: OPENAI_CONFIG.MAX_TOKENS,
   });
 
   const result = completion.choices[0].message.content;

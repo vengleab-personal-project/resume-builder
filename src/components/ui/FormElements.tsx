@@ -5,6 +5,8 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import { AIButton } from './AIButton';
 import { cn } from '@/lib/utils';
 
+export { RichTextEditor } from './RichTextEditor';
+
 interface SectionProps {
   title: string;
   children: React.ReactNode;
@@ -18,11 +20,12 @@ export const Section = ({
   title, 
   children, 
   defaultOpen = false, 
-  onAiClick, 
+  onAiClick,
   aiLoading,
   className 
 }: SectionProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
+
   return (
     <div className={cn("border border-slate-200 rounded-lg bg-white mb-3 shadow-sm overflow-hidden", className)}>
       <div 
@@ -34,7 +37,15 @@ export const Section = ({
           <span className="text-sm font-semibold tracking-tight">{title}</span>
         </div>
         {onAiClick && (
-          <AIButton label="Generate" onClick={onAiClick} loading={aiLoading} variant="ghost" />
+          <AIButton 
+            label="Generate" 
+            onClick={(e) => {
+              e.stopPropagation();
+              onAiClick();
+            }} 
+            loading={aiLoading}
+            variant="ghost" 
+          />
         )}
       </div>
       {isOpen && <div className="p-4 border-t border-slate-100 bg-white">{children}</div>}

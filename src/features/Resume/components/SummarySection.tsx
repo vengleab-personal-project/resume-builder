@@ -8,8 +8,10 @@ export const SummarySection = ({ summary, title }: SummarySectionProps) => (
     <h2 className="text-lg font-bold uppercase tracking-[0.2em] mb-4 text-slate-800">
       {title}
     </h2>
-    <p className="text-sm leading-7 text-slate-600">
-      {summary}
-    </p>
+    <div 
+      className="text-sm leading-7 text-slate-600 prose prose-sm max-w-none break-words overflow-wrap-anywhere"
+      style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+      dangerouslySetInnerHTML={{ __html: summary }}
+    />
   </section>
 )

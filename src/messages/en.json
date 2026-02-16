@@ -45,6 +45,7 @@
             "openai": "OpenAI",
             "google": "Google Gemini"
         },
+        "cancel": "Cancel",
         "errors": {
             "noFile": "No file uploaded",
             "unsupportedFormat": "Unsupported file format",
@@ -66,7 +67,11 @@
         "theme": {
             "options": "Theme Options",
             "accentColor": "Accent Color",
-            "typography": "Typography"
+            "typography": "Typography",
+            "customColor": "Custom Color"
+        },
+        "drag": {
+            "reorder": "Drag to reorder"
         },
         "placeholders": {
             "bullets": "One bullet per line",
@@ -102,7 +107,7 @@
             "school": "School",
             "degree": "Degree",
             "year": "Year",
-            "gpa": "GPA",
+            "description": "Description",
             "skills": "Skills (Comma separated)",
             "certifications": "Certifications (One per line)",
             "certName": "Certification Name",

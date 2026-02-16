@@ -10,11 +10,12 @@ export const ThemeSwitcher: React.FC = () => {
   const { t } = useTranslations('editor');
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow-sm border border-slate-200 mb-4">
-      <h3 className="text-sm font-semibold text-slate-700 mb-3">{t('theme.options')}</h3>
-      
-      <div className="mb-4">
-        <label className="text-xs text-slate-500 mb-2 block font-medium">{t('theme.accentColor')}</label>
+    <div className="grid grid-cols-2 gap-6">
+      {/* Color Column */}
+      <div>
+        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 block">
+          {t('theme.accentColor')}
+        </label>
         <div className="flex flex-wrap gap-2">
           {THEME_COLORS.map((c) => (
             <button
@@ -41,14 +42,17 @@ export const ThemeSwitcher: React.FC = () => {
         </div>
       </div>
 
+      {/* Font Column */}
       <div>
-        <label className="text-xs text-slate-500 mb-2 block font-medium">{t('theme.typography')}</label>
+        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 block">
+          {t('theme.typography')}
+        </label>
         <div className="flex gap-2">
           {THEME_FONTS.map((f) => (
             <button
               key={f.name}
               onClick={() => setTheme({ fontFamily: f.value })}
-              className={`px-3 py-1 text-xs rounded border ${theme.fontFamily === f.value ? 'bg-slate-800 text-white border-slate-800' : 'bg-slate-50 text-slate-600 border-slate-200'}`}
+              className={`px-3 py-1.5 text-xs rounded border transition-colors ${theme.fontFamily === f.value ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'}`}
             >
               {f.name}
             </button>

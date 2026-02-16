@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Upload as UploadIcon, Loader2, AlertCircle, Cpu, Sparkles } from 'lucide-react';
+import { Upload as UploadIcon, Loader2, AlertCircle, Cpu, Sparkles, X } from 'lucide-react';
 import { AIProvider } from '@/types';
 import { useUploadLogic } from './useUploadLogic';
 import { AI_PROVIDERS, AI_MODELS, FILE_LIMITS } from '@/config/constants';
@@ -23,7 +23,8 @@ export const Upload: React.FC = () => {
     handleDrop,
     pastedText,
     setPastedText,
-    handlePasteSubmit
+    handlePasteSubmit,
+    cancelParsing,
   } = useUploadLogic();
 
   const { t } = useTranslations('upload');
@@ -108,6 +109,16 @@ export const Upload: React.FC = () => {
             <>
               <Loader2 className="w-8 h-8 text-indigo-500 animate-spin mb-2" />
               <p className="text-sm text-slate-500 font-medium">{t('analyzing')}</p>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  cancelParsing();
+                }}
+                className="mt-2 px-3 py-1 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-md hover:bg-slate-50 hover:border-slate-300 transition-colors flex items-center gap-1"
+              >
+                <X size={12} />
+                {t('cancel')}
+              </button>
             </>
           ) : (
             <>

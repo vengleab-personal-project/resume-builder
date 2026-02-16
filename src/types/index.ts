@@ -8,7 +8,7 @@ export interface Education {
   school: string;
   year: string;
   location?: string;
-  gpa?: string;
+  description?: string;
   breakPage?: boolean;
 }
 
@@ -17,7 +17,7 @@ export interface Experience {
   company: string;
   dates: string;
   location?: string;
-  bullets: string[];
+  description: string;
   breakPage?: boolean;
 }
 

@@ -1,12 +1,13 @@
 "use client";
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { useResumeStore } from '@/store/resume-store';
 import { parseResume } from '@/services/resumeService';
 import { AIProvider, AIModel, ViewMode } from '@/types';
 
 export const useUploadLogic = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const { 
     setResumeData, 
     setIsParsing, 
@@ -32,19 +33,37 @@ export const useUploadLogic = () => {
     setIsDragging(false);
   };
 
+  const cancelParsing = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsParsing(false);
+    setError(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }, [setIsParsing]);
+
   const processInput = async (input: File | string) => {
+    // Cancel any existing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    abortControllerRef.current = new AbortController();
     setIsParsing(true);
     setError(null);
     setViewMode(ViewMode.EDITOR);
 
     try {
-      const data = await parseResume(input, aiConfig);
+      const data = await parseResume(input, aiConfig, abortControllerRef.current.signal);
       setResumeData(data);
     } catch (err) {
       console.error(err);
-      setError("Failed to parse resume. Please try again.");
+      const message = err instanceof Error ? err.message : "Failed to parse resume. Please try again.";
+      setError(message);
     } finally {
       setIsParsing(false);
+      abortControllerRef.current = null;
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
@@ -107,6 +126,7 @@ export const useUploadLogic = () => {
     handleDrop,
     pastedText,
     setPastedText,
-    handlePasteSubmit
+    handlePasteSubmit,
+    cancelParsing,
   };
 };

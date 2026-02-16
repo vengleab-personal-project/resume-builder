@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useResumeStore } from '@/store/resume-store';
-import { refineResumeField } from '@/services/resumeService';
+import { API_ENDPOINTS } from '@/config/constants';
 
 type SectionKey = 'experience' | 'education' | 'publications' | 'skills' | 'certifications' | 'volunteering' | 'languages' | 'otherTraining' | 'references';
 type BreakPageKey = 'experience' | 'education' | 'publications' | 'volunteering' | 'otherTraining';
@@ -11,17 +11,15 @@ export const useResumeEditorLogic = () => {
   const { resumeData, setResumeData, aiConfig, sectionOrder, setSectionOrder } = useResumeStore();
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
   
-  // Local state for skills text input
   const [skillsText, setSkillsText] = useState(resumeData.skills.join(', '));
 
-  // Sync local state with store changes
   useEffect(() => {
     const currentText = resumeData.skills.join(', ');
     const normalizedLocal = skillsText.split(',').map(s => s.trim()).filter(Boolean).join(', ');
     if (currentText !== normalizedLocal) {
       setSkillsText(currentText);
     }
-  }, [resumeData.skills]);
+  }, [resumeData.skills, skillsText]);
 
   const setLocalLoading = (key: string, val: boolean) => {
     setLoadingStates(prev => ({ ...prev, [key]: val }));
@@ -44,7 +42,7 @@ export const useResumeEditorLogic = () => {
     }
   };
 
-  const generateItems = async (id: string, sectionTitle: string, onDone: (data: any) => void, schema: any) => {
+  const generateItems = async (id: string, sectionTitle: string, onDone: (data: unknown) => void, schema: Record<string, unknown>) => {
     setLocalLoading(id, true);
     try {
       const res = await fetch('/api/refine-resume', {
@@ -73,27 +71,28 @@ export const useResumeEditorLogic = () => {
     });
   };
 
-  const addItem = (key: SectionKey, item: any) => {
+  const addItem = (key: SectionKey, item: unknown) => {
+    const currentArray = (resumeData as unknown as Record<string, unknown[]>)[key] || [];
     setResumeData({
       ...resumeData,
-      [key]: [...((resumeData as any)[key] || []), item]
+      [key]: [...currentArray, item]
     });
   };
 
   const removeItem = (key: SectionKey, index: number) => {
-    const list = [...((resumeData as any)[key] || [])];
+    const list = [...((resumeData as unknown as Record<string, unknown[]>)[key] || [])];
     list.splice(index, 1);
     setResumeData({ ...resumeData, [key]: list });
   };
 
-  const updateItem = (key: SectionKey, index: number, field: string, val: any) => {
-    const list = [...((resumeData as any)[key] as any[])];
+  const updateItem = (key: SectionKey, index: number, field: string, val: unknown) => {
+    const list = [...((resumeData as unknown as Record<string, unknown[]>)[key] as Array<Record<string, unknown>>)];
     list[index] = { ...list[index], [field]: val };
     setResumeData({ ...resumeData, [key]: list });
   };
 
   const toggleBreakPage = (key: BreakPageKey, index: number) => {
-    const list = [...((resumeData as any)[key] as any[])];
+    const list = [...((resumeData as unknown as Record<string, Array<{ breakPage?: boolean }>>)[key])];
     list[index] = { ...list[index], breakPage: !list[index].breakPage };
     setResumeData({ ...resumeData, [key]: list });
   };
@@ -109,6 +108,20 @@ export const useResumeEditorLogic = () => {
   const handleSkillsChange = (val: string) => {
     setSkillsText(val);
     updateSkills(val);
+  };
+
+  const refineContent = async (instruction: string, existingData: string): Promise<string> => {
+    const res = await fetch(API_ENDPOINTS.REFINE_RESUME, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        instruction,
+        content: existingData,
+        config: aiConfig,
+      }),
+    });
+    const data = await res.json();
+    return data.result || '';
   };
 
   return {
@@ -128,5 +141,7 @@ export const useResumeEditorLogic = () => {
     toggleBreakPage,
     updateSectionOrder,
     sectionOrder,
+    aiConfig,
+    refineContent,
   };
 };

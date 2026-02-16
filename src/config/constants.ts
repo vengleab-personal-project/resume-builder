@@ -112,6 +112,8 @@ export const AI_CONFIG = {
   TEMPERATURE_REFINEMENT: 0.7,
   RESPONSE_FORMAT_JSON: 'json_object' as const,
   RESPONSE_FORMAT_TEXT: 'text' as const,
+  MAX_TOKENS_DEFAULT: 10_000,
+  MAX_OUTPUT_TOKENS: 10_000,
 } as const;
 
 // API Error Messages (internal)
@@ -133,4 +135,30 @@ export const HTTP_STATUS = {
   OK: 200,
   BAD_REQUEST: 400,
   INTERNAL_SERVER_ERROR: 500,
+} as const;
+
+// Editor Configuration
+export const EDITOR_CONFIG = {
+  DRAG_ACTIVATION_DISTANCE: 8,
+  ICON_SIZE_SMALL: 12,
+  ICON_SIZE_MEDIUM: 14,
+  ICON_SIZE_LARGE: 16,
+  ICON_SIZE_XL: 20,
+  MIN_HEIGHT_SUMMARY: '120px',
+  MIN_HEIGHT_BULLETS: '150px',
+  MIN_HEIGHT_DESCRIPTION: '60px',
+  MIN_HEIGHT_SKILLS: '100px',
+  MIN_HEIGHT_TRAINING: '80px',
+} as const;
+
+// API Endpoints
+export const API_ENDPOINTS = {
+  REFINE_RESUME: '/api/refine-resume',
+  PARSE_RESUME: '/api/parse-resume',
+} as const;
+
+// Request Timeouts (in milliseconds)
+export const REQUEST_TIMEOUTS = {
+  PARSE_RESUME: 60_000, // 60 seconds for AI parsing
+  REFINE_CONTENT: 30_000, // 30 seconds for refinement
 } as const;
