@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useId } from "react";
+import React, { useId, useState, useCallback } from "react";
 import { useResumeEditorLogic } from "./useResumeEditorLogic";
 import { useTranslations } from "@/hooks/useTranslations";
 import { EDITOR_CONFIG } from "@/config/constants";
@@ -23,7 +23,8 @@ import {
   restrictToVerticalAxis,
   restrictToWindowEdges,
 } from "@dnd-kit/modifiers";
-import { Experience } from "@/types";
+import type { Experience, Education, Certification, Publication, Volunteering, Language, Training, Reference } from "@/types";
+import { AISectionGeneratorModal } from "@/components/ui/AISectionGeneratorModal";
 import {
   SortableSection,
   PersonalInfoSection,
@@ -42,7 +43,6 @@ import {
 export const ResumeEditor = () => {
   const {
     resumeData,
-    loadingStates,
     updatePersonalInfo,
     updateSummary,
     handleSkillsChange,
@@ -50,13 +50,108 @@ export const ResumeEditor = () => {
     removeItem,
     updateItem,
     toggleBreakPage,
-    refineWithInstruction,
-    generateItems,
+    generateSectionWithContext,
     setResumeData,
     sectionOrder,
     updateSectionOrder,
     refineContent,
   } = useResumeEditorLogic();
+
+  // State for AI Section Generator Modal
+  const [aiModalConfig, setAiModalConfig] = useState<{
+    isOpen: boolean;
+    sectionKey: string;
+    sectionTitle: string;
+    schema: Record<string, unknown>;
+  } | null>(null);
+
+  const openAiModal = useCallback((sectionKey: string, sectionTitle: string, schema: Record<string, unknown>) => {
+    setAiModalConfig({ isOpen: true, sectionKey, sectionTitle, schema });
+  }, []);
+
+  const closeAiModal = useCallback(() => {
+    setAiModalConfig(null);
+  }, []);
+
+  const handleAiSectionGenerate = useCallback(async <T,>(
+    briefInfo: string,
+    sectionTitle: string,
+    schema: Record<string, unknown>
+  ): Promise<T[]> => {
+    return generateSectionWithContext<T>(briefInfo, sectionTitle, schema);
+  }, [generateSectionWithContext]);
+
+  const handleAiSectionApply = useCallback(<T,>(items: T[], mode: 'replace' | 'amend') => {
+    if (!aiModalConfig) return;
+    const { sectionKey } = aiModalConfig;
+
+    switch (sectionKey) {
+      case 'experience':
+        setResumeData({
+          ...resumeData,
+          experience: mode === 'replace' ? items as Experience[] : [...resumeData.experience, ...(items as Experience[])],
+        });
+        break;
+      case 'education':
+        setResumeData({
+          ...resumeData,
+          education: mode === 'replace' ? items as Education[] : [...resumeData.education, ...(items as Education[])],
+        });
+        break;
+      case 'certifications':
+        setResumeData({
+          ...resumeData,
+          certifications: mode === 'replace' ? items as Certification[] : [...(resumeData.certifications || []), ...(items as Certification[])],
+        });
+        break;
+      case 'publications':
+        setResumeData({
+          ...resumeData,
+          publications: mode === 'replace' ? items as Publication[] : [...(resumeData.publications || []), ...(items as Publication[])],
+        });
+        break;
+      case 'volunteering':
+        setResumeData({
+          ...resumeData,
+          volunteering: mode === 'replace' ? items as Volunteering[] : [...(resumeData.volunteering || []), ...(items as Volunteering[])],
+        });
+        break;
+      case 'languages':
+        setResumeData({
+          ...resumeData,
+          languages: mode === 'replace' ? items as Language[] : [...(resumeData.languages || []), ...(items as Language[])],
+        });
+        break;
+      case 'otherTraining':
+        setResumeData({
+          ...resumeData,
+          otherTraining: mode === 'replace' ? items as Training[] : [...(resumeData.otherTraining || []), ...(items as Training[])],
+        });
+        break;
+      case 'references':
+        setResumeData({
+          ...resumeData,
+          references: mode === 'replace' ? items as Reference[] : [...(resumeData.references || []), ...(items as Reference[])],
+        });
+        break;
+      case 'skills':
+        if (Array.isArray(items) && items.every(i => typeof i === 'string')) {
+          setResumeData({
+            ...resumeData,
+            skills: mode === 'replace' ? items as string[] : [...new Set([...resumeData.skills, ...(items as string[])])],
+          });
+        }
+        break;
+      case 'personalInfo':
+        if (items.length > 0 && typeof items[0] === 'object') {
+          setResumeData({
+            ...resumeData,
+            personalInfo: items[0] as typeof resumeData.personalInfo,
+          });
+        }
+        break;
+    }
+  }, [aiModalConfig, resumeData, setResumeData]);
 
   const { t } = useTranslations("editor");
   const dndId = useId();
@@ -129,28 +224,20 @@ export const ResumeEditor = () => {
               }
               onToggleBreakPage={(idx) => toggleBreakPage("experience", idx)}
               onAiGenerate={() =>
-                generateItems(
-                  "exp-gen",
-                  t("experience"),
-                  (items) =>
-                    setResumeData({
-                      ...resumeData,
-                      experience: items as Experience[],
-                    }),
-                  {
-                    items: [
-                      {
-                        role: "string",
-                        company: "string",
-                        dates: "string",
-                        description: t("instructions.improveBullets"),
-                      },
-                    ],
-                  }
-                )
+                openAiModal("experience", t("experience"), {
+                  items: [
+                    {
+                      role: "string",
+                      company: "string",
+                      dates: "string",
+                      location: "string",
+                      description: "string (achievement-oriented bullet points)",
+                    },
+                  ],
+                })
               }
               onAiGenerateDescription={refineContent}
-              aiLoading={loadingStates["exp-gen"]}
+              aiLoading={false}
             />
           </SortableSection>
         );
@@ -174,28 +261,19 @@ export const ResumeEditor = () => {
               }
               onToggleBreakPage={(idx) => toggleBreakPage("education", idx)}
               onAiGenerate={() =>
-                generateItems(
-                  "edu-gen",
-                  t("education"),
-                  (items) =>
-                    setResumeData({
-                      ...resumeData,
-                      education: [...resumeData.education, ...(items as typeof resumeData.education)],
-                    }),
-                  {
-                    items: [
-                      {
-                        school: "string",
-                        degree: "string",
-                        year: "string",
-                        description: "string",
-                      },
-                    ],
-                  }
-                )
+                openAiModal("education", t("education"), {
+                  items: [
+                    {
+                      school: "string",
+                      degree: "string",
+                      year: "string",
+                      description: "string",
+                    },
+                  ],
+                })
               }
               onAiGenerateDescription={refineContent}
-              aiLoading={loadingStates["edu-gen"]}
+              aiLoading={false}
             />
           </SortableSection>
         );
@@ -207,23 +285,11 @@ export const ResumeEditor = () => {
               skills={resumeData.skills}
               onUpdate={handleSkillsChange}
               onAiGenerate={() =>
-                refineWithInstruction(
-                  "skills-gen",
-                  resumeData.skills.join(", "),
-                  t("instructions.suggestSkills"),
-                  (v) =>
-                    setResumeData({
-                      ...resumeData,
-                      skills: [
-                        ...new Set([
-                          ...resumeData.skills,
-                          ...v.split(",").map((s: string) => s.trim()),
-                        ]),
-                      ],
-                    })
-                )
+                openAiModal("skills", t("skills"), {
+                  items: ["string (skill name)"],
+                })
               }
-              aiLoading={loadingStates["skills-gen"]}
+              aiLoading={false}
             />
           </SortableSection>
         );
@@ -246,30 +312,18 @@ export const ResumeEditor = () => {
                 updateItem("certifications", idx, field, value)
               }
               onAiGenerate={() =>
-                generateItems(
-                  "cert-gen",
-                  t("certifications"),
-                  (items) =>
-                    setResumeData({
-                      ...resumeData,
-                      certifications: [
-                        ...(resumeData.certifications || []),
-                        ...(items as typeof resumeData.certifications),
-                      ],
-                    }),
-                  {
-                    items: [
-                      {
-                        name: "string",
-                        issuer: "string",
-                        expireDate: "string",
-                        year: "string",
-                      },
-                    ],
-                  }
-                )
+                openAiModal("certifications", t("certifications"), {
+                  items: [
+                    {
+                      name: "string",
+                      issuer: "string",
+                      expireDate: "string",
+                      year: "string",
+                    },
+                  ],
+                })
               }
-              aiLoading={loadingStates["cert-gen"]}
+              aiLoading={false}
             />
           </SortableSection>
         );
@@ -291,25 +345,13 @@ export const ResumeEditor = () => {
               }
               onToggleBreakPage={(idx) => toggleBreakPage("publications", idx)}
               onAiGenerate={() =>
-                generateItems(
-                  "pub-gen",
-                  t("publications"),
-                  (items) =>
-                    setResumeData({
-                      ...resumeData,
-                      publications: [
-                        ...(resumeData.publications || []),
-                        ...(items as typeof resumeData.publications),
-                      ],
-                    }),
-                  {
-                    items: [
-                      { title: "string", link: "string", date: "string" },
-                    ],
-                  }
-                )
+                openAiModal("publications", t("publications"), {
+                  items: [
+                    { title: "string", link: "string", date: "string" },
+                  ],
+                })
               }
-              aiLoading={loadingStates["pub-gen"]}
+              aiLoading={false}
             />
           </SortableSection>
         );
@@ -331,29 +373,17 @@ export const ResumeEditor = () => {
                 updateItem("volunteering", idx, field, value)
               }
               onAiGenerate={() =>
-                generateItems(
-                  "vol-gen",
-                  t("volunteering"),
-                  (items) =>
-                    setResumeData({
-                      ...resumeData,
-                      volunteering: [
-                        ...(resumeData.volunteering || []),
-                        ...(items as typeof resumeData.volunteering),
-                      ],
-                    }),
-                  {
-                    items: [
-                      {
-                        role: "string",
-                        organization: "string",
-                        topic: "string",
-                      },
-                    ],
-                  }
-                )
+                openAiModal("volunteering", t("volunteering"), {
+                  items: [
+                    {
+                      role: "string",
+                      organization: "string",
+                      topic: "string",
+                    },
+                  ],
+                })
               }
-              aiLoading={loadingStates["vol-gen"]}
+              aiLoading={false}
             />
           </SortableSection>
         );
@@ -369,18 +399,11 @@ export const ResumeEditor = () => {
                 updateItem("languages", idx, field, value)
               }
               onAiGenerate={() =>
-                generateItems(
-                  "lang-gen",
-                  t("languages"),
-                  (items) =>
-                    setResumeData({
-                      ...resumeData,
-                      languages: [...(resumeData.languages || []), ...(items as typeof resumeData.languages)],
-                    }),
-                  { items: [{ name: "string", proficiency: "string" }] }
-                )
+                openAiModal("languages", t("languages"), {
+                  items: [{ name: "string", proficiency: "string" }],
+                })
               }
-              aiLoading={loadingStates["lang-gen"]}
+              aiLoading={false}
             />
           </SortableSection>
         );
@@ -396,22 +419,12 @@ export const ResumeEditor = () => {
                 updateItem("otherTraining", idx, field, value)
               }
               onAiGenerate={() =>
-                generateItems(
-                  "train-gen",
-                  t("otherTraining"),
-                  (items) =>
-                    setResumeData({
-                      ...resumeData,
-                      otherTraining: [
-                        ...(resumeData.otherTraining || []),
-                        ...(items as typeof resumeData.otherTraining),
-                      ],
-                    }),
-                  { items: [{ name: "string" }] }
-                )
+                openAiModal("otherTraining", t("otherTraining"), {
+                  items: [{ name: "string" }],
+                })
               }
               onAiGenerateContent={refineContent}
-              aiLoading={loadingStates["train-gen"]}
+              aiLoading={false}
             />
           </SortableSection>
         );
@@ -435,28 +448,19 @@ export const ResumeEditor = () => {
                 updateItem("references", idx, field, value)
               }
               onAiGenerate={() =>
-                generateItems(
-                  "ref-gen",
-                  t("references"),
-                  (items) =>
-                    setResumeData({
-                      ...resumeData,
-                      references: [...(resumeData.references || []), ...(items as typeof resumeData.references)],
-                    }),
-                  {
-                    items: [
-                      {
-                        name: "string",
-                        title: "string",
-                        company: "string",
-                        phone: "string",
-                        email: "string",
-                      },
-                    ],
-                  }
-                )
+                openAiModal("references", t("references"), {
+                  items: [
+                    {
+                      name: "string",
+                      title: "string",
+                      company: "string",
+                      phone: "string",
+                      email: "string",
+                    },
+                  ],
+                })
               }
-              aiLoading={loadingStates["ref-gen"]}
+              aiLoading={false}
             />
           </SortableSection>
         );
@@ -473,22 +477,17 @@ export const ResumeEditor = () => {
         onUpdateField={updatePersonalInfo}
         onPhotoChange={handlePhotoChange}
         onAiGenerate={() =>
-          generateItems(
-            "pi-gen",
-            t("personalInfo"),
-            (data) => setResumeData({ ...resumeData, personalInfo: data as typeof resumeData.personalInfo }),
-            {
-              name: "string",
-              title: "string",
-              email: "string",
-              phone: "string",
-              address: "string",
-              linkedin: "string",
-              website: "string",
-            }
-          )
+          openAiModal("personalInfo", t("personalInfo"), {
+            name: "string",
+            title: "string",
+            email: "string",
+            phone: "string",
+            address: "string",
+            linkedin: "string",
+            website: "string",
+          })
         }
-        aiLoading={loadingStates["pi-gen"]}
+        aiLoading={false}
       />
 
       <DndContext
@@ -507,6 +506,18 @@ export const ResumeEditor = () => {
           </div>
         </SortableContext>
       </DndContext>
+
+      {/* AI Section Generator Modal */}
+      {aiModalConfig && (
+        <AISectionGeneratorModal
+          isOpen={aiModalConfig.isOpen}
+          onClose={closeAiModal}
+          sectionTitle={aiModalConfig.sectionTitle}
+          schema={aiModalConfig.schema}
+          onApply={handleAiSectionApply}
+          onGenerate={handleAiSectionGenerate}
+        />
+      )}
     </div>
   );
 };

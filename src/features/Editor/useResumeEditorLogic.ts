@@ -70,6 +70,38 @@ export const useResumeEditorLogic = () => {
     }
   }, [setLocalLoading]);
 
+  const generateSectionWithContext = useCallback(async <T>(
+    briefInfo: string,
+    sectionTitle: string,
+    schema: Record<string, unknown>
+  ): Promise<T[]> => {
+    const config = useResumeStore.getState().aiConfig;
+    const res = await fetch(API_ENDPOINTS.REFINE_RESUME, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        instruction: `Based on the following information about the candidate, generate professional and relevant entries for the resume section "${sectionTitle}". 
+        
+Candidate Information:
+${briefInfo}
+
+Return the data in JSON format matching the provided schema.`,
+        schema,
+        config,
+      }),
+    });
+    const data = await res.json();
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    if (data.items && Array.isArray(data.items)) {
+      return data.items as T[];
+    } else if (Array.isArray(data)) {
+      return data as T[];
+    }
+    throw new Error('Unexpected response format');
+  }, []);
+
   const updatePersonalInfo = useCallback((key: string, val: string) => {
     const current = useResumeStore.getState().resumeData;
     setResumeData({ 
@@ -154,6 +186,7 @@ export const useResumeEditorLogic = () => {
     handleSkillsChange,
     refineWithInstruction,
     generateItems,
+    generateSectionWithContext,
     setResumeData,
     toggleBreakPage,
     updateSectionOrder,
