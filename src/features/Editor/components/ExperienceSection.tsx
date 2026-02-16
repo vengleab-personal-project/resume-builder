@@ -46,14 +46,14 @@ const ExperienceSectionComponent = ({
           key={idx}
           className="mb-6 p-4 border border-slate-100 rounded-lg bg-slate-50/30 relative group"
         >
-          <div className="absolute top-3 right-3 flex gap-2">
+          <div className="absolute -top-2 -right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
             <button
               onClick={() => onToggleBreakPage(idx)}
               className={cn(
-                "p-1.5 rounded-md transition-all shadow-sm border",
+                "p-1.5 rounded-full transition-all shadow-sm border transform hover:scale-110",
                 exp.breakPage
                   ? "bg-indigo-600 text-white border-indigo-600"
-                  : "bg-white text-slate-300 hover:text-indigo-600 border-slate-100"
+                  : "bg-white text-slate-400 hover:text-indigo-600 border-slate-200"
               )}
               title={
                 exp.breakPage
@@ -61,21 +61,22 @@ const ExperienceSectionComponent = ({
                   : t("actions.addPageBreak")
               }
             >
-              <Scissors size={EDITOR_CONFIG.ICON_SIZE_MEDIUM} />
+              <Scissors size={14} />
             </button>
             <button
               onClick={() => onRemove(idx)}
-              className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-white rounded-md transition-all shadow-sm border border-slate-100"
+              className="p-1.5 bg-white text-slate-400 hover:text-red-500 rounded-full shadow-sm border border-slate-200 transition-all transform hover:scale-110"
+              title={t("actions.remove")}
             >
-              <Trash2 size={EDITOR_CONFIG.ICON_SIZE_MEDIUM} />
+              <Trash2 size={14} />
             </button>
           </div>
           <Input
             label={t("labels.role")}
             value={exp.role}
             onChange={(e) => onUpdate(idx, "role", e.target.value)}
-            onAiClick={() => onRefineRole(idx)}
-            aiLoading={roleLoadingStates[`exp-role-${idx}`]}
+            // onAiClick={() => onRefineRole(idx)}
+            // aiLoading={roleLoadingStates[`exp-role-${idx}`]}
           />
           <Input
             label={t("labels.company")}

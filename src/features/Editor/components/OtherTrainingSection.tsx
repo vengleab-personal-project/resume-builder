@@ -37,14 +37,15 @@ const OtherTrainingSectionComponent = ({
       {otherTraining.map((training, idx) => (
         <div
           key={idx}
-          className="mb-4 pb-4 border-b border-slate-100 last:border-0 last:pb-0 relative"
+          className="mb-4 pb-4 border-b border-slate-100 last:border-0 last:pb-0 relative group"
         >
-          <div className="absolute top-0 right-0">
+          <div className="absolute -top-1 -right-1 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
             <button
               onClick={() => onRemove(idx)}
-              className="p-1 text-slate-300 hover:text-red-500 transition-colors"
+              className="p-1.5 bg-white text-slate-400 hover:text-red-500 rounded-full shadow-sm border border-slate-200 transition-all transform hover:scale-110"
+              title={t("actions.remove")}
             >
-              <Trash2 size={EDITOR_CONFIG.ICON_SIZE_MEDIUM} />
+              <Trash2 size={14} />
             </button>
           </div>
           <RichTextEditor
