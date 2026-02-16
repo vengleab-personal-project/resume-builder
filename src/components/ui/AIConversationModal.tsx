@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Loader2, Sparkles, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslations } from "@/hooks/useTranslations";
+import { sanitizeHTML } from '@/lib/sanitize';
 
 interface AIConversationModalProps {
   isOpen: boolean;
@@ -71,7 +72,7 @@ export const AIConversationModal = ({
       const result = await onGenerate(instruction, currentValue);
       setAiResult(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : tCommon('errors.parseError'));
+      setError(err instanceof Error ? err.message : tCommon('error'));
     } finally {
       setIsLoading(false);
     }
@@ -125,7 +126,10 @@ export const AIConversationModal = ({
             <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-slate-700 max-h-32 overflow-auto break-words">
               {currentValue ? (
                 fieldType === 'richtext' ? (
-                  <div dangerouslySetInnerHTML={{ __html: currentValue }} />
+                  <div 
+                    className="[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:space-y-1 [&_p]:mb-2 [&_li]:text-slate-700" 
+                    dangerouslySetInnerHTML={{ __html: sanitizeHTML(currentValue) }} 
+                  />
                 ) : (
                   <pre className="whitespace-pre-wrap font-sans">{currentValue}</pre>
                 )
@@ -144,7 +148,7 @@ export const AIConversationModal = ({
               value={instruction}
               onChange={(e) => setInstruction(e.target.value)}
               placeholder={tAi('placeholder')}
-              className="w-full h-24 p-3 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none"
+              className="w-full h-24 p-3 text-sm text-slate-900 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none placeholder:text-slate-400"
               disabled={isLoading}
             />
             <button
@@ -196,7 +200,10 @@ export const AIConversationModal = ({
               </div>
               <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 text-sm text-slate-700 max-h-64 overflow-auto break-words">
                 {fieldType === 'richtext' ? (
-                  <div dangerouslySetInnerHTML={{ __html: aiResult }} />
+                  <div 
+                    className="[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:space-y-1 [&_p]:mb-2 [&_li]:text-slate-700" 
+                    dangerouslySetInnerHTML={{ __html: sanitizeHTML(aiResult) }} 
+                  />
                 ) : (
                   <pre className="whitespace-pre-wrap font-sans">{aiResult}</pre>
                 )}

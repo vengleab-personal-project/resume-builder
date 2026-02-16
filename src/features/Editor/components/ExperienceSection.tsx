@@ -33,11 +33,11 @@ const ExperienceSectionComponent = ({
 
   return (
     <Section
-      title={`${t("experience")} (${experience.length})`}
+      title={`${t("experience")} (${Array.isArray(experience) ? experience.length : 0})`}
       onAiClick={onAiGenerate}
       aiLoading={aiLoading}
     >
-      {experience.map((exp, idx) => (
+      {Array.isArray(experience) && experience.map((exp, idx) => (
         <div
           key={idx}
           className="mb-6 p-4 border border-slate-100 rounded-lg bg-slate-50/30 relative group"

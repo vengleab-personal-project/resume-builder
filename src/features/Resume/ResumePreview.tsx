@@ -19,7 +19,7 @@ import {
   SummarySection,
 } from './components';
 
-const hasData = (arr: unknown[] | undefined) => arr && arr.filter(Boolean).length > 0;
+const hasData = (arr: unknown[] | undefined) => Array.isArray(arr) && arr.filter(Boolean).length > 0;
 
 const ResumePreviewComponent = () => {
   const { resumeData, theme, sectionOrder } = useResumeStore();

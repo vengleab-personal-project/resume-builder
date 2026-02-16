@@ -17,6 +17,13 @@ interface RefinementResponse {
   [key: string]: any;
 }
 
+const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, providerName: string): Promise<T> => {
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => reject(new Error(`${providerName} request timed out after ${timeoutMs}ms`)), timeoutMs);
+  });
+  return Promise.race([promise, timeoutPromise]);
+};
+
 /**
  * Refine content using Gemini
  */
@@ -37,6 +44,7 @@ export const refineWithGemini = async (
 
   const sanitizedPrompt = sanitizePromptInput(processedPrompt);
 
+  console.log(`Gemini Request: isJson=${isJson}`);
   const model = isJson ? geminiModel : geminiTextModel;
   const prompt = `${sanitizedPrompt}\n\n${
     isJson 
@@ -44,9 +52,11 @@ export const refineWithGemini = async (
       : "Refine the content directly."
   }`;
 
-  const result = await model.generateContent(prompt);
+  const startTime = Date.now();
+  const result = await withTimeout(model.generateContent(prompt), 60000, "Gemini");
   const response = await result.response;
   const text = response.text();
+  console.log(`Gemini Response received in ${Date.now() - startTime}ms`);
 
   // Guard against unwanted output (refusal or error messages)
   if (text.toLowerCase().includes("cannot assist") || text.toLowerCase().includes("refuse") || text.toLowerCase().includes("unrelated")) {
@@ -84,7 +94,9 @@ export const refineWithOpenAI = async (
 
   const sanitizedPrompt = sanitizePromptInput(processedPrompt);
 
-  const completion = await openaiClient.chat.completions.create({
+  console.log(`OpenAI Request: isJson=${isJson}`);
+  const startTime = Date.now();
+  const completion = await withTimeout(openaiClient.chat.completions.create({
     model: "gpt-4o",
     messages: [
       { role: "system", content: sanitizedPrompt },
@@ -100,12 +112,25 @@ export const refineWithOpenAI = async (
       ? { type: AI_CONFIG.RESPONSE_FORMAT_JSON } 
       : { type: AI_CONFIG.RESPONSE_FORMAT_TEXT },
     max_tokens: OPENAI_CONFIG.MAX_TOKENS,
-  });
+  }), 30000, "OpenAI");
 
   const result = completion.choices[0].message.content;
+  console.log(`OpenAI Response received in ${Date.now() - startTime}ms`);
   
   if (isJson) {
-    return JSON.parse(result || '{}');
+    try {
+      const parsed = JSON.parse(result || '{}');
+      if (schema && typeof schema === 'object') {
+        const schemaObj = schema as any;
+        if (schemaObj.type === 'array' && !Array.isArray(parsed)) {
+          return { items: [parsed] };
+        }
+      }
+      return parsed;
+    } catch (e) {
+      console.error("Failed to parse OpenAI JSON response:", result);
+      throw new Error("Failed to process the AI response.");
+    }
   }
   return { result: result?.trim() };
 };

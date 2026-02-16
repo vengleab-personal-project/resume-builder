@@ -53,10 +53,18 @@ export const useResumeEditorLogic = () => {
         }),
       });
       const data = await res.json();
-      if (data.items) onDone(data.items);
-      else onDone(data);
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      if (data.items && Array.isArray(data.items)) {
+        onDone(data.items);
+      } else if (Array.isArray(data)) {
+        onDone(data);
+      } else {
+        console.warn("AI returned unexpected data format for items", data);
+      }
     } catch (err) {
-      console.error(err);
+      console.error("Failed to generate items:", err);
     } finally {
       setLocalLoading(id, false);
     }
