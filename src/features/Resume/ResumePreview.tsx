@@ -170,7 +170,7 @@ const ResumePreviewComponent = () => {
         </aside>
 
         {/* Main Content (Right) */}
-        <main className="flex-1 p-8 pb-16 bg-white shrink-0 relative z-0">
+        <main className="flex-1 p-8 pb-16 bg-white min-w-0 relative z-0">
           {sortedMainSections.map(renderSection)}
 
           {/* White Background Extension for Print - starts below header (h-40 = 10rem = 160px) */}

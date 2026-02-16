@@ -2,6 +2,7 @@ import React from 'react'
 import { GraduationCap } from 'lucide-react'
 
 import { Education } from '@/types'
+import { normalizeHtmlSpaces } from '@/lib/htmlUtils'
 
 import { MainSectionHeading } from './SectionHeading'
 
@@ -41,8 +42,8 @@ export const EducationSection = ({ education, primaryColor, title }: EducationSe
             </div>
 
             {edu.description && (
-              <div className="text-sm text-slate-500 font-medium mt-1 break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
-                <span dangerouslySetInnerHTML={{ __html: edu.description }} />
+              <div className="text-sm text-slate-500 font-medium mt-1">
+                <span dangerouslySetInnerHTML={{ __html: normalizeHtmlSpaces(edu.description) }} />
               </div>
             )}
           </div>

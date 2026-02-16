@@ -2,6 +2,7 @@ import React from 'react'
 import { Briefcase } from 'lucide-react'
 
 import { Experience } from '@/types'
+import { normalizeHtmlSpaces } from '@/lib/htmlUtils'
 
 import { MainSectionHeading } from './SectionHeading'
 
@@ -42,9 +43,8 @@ export const ExperienceSection = ({ experience, primaryColor, title }: Experienc
 
             {exp.description && (
               <div 
-                className="text-sm text-slate-600 leading-relaxed prose prose-sm prose-slate max-w-none [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:space-y-1.5 [&_li]:break-words"
-                style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
-                dangerouslySetInnerHTML={{ __html: exp.description }} 
+                className="text-sm text-slate-600 leading-relaxed prose prose-sm prose-slate max-w-none [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:space-y-1.5"
+                dangerouslySetInnerHTML={{ __html: normalizeHtmlSpaces(exp.description) }} 
               />
             )}
           </div>

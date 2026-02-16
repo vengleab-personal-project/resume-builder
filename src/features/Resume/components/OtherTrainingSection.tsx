@@ -1,4 +1,5 @@
 import { Training } from '@/types'
+import { normalizeHtmlSpaces } from '@/lib/htmlUtils'
 
 import { SidebarSectionHeading } from './SectionHeading'
 
@@ -16,9 +17,8 @@ export const OtherTrainingSection = ({ otherTraining, title }: OtherTrainingSect
         return (
           <li 
             key={idx} 
-            className="pl-1 break-words" 
-            style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
-            dangerouslySetInnerHTML={{ __html: content }} 
+            className="pl-1"
+            dangerouslySetInnerHTML={{ __html: normalizeHtmlSpaces(content) }} 
           />
         );
       })}
