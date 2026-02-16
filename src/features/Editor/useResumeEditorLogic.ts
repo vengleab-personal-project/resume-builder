@@ -1,16 +1,33 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useResumeStore } from '@/store/resume-store';
-import { API_ENDPOINTS } from '@/config/constants';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useResumeStore } from "@/store/resume-store";
+import { API_ENDPOINTS } from "@/config/constants";
 
-type SectionKey = 'experience' | 'education' | 'publications' | 'skills' | 'certifications' | 'volunteering' | 'languages' | 'otherTraining' | 'references';
-type BreakPageKey = 'experience' | 'education' | 'publications' | 'volunteering' | 'otherTraining';
+type SectionKey =
+  | "experience"
+  | "education"
+  | "publications"
+  | "skills"
+  | "certifications"
+  | "volunteering"
+  | "languages"
+  | "otherTraining"
+  | "references";
+type BreakPageKey =
+  | "experience"
+  | "education"
+  | "publications"
+  | "volunteering"
+  | "otherTraining";
 
 export const useResumeEditorLogic = () => {
-  const { resumeData, setResumeData, aiConfig, sectionOrder, setSectionOrder } = useResumeStore();
-  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
-  
+  const { resumeData, setResumeData, aiConfig, sectionOrder, setSectionOrder } =
+    useResumeStore();
+  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>(
+    {},
+  );
+
   // Keep a ref to latest resumeData to avoid stale closures in callbacks
   const resumeDataRef = useRef(resumeData);
   useEffect(() => {
@@ -18,38 +35,93 @@ export const useResumeEditorLogic = () => {
   }, [resumeData]);
 
   const setLocalLoading = useCallback((key: string, val: boolean) => {
-    setLoadingStates(prev => ({ ...prev, [key]: val }));
+    setLoadingStates((prev) => ({ ...prev, [key]: val }));
   }, []);
 
-  const refineWithInstruction = useCallback(async (id: string, currentVal: string, instruction: string, onDone: (res: string) => void) => {
-    setLocalLoading(id, true);
-    try {
-      const config = useResumeStore.getState().aiConfig;
-      const res = await fetch('/api/refine-resume', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ instruction, content: currentVal, config }),
-      });
-      const data = await res.json();
-      if (data.result) onDone(data.result);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLocalLoading(id, false);
-    }
-  }, [setLocalLoading]);
+  const refineWithInstruction = useCallback(
+    async (
+      id: string,
+      currentVal: string,
+      instruction: string,
+      onDone: (res: string) => void,
+    ) => {
+      setLocalLoading(id, true);
+      try {
+        const config = useResumeStore.getState().aiConfig;
+        const res = await fetch("/api/refine-resume", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ instruction, content: currentVal, config }),
+        });
+        const data = await res.json();
+        if (data.result) onDone(data.result);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLocalLoading(id, false);
+      }
+    },
+    [setLocalLoading],
+  );
 
-  const generateItems = useCallback(async (id: string, sectionTitle: string, onDone: (data: unknown) => void, schema: Record<string, unknown>) => {
-    setLocalLoading(id, true);
-    try {
+  const generateItems = useCallback(
+    async (
+      id: string,
+      sectionTitle: string,
+      onDone: (data: unknown) => void,
+      schema: Record<string, unknown>,
+    ) => {
+      setLocalLoading(id, true);
+      try {
+        const config = useResumeStore.getState().aiConfig;
+        const res = await fetch("/api/refine-resume", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            instruction: `Generate professional and relevant entries for the resume section: ${sectionTitle} in JSON format.`,
+            schema,
+            config,
+          }),
+        });
+        const data = await res.json();
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        if (data.items && Array.isArray(data.items)) {
+          onDone(data.items);
+        } else if (Array.isArray(data)) {
+          onDone(data);
+        } else {
+          console.warn("AI returned unexpected data format for items", data);
+        }
+      } catch (err) {
+        console.error("Failed to generate items:", err);
+      } finally {
+        setLocalLoading(id, false);
+      }
+    },
+    [setLocalLoading],
+  );
+
+  const generateSectionWithContext = useCallback(
+    async <T>(
+      briefInfo: string,
+      sectionTitle: string,
+      schema: Record<string, unknown>,
+    ): Promise<T[]> => {
       const config = useResumeStore.getState().aiConfig;
-      const res = await fetch('/api/refine-resume', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          instruction: `Generate professional and relevant entries for the resume section: ${sectionTitle} in JSON format.`, 
+      const res = await fetch(API_ENDPOINTS.REFINE_RESUME, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          instruction: `Based on the following information about the candidate, generate professional and relevant entries for the resume section "${sectionTitle}". 
+        
+Candidate Information:
+${briefInfo}
+
+Return the data in JSON format matching the provided schema.`,
           schema,
-          config
+          config,
         }),
       });
       const data = await res.json();
@@ -57,122 +129,146 @@ export const useResumeEditorLogic = () => {
         throw new Error(data.error);
       }
       if (data.items && Array.isArray(data.items)) {
-        onDone(data.items);
+        return data.items as T[];
       } else if (Array.isArray(data)) {
-        onDone(data);
-      } else {
-        console.warn("AI returned unexpected data format for items", data);
+        return data as T[];
       }
-    } catch (err) {
-      console.error("Failed to generate items:", err);
-    } finally {
-      setLocalLoading(id, false);
-    }
-  }, [setLocalLoading]);
+      throw new Error("Unexpected response format");
+    },
+    [],
+  );
 
-  const generateSectionWithContext = useCallback(async <T>(
-    briefInfo: string,
-    sectionTitle: string,
-    schema: Record<string, unknown>
-  ): Promise<T[]> => {
-    const config = useResumeStore.getState().aiConfig;
-    const res = await fetch(API_ENDPOINTS.REFINE_RESUME, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        instruction: `Based on the following information about the candidate, generate professional and relevant entries for the resume section "${sectionTitle}". 
-        
-Candidate Information:
-${briefInfo}
+  const updatePersonalInfo = useCallback(
+    (key: string, val: string) => {
+      const current = useResumeStore.getState().resumeData;
+      setResumeData({
+        ...current,
+        personalInfo: { ...current.personalInfo, [key]: val },
+      });
+    },
+    [setResumeData],
+  );
 
-Return the data in JSON format matching the provided schema.`,
-        schema,
-        config,
-      }),
-    });
-    const data = await res.json();
-    if (data.error) {
-      throw new Error(data.error);
-    }
-    if (data.items && Array.isArray(data.items)) {
-      return data.items as T[];
-    } else if (Array.isArray(data)) {
-      return data as T[];
-    }
-    throw new Error('Unexpected response format');
-  }, []);
+  const addItem = useCallback(
+    (key: SectionKey, item: unknown) => {
+      const current = useResumeStore.getState().resumeData;
+      const currentArray =
+        (current as unknown as Record<string, unknown[]>)[key] || [];
+      setResumeData({
+        ...current,
+        [key]: [...currentArray, item],
+      });
+    },
+    [setResumeData],
+  );
 
-  const updatePersonalInfo = useCallback((key: string, val: string) => {
-    const current = useResumeStore.getState().resumeData;
-    setResumeData({ 
-      ...current, 
-      personalInfo: { ...current.personalInfo, [key]: val } 
-    });
-  }, [setResumeData]);
+  const removeItem = useCallback(
+    (key: SectionKey, index: number) => {
+      const current = useResumeStore.getState().resumeData;
+      const list = [
+        ...((current as unknown as Record<string, unknown[]>)[key] || []),
+      ];
+      list.splice(index, 1);
+      setResumeData({ ...current, [key]: list });
+    },
+    [setResumeData],
+  );
 
-  const addItem = useCallback((key: SectionKey, item: unknown) => {
-    const current = useResumeStore.getState().resumeData;
-    const currentArray = (current as unknown as Record<string, unknown[]>)[key] || [];
-    setResumeData({
-      ...current,
-      [key]: [...currentArray, item]
-    });
-  }, [setResumeData]);
+  const updateItem = useCallback(
+    (key: SectionKey, index: number, field: string, val: unknown) => {
+      const current = useResumeStore.getState().resumeData;
+      const list = [
+        ...((current as unknown as Record<string, unknown[]>)[key] as Array<
+          Record<string, unknown>
+        >),
+      ];
+      list[index] = { ...list[index], [field]: val };
+      setResumeData({ ...current, [key]: list });
+    },
+    [setResumeData],
+  );
 
-  const removeItem = useCallback((key: SectionKey, index: number) => {
-    const current = useResumeStore.getState().resumeData;
-    const list = [...((current as unknown as Record<string, unknown[]>)[key] || [])];
-    list.splice(index, 1);
-    setResumeData({ ...current, [key]: list });
-  }, [setResumeData]);
+  const toggleBreakPage = useCallback(
+    (key: BreakPageKey, index: number) => {
+      const current = useResumeStore.getState().resumeData;
+      const list = [
+        ...(
+          current as unknown as Record<string, Array<{ breakPage?: boolean }>>
+        )[key],
+      ];
+      list[index] = { ...list[index], breakPage: !list[index].breakPage };
+      setResumeData({ ...current, [key]: list });
+    },
+    [setResumeData],
+  );
 
-  const updateItem = useCallback((key: SectionKey, index: number, field: string, val: unknown) => {
-    const current = useResumeStore.getState().resumeData;
-    const list = [...((current as unknown as Record<string, unknown[]>)[key] as Array<Record<string, unknown>>)];
-    list[index] = { ...list[index], [field]: val };
-    setResumeData({ ...current, [key]: list });
-  }, [setResumeData]);
+  const reorderItem = useCallback(
+    (key: SectionKey, fromIndex: number, toIndex: number) => {
+      const current = useResumeStore.getState().resumeData;
+      const list = [
+        ...((current as unknown as Record<string, unknown[]>)[key] || []),
+      ];
+      const [movedItem] = list.splice(fromIndex, 1);
+      list.splice(toIndex, 0, movedItem);
+      setResumeData({ ...current, [key]: list });
+    },
+    [setResumeData],
+  );
 
-  const toggleBreakPage = useCallback((key: BreakPageKey, index: number) => {
-    const current = useResumeStore.getState().resumeData;
-    const list = [...((current as unknown as Record<string, Array<{ breakPage?: boolean }>>)[key])];
-    list[index] = { ...list[index], breakPage: !list[index].breakPage };
-    setResumeData({ ...current, [key]: list });
-  }, [setResumeData]);
+  const updateSectionOrder = useCallback(
+    (newOrder: string[]) => {
+      setSectionOrder(newOrder);
+    },
+    [setSectionOrder],
+  );
 
-  const updateSectionOrder = useCallback((newOrder: string[]) => {
-    setSectionOrder(newOrder);
-  }, [setSectionOrder]);
+  const updateSummary = useCallback(
+    (v: string) => {
+      const current = useResumeStore.getState().resumeData;
+      setResumeData({ ...current, summary: v });
+    },
+    [setResumeData],
+  );
 
-  const updateSummary = useCallback((v: string) => {
-    const current = useResumeStore.getState().resumeData;
-    setResumeData({...current, summary: v});
-  }, [setResumeData]);
-  
-  const updateSkills = useCallback((v: string) => {
-    const current = useResumeStore.getState().resumeData;
-    setResumeData({...current, skills: v.split(',').map(s => s.trim()).filter(Boolean)});
-  }, [setResumeData]);
+  const updateSkills = useCallback(
+    (v: string) => {
+      const current = useResumeStore.getState().resumeData;
+      setResumeData({
+        ...current,
+        skills: v
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      });
+    },
+    [setResumeData],
+  );
 
-  const handleSkillsChange = useCallback((tags: string[]) => {
-    const current = useResumeStore.getState().resumeData;
-    setResumeData({ ...current, skills: tags });
-  }, [setResumeData]);
+  const handleSkillsChange = useCallback(
+    (tags: string[]) => {
+      const current = useResumeStore.getState().resumeData;
+      setResumeData({ ...current, skills: tags });
+    },
+    [setResumeData],
+  );
 
-  const refineContent = useCallback(async (instruction: string, existingData: string): Promise<string> => {
-    const config = useResumeStore.getState().aiConfig;
-    const res = await fetch(API_ENDPOINTS.REFINE_RESUME, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        instruction,
-        content: existingData,
-        config,
-      }),
-    });
-    const data = await res.json();
-    return data.result || '';
-  }, []);
+  const refineContent = useCallback(
+    async (instruction: string, existingData: string): Promise<string> => {
+      const config = useResumeStore.getState().aiConfig;
+      const res = await fetch(API_ENDPOINTS.REFINE_RESUME, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          instruction,
+          content: existingData,
+          config,
+        }),
+      });
+      const data = await res.json();
+      return data.result || "";
+    },
+    [],
+  );
 
   return {
     resumeData,
@@ -181,6 +277,7 @@ Return the data in JSON format matching the provided schema.`,
     addItem,
     removeItem,
     updateItem,
+    reorderItem,
     updateSummary,
     updateSkills,
     handleSkillsChange,
