@@ -14,11 +14,9 @@ type ExperienceSectionProps = {
   onRemove: (index: number) => void;
   onUpdate: (index: number, field: string, value: string | string[]) => void;
   onToggleBreakPage: (index: number) => void;
-  onRefineRole: (index: number) => void;
   onAiGenerate: () => void;
   onAiGenerateDescription: (instruction: string, existingData: string) => Promise<string>;
   aiLoading: boolean;
-  roleLoadingStates: Record<string, boolean>;
 };
 
 const ExperienceSectionComponent = ({
@@ -27,11 +25,9 @@ const ExperienceSectionComponent = ({
   onRemove,
   onUpdate,
   onToggleBreakPage,
-  onRefineRole,
   onAiGenerate,
   onAiGenerateDescription,
   aiLoading,
-  roleLoadingStates,
 }: ExperienceSectionProps) => {
   const { t } = useTranslations("editor");
 
@@ -75,8 +71,6 @@ const ExperienceSectionComponent = ({
             label={t("labels.role")}
             value={exp.role}
             onChange={(e) => onUpdate(idx, "role", e.target.value)}
-            // onAiClick={() => onRefineRole(idx)}
-            // aiLoading={roleLoadingStates[`exp-role-${idx}`]}
           />
           <Input
             label={t("labels.company")}

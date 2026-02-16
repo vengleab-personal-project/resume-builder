@@ -127,18 +127,6 @@ export const ResumeEditor = () => {
                 updateItem("experience", idx, field, value)
               }
               onToggleBreakPage={(idx) => toggleBreakPage("experience", idx)}
-              onRefineRole={(idx) =>
-                refineWithInstruction(
-                  `exp-role-${idx}`,
-                  resumeData.experience[idx].role,
-                  `Suggest a more senior-sounding job title for: ${resumeData.experience[idx].role}`,
-                  (v) => {
-                    const newList = [...resumeData.experience];
-                    newList[idx] = { ...newList[idx], role: v };
-                    setResumeData({ ...resumeData, experience: newList });
-                  }
-                )
-              }
               onAiGenerate={() =>
                 generateItems(
                   "exp-gen",
@@ -162,7 +150,6 @@ export const ResumeEditor = () => {
               }
               onAiGenerateDescription={refineContent}
               aiLoading={loadingStates["exp-gen"]}
-              roleLoadingStates={loadingStates}
             />
           </SortableSection>
         );
