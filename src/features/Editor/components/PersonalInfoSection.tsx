@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { memo } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Section, Input } from "@/components/ui/FormElements";
 import { useTranslations } from "@/hooks/useTranslations";
@@ -15,7 +15,7 @@ type PersonalInfoSectionProps = {
   aiLoading: boolean;
 };
 
-export const PersonalInfoSection = ({
+const PersonalInfoSectionComponent = ({
   personalInfo,
   onUpdateField,
   onPhotoChange,
@@ -99,3 +99,5 @@ export const PersonalInfoSection = ({
     </Section>
   );
 };
+
+export const PersonalInfoSection = memo(PersonalInfoSectionComponent);

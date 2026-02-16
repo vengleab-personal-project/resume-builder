@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useId } from "react";
 import { useResumeEditorLogic } from "./useResumeEditorLogic";
 import { useTranslations } from "@/hooks/useTranslations";
 import { EDITOR_CONFIG } from "@/config/constants";
@@ -42,7 +42,6 @@ export const ResumeEditor = () => {
   const {
     resumeData,
     loadingStates,
-    skillsText,
     updatePersonalInfo,
     updateSummary,
     handleSkillsChange,
@@ -59,6 +58,7 @@ export const ResumeEditor = () => {
   } = useResumeEditorLogic();
 
   const { t } = useTranslations("editor");
+  const dndId = useId();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -216,7 +216,7 @@ export const ResumeEditor = () => {
         return (
           <SortableSection id="skills" key="skills">
             <SkillsSection
-              skillsText={skillsText}
+              skills={resumeData.skills}
               onUpdate={handleSkillsChange}
               onAiGenerate={() =>
                 refineWithInstruction(
@@ -235,7 +235,6 @@ export const ResumeEditor = () => {
                     })
                 )
               }
-              onAiGenerateContent={refineContent}
               aiLoading={loadingStates["skills-gen"]}
             />
           </SortableSection>
@@ -505,6 +504,7 @@ export const ResumeEditor = () => {
       />
 
       <DndContext
+        id={dndId}
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}

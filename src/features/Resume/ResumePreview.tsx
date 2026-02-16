@@ -1,5 +1,6 @@
 "use client";
 
+import React, { memo, useMemo } from 'react';
 import { useResumeStore } from '@/store/resume-store';
 import { useTranslations } from '@/hooks/useTranslations';
 
@@ -20,7 +21,7 @@ import {
 
 const hasData = (arr: unknown[] | undefined) => arr && arr.filter(Boolean).length > 0;
 
-export const ResumePreview = () => {
+const ResumePreviewComponent = () => {
   const { resumeData, theme, sectionOrder } = useResumeStore();
   const {
     personalInfo,
@@ -38,12 +39,12 @@ export const ResumePreview = () => {
   const { t } = useTranslations('editor');
 
   // Define which sections go where
-  const sidebarSectionIds = ['skills', 'certifications', 'volunteering', 'languages', 'otherTraining', 'references', 'publications'];
-  const mainSectionIds = ['summary', 'experience', 'education'];
+  const sidebarSectionIds = useMemo(() => ['skills', 'certifications', 'volunteering', 'languages', 'otherTraining', 'references', 'publications'], []);
+  const mainSectionIds = useMemo(() => ['summary', 'experience', 'education'], []);
 
   // Filter and sort sections based on sectionOrder
-  const sortedSidebarSections = sectionOrder.filter(id => sidebarSectionIds.includes(id));
-  const sortedMainSections = sectionOrder.filter(id => mainSectionIds.includes(id));
+  const sortedSidebarSections = useMemo(() => sectionOrder.filter(id => sidebarSectionIds.includes(id)), [sectionOrder, sidebarSectionIds]);
+  const sortedMainSections = useMemo(() => sectionOrder.filter(id => mainSectionIds.includes(id)), [sectionOrder, mainSectionIds]);
 
   const renderSection = (sectionId: string) => {
     switch (sectionId) {
@@ -185,3 +186,5 @@ export const ResumePreview = () => {
     </div>
   );
 };
+
+export const ResumePreview = memo(ResumePreviewComponent);

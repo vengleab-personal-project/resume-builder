@@ -1,23 +1,20 @@
 "use client";
 
-import React from "react";
-import { Section, RichTextEditor } from "@/components/ui/FormElements";
+import React, { memo } from "react";
+import { Section, TagInput } from "@/components/ui/FormElements";
 import { useTranslations } from "@/hooks/useTranslations";
-import { EDITOR_CONFIG } from "@/config/constants";
 
 type SkillsSectionProps = {
-  skillsText: string;
-  onUpdate: (value: string) => void;
+  skills: string[];
+  onUpdate: (tags: string[]) => void;
   onAiGenerate: () => void;
-  onAiGenerateContent: (instruction: string, existingData: string) => Promise<string>;
   aiLoading: boolean;
 };
 
-export const SkillsSection = ({
-  skillsText,
+const SkillsSectionComponent = ({
+  skills,
   onUpdate,
   onAiGenerate,
-  onAiGenerateContent,
   aiLoading,
 }: SkillsSectionProps) => {
   const { t } = useTranslations("editor");
@@ -28,13 +25,15 @@ export const SkillsSection = ({
       onAiClick={onAiGenerate}
       aiLoading={aiLoading}
     >
-      <RichTextEditor
+      <TagInput
         label={t("labels.skills")}
-        value={skillsText}
+        tags={skills}
         onChange={onUpdate}
-        onAiGenerate={onAiGenerateContent}
-        minHeight={EDITOR_CONFIG.MIN_HEIGHT_SKILLS}
+        placeholder={t("placeholders.addSkill")}
+        addButtonLabel={t("buttons.add")}
       />
     </Section>
   );
 };
+
+export const SkillsSection = memo(SkillsSectionComponent);

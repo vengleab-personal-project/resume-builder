@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { memo } from "react";
 import { Section, RichTextEditor } from "@/components/ui/FormElements";
 import { useTranslations } from "@/hooks/useTranslations";
 import { EDITOR_CONFIG } from "@/config/constants";
@@ -11,7 +11,7 @@ type SummarySectionProps = {
   onAiGenerate: (instruction: string, existingData: string) => Promise<string>;
 };
 
-export const SummarySection = ({
+const SummarySectionComponent = ({
   summary,
   onUpdate,
   onAiGenerate,
@@ -30,3 +30,5 @@ export const SummarySection = ({
     </Section>
   );
 };
+
+export const SummarySection = memo(SummarySectionComponent);

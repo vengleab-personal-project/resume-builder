@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import React, { useState, KeyboardEvent } from 'react';
+import { ChevronDown, ChevronRight, X, Plus } from 'lucide-react';
 import { AIButton } from './AIButton';
 import { cn } from '@/lib/utils';
 
@@ -110,3 +110,83 @@ export const TextArea = ({
     />
   </div>
 );
+
+interface TagInputProps {
+  label: string;
+  tags: string[];
+  onChange: (tags: string[]) => void;
+  placeholder?: string;
+  addButtonLabel?: string;
+}
+
+export const TagInput = ({
+  label,
+  tags,
+  onChange,
+  placeholder,
+  addButtonLabel = "Add"
+}: TagInputProps) => {
+  const [inputValue, setInputValue] = useState("");
+
+  const addTag = () => {
+    const trimmedValue = inputValue.trim();
+    if (trimmedValue && !tags.includes(trimmedValue)) {
+      onChange([...tags, trimmedValue]);
+      setInputValue("");
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addTag();
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    onChange(tags.filter(tag => tag !== tagToRemove));
+  };
+
+  return (
+    <div className="mb-4">
+      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{label}</label>
+      
+      <div className="flex flex-wrap gap-2 mb-3">
+        {tags.map((tag, index) => (
+          <span 
+            key={index}
+            className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 text-slate-700 text-sm rounded-md border border-slate-200"
+          >
+            {tag}
+            <button
+              onClick={() => removeTag(tag)}
+              className="hover:text-red-500 transition-colors"
+              type="button"
+            >
+              <X size={14} />
+            </button>
+          </span>
+        ))}
+      </div>
+
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          className="flex-1 text-sm p-2.5 bg-slate-50/50 border border-slate-200 rounded-md focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 outline-none transition-all placeholder:text-slate-400"
+        />
+        <button
+          onClick={addTag}
+          type="button"
+          className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition-colors flex items-center gap-1"
+        >
+          <Plus size={16} />
+          {addButtonLabel}
+        </button>
+      </div>
+    </div>
+  );
+};

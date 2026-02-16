@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { memo } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Section, Input } from "@/components/ui/FormElements";
 import { useTranslations } from "@/hooks/useTranslations";
@@ -16,7 +16,7 @@ type VolunteeringSectionProps = {
   aiLoading: boolean;
 };
 
-export const VolunteeringSection = ({
+const VolunteeringSectionComponent = ({
   volunteering,
   onAdd,
   onRemove,
@@ -71,3 +71,5 @@ export const VolunteeringSection = ({
     </Section>
   );
 };
+
+export const VolunteeringSection = memo(VolunteeringSectionComponent);

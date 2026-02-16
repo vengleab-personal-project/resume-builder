@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { memo } from "react";
 import { Plus, Trash2, Scissors } from "lucide-react";
 import { Section, Input, RichTextEditor } from "@/components/ui/FormElements";
 import { useTranslations } from "@/hooks/useTranslations";
@@ -21,7 +21,7 @@ type ExperienceSectionProps = {
   roleLoadingStates: Record<string, boolean>;
 };
 
-export const ExperienceSection = ({
+const ExperienceSectionComponent = ({
   experience,
   onAdd,
   onRemove,
@@ -113,3 +113,5 @@ export const ExperienceSection = ({
     </Section>
   );
 };
+
+export const ExperienceSection = memo(ExperienceSectionComponent);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useResumeStore } from '@/store/resume-store';
 import { API_ENDPOINTS } from '@/config/constants';
 
@@ -11,27 +11,24 @@ export const useResumeEditorLogic = () => {
   const { resumeData, setResumeData, aiConfig, sectionOrder, setSectionOrder } = useResumeStore();
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
   
-  const [skillsText, setSkillsText] = useState(resumeData.skills.join(', '));
-
+  // Keep a ref to latest resumeData to avoid stale closures in callbacks
+  const resumeDataRef = useRef(resumeData);
   useEffect(() => {
-    const currentText = resumeData.skills.join(', ');
-    const normalizedLocal = skillsText.split(',').map(s => s.trim()).filter(Boolean).join(', ');
-    if (currentText !== normalizedLocal) {
-      setSkillsText(currentText);
-    }
-  }, [resumeData.skills, skillsText]);
+    resumeDataRef.current = resumeData;
+  }, [resumeData]);
 
-  const setLocalLoading = (key: string, val: boolean) => {
+  const setLocalLoading = useCallback((key: string, val: boolean) => {
     setLoadingStates(prev => ({ ...prev, [key]: val }));
-  };
+  }, []);
 
-  const refineWithInstruction = async (id: string, currentVal: string, instruction: string, onDone: (res: string) => void) => {
+  const refineWithInstruction = useCallback(async (id: string, currentVal: string, instruction: string, onDone: (res: string) => void) => {
     setLocalLoading(id, true);
     try {
+      const config = useResumeStore.getState().aiConfig;
       const res = await fetch('/api/refine-resume', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ instruction, content: currentVal, config: aiConfig }),
+        body: JSON.stringify({ instruction, content: currentVal, config }),
       });
       const data = await res.json();
       if (data.result) onDone(data.result);
@@ -40,18 +37,19 @@ export const useResumeEditorLogic = () => {
     } finally {
       setLocalLoading(id, false);
     }
-  };
+  }, [setLocalLoading]);
 
-  const generateItems = async (id: string, sectionTitle: string, onDone: (data: unknown) => void, schema: Record<string, unknown>) => {
+  const generateItems = useCallback(async (id: string, sectionTitle: string, onDone: (data: unknown) => void, schema: Record<string, unknown>) => {
     setLocalLoading(id, true);
     try {
+      const config = useResumeStore.getState().aiConfig;
       const res = await fetch('/api/refine-resume', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           instruction: `Generate professional and relevant entries for the resume section: ${sectionTitle} in JSON format.`, 
           schema,
-          config: aiConfig
+          config
         }),
       });
       const data = await res.json();
@@ -62,72 +60,83 @@ export const useResumeEditorLogic = () => {
     } finally {
       setLocalLoading(id, false);
     }
-  };
+  }, [setLocalLoading]);
 
-  const updatePersonalInfo = (key: string, val: string) => {
+  const updatePersonalInfo = useCallback((key: string, val: string) => {
+    const current = useResumeStore.getState().resumeData;
     setResumeData({ 
-      ...resumeData, 
-      personalInfo: { ...resumeData.personalInfo, [key]: val } 
+      ...current, 
+      personalInfo: { ...current.personalInfo, [key]: val } 
     });
-  };
+  }, [setResumeData]);
 
-  const addItem = (key: SectionKey, item: unknown) => {
-    const currentArray = (resumeData as unknown as Record<string, unknown[]>)[key] || [];
+  const addItem = useCallback((key: SectionKey, item: unknown) => {
+    const current = useResumeStore.getState().resumeData;
+    const currentArray = (current as unknown as Record<string, unknown[]>)[key] || [];
     setResumeData({
-      ...resumeData,
+      ...current,
       [key]: [...currentArray, item]
     });
-  };
+  }, [setResumeData]);
 
-  const removeItem = (key: SectionKey, index: number) => {
-    const list = [...((resumeData as unknown as Record<string, unknown[]>)[key] || [])];
+  const removeItem = useCallback((key: SectionKey, index: number) => {
+    const current = useResumeStore.getState().resumeData;
+    const list = [...((current as unknown as Record<string, unknown[]>)[key] || [])];
     list.splice(index, 1);
-    setResumeData({ ...resumeData, [key]: list });
-  };
+    setResumeData({ ...current, [key]: list });
+  }, [setResumeData]);
 
-  const updateItem = (key: SectionKey, index: number, field: string, val: unknown) => {
-    const list = [...((resumeData as unknown as Record<string, unknown[]>)[key] as Array<Record<string, unknown>>)];
+  const updateItem = useCallback((key: SectionKey, index: number, field: string, val: unknown) => {
+    const current = useResumeStore.getState().resumeData;
+    const list = [...((current as unknown as Record<string, unknown[]>)[key] as Array<Record<string, unknown>>)];
     list[index] = { ...list[index], [field]: val };
-    setResumeData({ ...resumeData, [key]: list });
-  };
+    setResumeData({ ...current, [key]: list });
+  }, [setResumeData]);
 
-  const toggleBreakPage = (key: BreakPageKey, index: number) => {
-    const list = [...((resumeData as unknown as Record<string, Array<{ breakPage?: boolean }>>)[key])];
+  const toggleBreakPage = useCallback((key: BreakPageKey, index: number) => {
+    const current = useResumeStore.getState().resumeData;
+    const list = [...((current as unknown as Record<string, Array<{ breakPage?: boolean }>>)[key])];
     list[index] = { ...list[index], breakPage: !list[index].breakPage };
-    setResumeData({ ...resumeData, [key]: list });
-  };
+    setResumeData({ ...current, [key]: list });
+  }, [setResumeData]);
 
-  const updateSectionOrder = (newOrder: string[]) => {
+  const updateSectionOrder = useCallback((newOrder: string[]) => {
     setSectionOrder(newOrder);
-  };
+  }, [setSectionOrder]);
 
-  const updateSummary = (v: string) => setResumeData({...resumeData, summary: v});
+  const updateSummary = useCallback((v: string) => {
+    const current = useResumeStore.getState().resumeData;
+    setResumeData({...current, summary: v});
+  }, [setResumeData]);
   
-  const updateSkills = (v: string) => setResumeData({...resumeData, skills: v.split(',').map(s => s.trim()).filter(Boolean)});
+  const updateSkills = useCallback((v: string) => {
+    const current = useResumeStore.getState().resumeData;
+    setResumeData({...current, skills: v.split(',').map(s => s.trim()).filter(Boolean)});
+  }, [setResumeData]);
 
-  const handleSkillsChange = (val: string) => {
-    setSkillsText(val);
-    updateSkills(val);
-  };
+  const handleSkillsChange = useCallback((tags: string[]) => {
+    const current = useResumeStore.getState().resumeData;
+    setResumeData({ ...current, skills: tags });
+  }, [setResumeData]);
 
-  const refineContent = async (instruction: string, existingData: string): Promise<string> => {
+  const refineContent = useCallback(async (instruction: string, existingData: string): Promise<string> => {
+    const config = useResumeStore.getState().aiConfig;
     const res = await fetch(API_ENDPOINTS.REFINE_RESUME, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         instruction,
         content: existingData,
-        config: aiConfig,
+        config,
       }),
     });
     const data = await res.json();
     return data.result || '';
-  };
+  }, []);
 
   return {
     resumeData,
     loadingStates,
-    skillsText,
     updatePersonalInfo,
     addItem,
     removeItem,

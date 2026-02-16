@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { memo } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Section, Input } from "@/components/ui/FormElements";
 import { useTranslations } from "@/hooks/useTranslations";
@@ -16,7 +16,7 @@ type LanguagesSectionProps = {
   aiLoading: boolean;
 };
 
-export const LanguagesSection = ({
+const LanguagesSectionComponent = ({
   languages,
   onAdd,
   onRemove,
@@ -68,3 +68,5 @@ export const LanguagesSection = ({
     </Section>
   );
 };
+
+export const LanguagesSection = memo(LanguagesSectionComponent);

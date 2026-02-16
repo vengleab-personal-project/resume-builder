@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { memo } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Section, Input } from "@/components/ui/FormElements";
 import { useTranslations } from "@/hooks/useTranslations";
@@ -16,7 +16,7 @@ type ReferencesSectionProps = {
   aiLoading: boolean;
 };
 
-export const ReferencesSection = ({
+const ReferencesSectionComponent = ({
   references,
   onAdd,
   onRemove,
@@ -85,3 +85,5 @@ export const ReferencesSection = ({
     </Section>
   );
 };
+
+export const ReferencesSection = memo(ReferencesSectionComponent);

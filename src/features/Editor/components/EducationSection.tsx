@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { memo } from "react";
 import { Plus, Trash2, Scissors } from "lucide-react";
 import { Section, Input, RichTextEditor } from "@/components/ui/FormElements";
 import { useTranslations } from "@/hooks/useTranslations";
@@ -19,7 +19,7 @@ type EducationSectionProps = {
   aiLoading: boolean;
 };
 
-export const EducationSection = ({
+const EducationSectionComponent = ({
   education,
   onAdd,
   onRemove,
@@ -100,3 +100,5 @@ export const EducationSection = ({
     </Section>
   );
 };
+
+export const EducationSection = memo(EducationSectionComponent);

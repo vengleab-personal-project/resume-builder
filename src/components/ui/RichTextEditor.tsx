@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useEffect, useRef, memo } from 'react';
+import React, { useMemo, useState, useEffect, useRef, memo, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import 'react-quill-new/dist/quill.snow.css';
 import { sanitizeHTML } from '@/lib/sanitize';
@@ -23,6 +23,8 @@ interface RichTextEditorProps {
   minHeight?: string;
 }
 
+const DEBOUNCE_MS = 300;
+
 const RichTextEditorComponent = ({ 
   label, 
   value, 
@@ -34,7 +36,22 @@ const RichTextEditorComponent = ({
 }: RichTextEditorProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [localValue, setLocalValue] = useState(value);
+  const [prevValue, setPrevValue] = useState(value);
   const mountedRef = useRef(true);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onChangeRef = useRef(onChange);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  // Sync external value changes (AI apply, reset, etc.) into local state
+  // This uses the "derive state from props" pattern recommended by React
+  if (value !== prevValue) {
+    setPrevValue(value);
+    setLocalValue(value);
+  }
 
   // Defer rendering to prevent blocking the main thread
   useEffect(() => {
@@ -75,23 +92,36 @@ const RichTextEditorComponent = ({
 
   const formats = useMemo(() => [
     'bold', 'italic', 'underline',
-    'list', 'bullet'
+    'list'
   ], []);
 
-  const handleChange = (content: string) => {
-    const sanitized = sanitizeHTML(content);
-    onChange(sanitized);
-  };
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
-  const handleApply = (newValue: string, mode: 'replace' | 'amend') => {
+  const handleChange = useCallback((content: string) => {
+    setLocalValue(content);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      const sanitized = sanitizeHTML(content);
+      onChangeRef.current(sanitized);
+    }, DEBOUNCE_MS);
+  }, []);
+
+  const handleApply = useCallback((newValue: string, mode: 'replace' | 'amend') => {
     if (mode === 'replace') {
-      onChange(newValue);
+      setLocalValue(newValue);
+      onChangeRef.current(newValue);
     } else {
       // Amend mode: append to existing content
-      const combined = value ? `${value}\n${newValue}` : newValue;
-      onChange(combined);
+      const combined = localValue ? `${localValue}\n${newValue}` : newValue;
+      setLocalValue(combined);
+      onChangeRef.current(combined);
     }
-  };
+  }, [localValue]);
 
   return (
     <div className="mb-4">
@@ -116,7 +146,7 @@ const RichTextEditorComponent = ({
         {isReady ? (
           <ReactQuill
             theme="snow"
-            value={value}
+            value={localValue}
             onChange={handleChange}
             modules={modules}
             formats={formats}

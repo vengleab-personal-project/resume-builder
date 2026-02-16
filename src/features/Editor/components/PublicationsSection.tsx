@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { memo } from "react";
 import { Plus, Trash2, Scissors } from "lucide-react";
 import { Section, Input } from "@/components/ui/FormElements";
 import { useTranslations } from "@/hooks/useTranslations";
@@ -18,7 +18,7 @@ type PublicationsSectionProps = {
   aiLoading: boolean;
 };
 
-export const PublicationsSection = ({
+const PublicationsSectionComponent = ({
   publications,
   onAdd,
   onRemove,
@@ -85,3 +85,5 @@ export const PublicationsSection = ({
     </Section>
   );
 };
+
+export const PublicationsSection = memo(PublicationsSectionComponent);

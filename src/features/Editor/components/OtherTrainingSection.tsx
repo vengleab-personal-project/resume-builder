@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { memo } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Section, RichTextEditor } from "@/components/ui/FormElements";
 import { useTranslations } from "@/hooks/useTranslations";
@@ -17,7 +17,7 @@ type OtherTrainingSectionProps = {
   aiLoading: boolean;
 };
 
-export const OtherTrainingSection = ({
+const OtherTrainingSectionComponent = ({
   otherTraining,
   onAdd,
   onRemove,
@@ -65,3 +65,5 @@ export const OtherTrainingSection = ({
     </Section>
   );
 };
+
+export const OtherTrainingSection = memo(OtherTrainingSectionComponent);
