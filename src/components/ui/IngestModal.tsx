@@ -4,12 +4,15 @@ import React from 'react';
 import { X, Upload as UploadIcon } from 'lucide-react';
 import { Upload } from '@/features/Upload';
 
+import { useTranslations } from "@/hooks/useTranslations";
+
 interface IngestModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
 export const IngestModal = ({ isOpen, onClose }: IngestModalProps) => {
+  const { t } = useTranslations('ingest');
   if (!isOpen) return null;
 
   return (
@@ -22,8 +25,8 @@ export const IngestModal = ({ isOpen, onClose }: IngestModalProps) => {
               <UploadIcon className="w-5 h-5 text-indigo-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-slate-900">Ingest Resume</h2>
-              <p className="text-xs text-slate-500">Upload or paste your resume to get started</p>
+              <h2 className="text-lg font-semibold text-slate-900">{t('title')}</h2>
+              <p className="text-xs text-slate-500">{t('description')}</p>
             </div>
           </div>
           <button

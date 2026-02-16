@@ -23,6 +23,7 @@ import {
   restrictToVerticalAxis,
   restrictToWindowEdges,
 } from "@dnd-kit/modifiers";
+import { Experience } from "@/types";
 import {
   SortableSection,
   PersonalInfoSection,
@@ -130,11 +131,11 @@ export const ResumeEditor = () => {
               onAiGenerate={() =>
                 generateItems(
                   "exp-gen",
-                  "Work Experience",
+                  t("experience"),
                   (items) =>
                     setResumeData({
                       ...resumeData,
-                      experience: [...resumeData.experience, ...(items as typeof resumeData.experience)],
+                      experience: items as Experience[],
                     }),
                   {
                     items: [
@@ -142,7 +143,7 @@ export const ResumeEditor = () => {
                         role: "string",
                         company: "string",
                         dates: "string",
-                        description: "string (HTML richtext with <ul><li> for bullet points)",
+                        description: t("instructions.improveBullets"),
                       },
                     ],
                   }
@@ -175,7 +176,7 @@ export const ResumeEditor = () => {
               onAiGenerate={() =>
                 generateItems(
                   "edu-gen",
-                  "Education",
+                  t("education"),
                   (items) =>
                     setResumeData({
                       ...resumeData,
@@ -209,7 +210,7 @@ export const ResumeEditor = () => {
                 refineWithInstruction(
                   "skills-gen",
                   resumeData.skills.join(", "),
-                  "Based on this resume, suggest 5 more relevant technical skills for this candidate.",
+                  t("instructions.suggestSkills"),
                   (v) =>
                     setResumeData({
                       ...resumeData,
@@ -247,7 +248,7 @@ export const ResumeEditor = () => {
               onAiGenerate={() =>
                 generateItems(
                   "cert-gen",
-                  "Professional Certifications",
+                  t("certifications"),
                   (items) =>
                     setResumeData({
                       ...resumeData,
@@ -292,7 +293,7 @@ export const ResumeEditor = () => {
               onAiGenerate={() =>
                 generateItems(
                   "pub-gen",
-                  "Publications",
+                  t("publications"),
                   (items) =>
                     setResumeData({
                       ...resumeData,
@@ -332,7 +333,7 @@ export const ResumeEditor = () => {
               onAiGenerate={() =>
                 generateItems(
                   "vol-gen",
-                  "Volunteering",
+                  t("volunteering"),
                   (items) =>
                     setResumeData({
                       ...resumeData,
@@ -370,7 +371,7 @@ export const ResumeEditor = () => {
               onAiGenerate={() =>
                 generateItems(
                   "lang-gen",
-                  "Languages",
+                  t("languages"),
                   (items) =>
                     setResumeData({
                       ...resumeData,
@@ -397,7 +398,7 @@ export const ResumeEditor = () => {
               onAiGenerate={() =>
                 generateItems(
                   "train-gen",
-                  "Other Training",
+                  t("otherTraining"),
                   (items) =>
                     setResumeData({
                       ...resumeData,
@@ -436,7 +437,7 @@ export const ResumeEditor = () => {
               onAiGenerate={() =>
                 generateItems(
                   "ref-gen",
-                  "References",
+                  t("references"),
                   (items) =>
                     setResumeData({
                       ...resumeData,
@@ -474,7 +475,7 @@ export const ResumeEditor = () => {
         onAiGenerate={() =>
           generateItems(
             "pi-gen",
-            "Personal Information",
+            t("personalInfo"),
             (data) => setResumeData({ ...resumeData, personalInfo: data as typeof resumeData.personalInfo }),
             {
               name: "string",

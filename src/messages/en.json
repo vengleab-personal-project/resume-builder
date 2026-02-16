@@ -4,10 +4,27 @@
         "exportPrint": "Export / Print",
         "loading": "Loading...",
         "error": "Error",
+        "cancel": "Cancel",
+        "replace": "Replace",
+        "amend": "Amend (Add to existing)",
+        "errors": {
+            "duplicateSkill": "This skill has already been added"
+        },
         "exporting": "Exporting...",
         "clear": "Clear",
         "clearData": "Clear all data",
         "confirmClearData": "Are you sure you want to clear all data? This action cannot be undone."
+    },
+    "ai": {
+        "assistant": "AI Assistant",
+        "currentContent": "Current Content",
+        "noContent": "No content yet",
+        "question": "What would you like to do?",
+        "placeholder": "e.g., Make it more professional, add bullet points, improve clarity...",
+        "generating": "Generating...",
+        "generate": "Generate with AI",
+        "result": "AI Generated Result",
+        "regenerate": "Regenerate"
     },
     "viewMode": {
         "editor": "Editor",
@@ -24,11 +41,24 @@
         }
     },
     "home": {
+        "title": {
+            "ai": "AI",
+            "resume": "Resume",
+            "builder": "Builder"
+        },
+        "actions": {
+            "ingest": "Ingest",
+            "customize": "Customize"
+        },
         "sections": {
             "ingest": "1. Ingest",
             "customize": "2. Customize",
             "edit": "3. Edit Content"
         }
+    },
+    "ingest": {
+        "title": "Ingest Resume",
+        "description": "Upload or paste your resume to get started"
     },
     "upload": {
         "title": "Upload Resume",
@@ -108,7 +138,7 @@
             "degree": "Degree",
             "year": "Year",
             "description": "Description",
-            "skills": "Skills (Comma separated)",
+            "skills": "Skills (Enter to add)",
             "certifications": "Certifications (One per line)",
             "certName": "Certification Name",
             "certIssuer": "Issuer",
@@ -138,6 +168,8 @@
             "addLanguage": "Add Language",
             "addTraining": "Add Training",
             "addReference": "Add Reference",
+            "addSkill": "Add a skill...",
+            "remove": "Remove",
             "clean": "Clean",
             "upload": "Upload",
             "change": "Change",

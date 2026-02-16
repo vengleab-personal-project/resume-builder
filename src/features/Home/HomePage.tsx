@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Printer, FileText, Eye, Download, Loader2, Trash2, Upload as UploadIcon, Palette } from 'lucide-react';
+import { Printer, FileText, Eye, Loader2, Trash2, Upload as UploadIcon, Palette } from 'lucide-react';
 import { ResumeEditor, ThemeSwitcher } from '@/features/Editor';
 import { ResumePreview } from '@/features/Resume';
 import { useHomeLogic } from './useHomeLogic';
@@ -33,10 +33,10 @@ export default function HomePage() {
         <div className="h-16 flex items-center justify-between px-6">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
-              AI
+              {tHome('title.ai')}
             </div>
             <h1 className="text-xl font-bold text-slate-800 tracking-tight">
-              Resume<span className="text-indigo-600">Builder</span>
+              {tHome('title.resume')}<span className="text-indigo-600">{tHome('title.builder')}</span>
             </h1>
           </div>
           
@@ -46,7 +46,7 @@ export default function HomePage() {
               className="flex items-center gap-2 px-3 py-2 text-indigo-600 hover:bg-indigo-50 rounded-md text-sm font-medium transition-all"
             >
               <UploadIcon size={16} />
-              <span className="hidden md:inline">Ingest</span>
+              <span className="hidden md:inline">{tHome('actions.ingest')}</span>
             </button>
 
             <button
@@ -54,7 +54,7 @@ export default function HomePage() {
               className="flex items-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-md text-sm font-medium transition-all"
             >
               <Palette size={16} />
-              <span className="hidden md:inline">Customize</span>
+              <span className="hidden md:inline">{tHome('actions.customize')}</span>
             </button>
 
             <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">

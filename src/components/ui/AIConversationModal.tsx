@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Loader2, Sparkles, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslations } from "@/hooks/useTranslations";
 
 interface AIConversationModalProps {
   isOpen: boolean;
@@ -24,6 +25,8 @@ export const AIConversationModal = ({
   onGenerate,
   fieldType = 'text'
 }: AIConversationModalProps) => {
+  const { t: tAi } = useTranslations('ai');
+  const { t: tCommon } = useTranslations('common');
   const [isMounted, setIsMounted] = useState(false);
   const [instruction, setInstruction] = useState('');
   const [aiResult, setAiResult] = useState('');
@@ -68,7 +71,7 @@ export const AIConversationModal = ({
       const result = await onGenerate(instruction, currentValue);
       setAiResult(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate content');
+      setError(err instanceof Error ? err.message : tCommon('errors.parseError'));
     } finally {
       setIsLoading(false);
     }
@@ -95,12 +98,12 @@ export const AIConversationModal = ({
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-200">
-          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-indigo-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-slate-900">AI Assistant</h2>
+              <h2 className="text-lg font-semibold text-slate-900">{tAi('assistant')}</h2>
               <p className="text-xs text-slate-500">{title}</p>
             </div>
           </div>
@@ -117,7 +120,7 @@ export const AIConversationModal = ({
           {/* Current Value Display */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-              Current Content
+              {tAi('currentContent')}
             </label>
             <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-slate-700 max-h-32 overflow-auto break-words">
               {currentValue ? (
@@ -127,7 +130,7 @@ export const AIConversationModal = ({
                   <pre className="whitespace-pre-wrap font-sans">{currentValue}</pre>
                 )
               ) : (
-                <span className="text-slate-400 italic">No content yet</span>
+                <span className="text-slate-400 italic">{tAi('noContent')}</span>
               )}
             </div>
           </div>
@@ -135,12 +138,12 @@ export const AIConversationModal = ({
           {/* Instruction Input */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-              What would you like to do?
+              {tAi('question')}
             </label>
             <textarea
               value={instruction}
               onChange={(e) => setInstruction(e.target.value)}
-              placeholder="e.g., Make it more professional, add bullet points, improve clarity..."
+              placeholder={tAi('placeholder')}
               className="w-full h-24 p-3 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none"
               disabled={isLoading}
             />
@@ -157,12 +160,12 @@ export const AIConversationModal = ({
               {isLoading ? (
                 <>
                   <Loader2 size={16} className="animate-spin" />
-                  Generating...
+                  {tAi('generating')}
                 </>
               ) : (
                 <>
                   <Sparkles size={16} />
-                  Generate with AI
+                  {tAi('generate')}
                 </>
               )}
             </button>
@@ -180,7 +183,7 @@ export const AIConversationModal = ({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  AI Generated Result
+                  {tAi('result')}
                 </label>
                 <button
                   onClick={handleGenerate}
@@ -188,7 +191,7 @@ export const AIConversationModal = ({
                   className="text-xs text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1"
                 >
                   <RefreshCw size={12} />
-                  Regenerate
+                  {tAi('regenerate')}
                 </button>
               </div>
               <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 text-sm text-slate-700 max-h-64 overflow-auto break-words">
@@ -209,19 +212,19 @@ export const AIConversationModal = ({
               onClick={handleClose}
               className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
             >
-              Cancel
+              {tCommon('cancel')}
             </button>
             <button
               onClick={() => handleApply('amend')}
               className="px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
             >
-              Amend (Add to existing)
+              {tCommon('amend')}
             </button>
             <button
               onClick={() => handleApply('replace')}
               className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm"
             >
-              Replace
+              {tCommon('replace')}
             </button>
           </div>
         )}

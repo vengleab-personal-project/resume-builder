@@ -29,8 +29,7 @@ const SkillsSectionComponent = ({
         label={t("labels.skills")}
         tags={skills}
         onChange={onUpdate}
-        placeholder={t("placeholders.addSkill")}
-        addButtonLabel={t("buttons.add")}
+        placeholder={t("actions.addSkill")}
       />
     </Section>
   );
