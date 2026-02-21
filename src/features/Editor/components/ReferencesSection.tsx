@@ -1,8 +1,22 @@
-"use client";
-
-import React, { memo } from "react";
+import React, { useId, memo } from "react";
+import { 
+  DndContext, 
+  closestCenter, 
+  KeyboardSensor, 
+  PointerSensor, 
+  useSensor, 
+  useSensors, 
+  DragEndEvent,
+} from "@dnd-kit/core";
+import { 
+  SortableContext, 
+  sortableKeyboardCoordinates, 
+  verticalListSortingStrategy, 
+} from "@dnd-kit/sortable";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { Plus, Trash2 } from "lucide-react";
 import { Section, Input } from "@/components/ui/FormElements";
+import { SortableItem } from "./SortableItem";
 import { useTranslations } from "@/hooks/useTranslations";
 import { EDITOR_CONFIG } from "@/config/constants";
 import type { Reference } from "@/types";
@@ -11,7 +25,8 @@ type ReferencesSectionProps = {
   references: Reference[];
   onAdd: () => void;
   onRemove: (index: number) => void;
-  onUpdate: (index: number, field: string, value: string) => void;
+  onUpdate: (index: number, field: string, value: string | string[]) => void;
+  onReorder: (fromIndex: number, toIndex: number) => void;
   onAiGenerate: () => void;
   aiLoading: boolean;
 };
@@ -21,10 +36,34 @@ const ReferencesSectionComponent = ({
   onAdd,
   onRemove,
   onUpdate,
+  onReorder,
   onAiGenerate,
   aiLoading,
 }: ReferencesSectionProps) => {
   const { t } = useTranslations("editor");
+  const dndId = useId();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = references.findIndex(ref => (ref.id || references.indexOf(ref).toString()) === active.id);
+      const newIndex = references.findIndex(ref => (ref.id || references.indexOf(ref).toString()) === over.id);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        onReorder(oldIndex, newIndex);
+      }
+    }
+  };
 
   return (
     <Section
@@ -32,51 +71,71 @@ const ReferencesSectionComponent = ({
       onAiClick={onAiGenerate}
       aiLoading={aiLoading}
     >
-      {references.map((ref, idx) => (
-        <div
-          key={idx}
-          className="mb-4 pb-4 border-b border-slate-100 last:border-0 last:pb-0 relative group"
+      <DndContext
+        id={dndId}
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+        modifiers={[restrictToVerticalAxis]}
+      >
+        <SortableContext 
+          items={references.map((ref, idx) => ref.id || idx.toString())} 
+          strategy={verticalListSortingStrategy}
         >
-          <div className="absolute -top-1 -right-1 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-            <button
-              onClick={() => onRemove(idx)}
-              className="p-1.5 bg-white text-slate-400 hover:text-red-500 rounded-full shadow-sm border border-slate-200 transition-all transform hover:scale-110"
-              title={t("actions.remove")}
-            >
-              <Trash2 size={14} />
-            </button>
-          </div>
-          <Input
-            label={t("labels.refName")}
-            value={ref.name}
-            onChange={(e) => onUpdate(idx, "name", e.target.value)}
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              label={t("labels.refTitle")}
-              value={ref.title || ""}
-              onChange={(e) => onUpdate(idx, "title", e.target.value)}
-            />
-            <Input
-              label={t("labels.refCompany")}
-              value={ref.company || ""}
-              onChange={(e) => onUpdate(idx, "company", e.target.value)}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              label={t("labels.refPhone")}
-              value={ref.phone || ""}
-              onChange={(e) => onUpdate(idx, "phone", e.target.value)}
-            />
-            <Input
-              label={t("labels.refEmail")}
-              value={ref.email || ""}
-              onChange={(e) => onUpdate(idx, "email", e.target.value)}
-            />
-          </div>
-        </div>
-      ))}
+          {references.map((ref, idx) => {
+            const itemId = ref.id || idx.toString();
+            return (
+              <SortableItem key={itemId} id={itemId}>
+                <div className="absolute top-2 right-2 flex gap-2 z-10">
+                  <button
+                    onClick={() => onRemove(idx)}
+                    className="p-1.5 bg-white text-slate-400 hover:text-red-500 rounded-full shadow-sm border border-slate-200 transition-all transform hover:scale-110"
+                    title={t("actions.remove")}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+                <div className="pr-10">
+                  <Input
+                    label={t("labels.refName")}
+                    value={ref.name}
+                    onChange={(e) => onUpdate(idx, "name", e.target.value)}
+                    placeholder="e.g. John Doe"
+                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <Input
+                      label={t("labels.refTitle")}
+                      value={ref.title || ""}
+                      onChange={(e) => onUpdate(idx, "title", e.target.value)}
+                      placeholder="e.g. Senior Manager"
+                    />
+                    <Input
+                      label={t("labels.refCompany")}
+                      value={ref.company || ""}
+                      onChange={(e) => onUpdate(idx, "company", e.target.value)}
+                      placeholder="e.g. Acme Corp"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Input
+                      label={t("labels.refPhone")}
+                      value={ref.phone || ""}
+                      onChange={(e) => onUpdate(idx, "phone", e.target.value)}
+                      placeholder="+1 234 567 890"
+                    />
+                    <Input
+                      label={t("labels.refEmail")}
+                      value={ref.email || ""}
+                      onChange={(e) => onUpdate(idx, "email", e.target.value)}
+                      placeholder="john.doe@example.com"
+                    />
+                  </div>
+                </div>
+              </SortableItem>
+            );
+          })}
+        </SortableContext>
+      </DndContext>
       <button
         onClick={onAdd}
         className="w-full py-2.5 text-indigo-600 text-sm font-semibold border-2 border-dashed border-indigo-100 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center justify-center gap-2"

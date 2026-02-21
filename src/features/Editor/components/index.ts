@@ -1,4 +1,5 @@
 export * from './SortableSection';
+export * from './SortableItem';
 export * from './PersonalInfoSection';
 export * from './SummarySection';
 export * from './ExperienceSection';

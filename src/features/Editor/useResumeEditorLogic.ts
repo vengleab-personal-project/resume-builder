@@ -154,9 +154,14 @@ Return the data in JSON format matching the provided schema.`,
       const current = useResumeStore.getState().resumeData;
       const currentArray =
         (current as unknown as Record<string, unknown[]>)[key] || [];
+      
+      const newItem = typeof item === 'object' && item !== null 
+        ? { ...item, id: crypto.randomUUID() }
+        : item;
+
       setResumeData({
         ...current,
-        [key]: [...currentArray, item],
+        [key]: [...currentArray, newItem],
       });
     },
     [setResumeData],

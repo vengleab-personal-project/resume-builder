@@ -4,6 +4,7 @@ export enum ViewMode {
 }
 
 export interface Education {
+  id?: string;
   degree: string;
   school: string;
   year: string;
@@ -13,6 +14,7 @@ export interface Education {
 }
 
 export interface Experience {
+  id?: string;
   role: string;
   company: string;
   dates: string;
@@ -22,6 +24,7 @@ export interface Experience {
 }
 
 export interface Publication {
+  id?: string;
   title: string;
   link?: string;
   date?: string;
@@ -29,6 +32,7 @@ export interface Publication {
 }
 
 export interface Volunteering {
+  id?: string;
   role: string;
   organization: string;
   topic?: string;
@@ -36,16 +40,19 @@ export interface Volunteering {
 }
 
 export interface Language {
+  id?: string;
   name: string;
   proficiency: string;
 }
 
 export interface Training {
+  id?: string;
   name: string;
   breakPage?: boolean;
 }
 
 export interface Reference {
+  id?: string;
   name: string;
   title: string;
   company: string;
@@ -54,6 +61,7 @@ export interface Reference {
 }
 
 export interface Certification {
+  id?: string;
   name: string;
   issuer?: string;
   location?: string;

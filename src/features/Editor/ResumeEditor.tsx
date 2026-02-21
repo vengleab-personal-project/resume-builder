@@ -49,6 +49,7 @@ export const ResumeEditor = () => {
     addItem,
     removeItem,
     updateItem,
+    reorderItem,
     toggleBreakPage,
     generateSectionWithContext,
     setResumeData,
@@ -218,11 +219,12 @@ export const ResumeEditor = () => {
                   description: "",
                 })
               }
-              onRemove={(idx) => removeItem("experience", idx)}
-              onUpdate={(idx, field, value) =>
+              onRemove={(idx: number) => removeItem("experience", idx)}
+              onUpdate={(idx: number, field: string, value: string | string[]) =>
                 updateItem("experience", idx, field, value)
               }
-              onToggleBreakPage={(idx) => toggleBreakPage("experience", idx)}
+              onToggleBreakPage={(idx: number) => toggleBreakPage("experience", idx)}
+              onReorder={(from: number, to: number) => reorderItem("experience", from, to)}
               onAiGenerate={() =>
                 openAiModal("experience", t("experience"), {
                   items: [
@@ -255,11 +257,12 @@ export const ResumeEditor = () => {
                   description: "",
                 })
               }
-              onRemove={(idx) => removeItem("education", idx)}
-              onUpdate={(idx, field, value) =>
+              onRemove={(idx: number) => removeItem("education", idx)}
+              onUpdate={(idx: number, field: string, value: string | string[]) =>
                 updateItem("education", idx, field, value)
               }
-              onToggleBreakPage={(idx) => toggleBreakPage("education", idx)}
+              onReorder={(from: number, to: number) => reorderItem("education", from, to)}
+              onToggleBreakPage={(idx: number) => toggleBreakPage("education", idx)}
               onAiGenerate={() =>
                 openAiModal("education", t("education"), {
                   items: [
@@ -307,10 +310,11 @@ export const ResumeEditor = () => {
                   year: "",
                 })
               }
-              onRemove={(idx) => removeItem("certifications", idx)}
-              onUpdate={(idx, field, value) =>
+              onRemove={(idx: number) => removeItem("certifications", idx)}
+              onUpdate={(idx: number, field: string, value: string | string[]) =>
                 updateItem("certifications", idx, field, value)
               }
+              onReorder={(from: number, to: number) => reorderItem("certifications", from, to)}
               onAiGenerate={() =>
                 openAiModal("certifications", t("certifications"), {
                   items: [
@@ -339,11 +343,12 @@ export const ResumeEditor = () => {
                   link: "",
                 })
               }
-              onRemove={(idx) => removeItem("publications", idx)}
-              onUpdate={(idx, field, value) =>
+              onRemove={(idx: number) => removeItem("publications", idx)}
+              onUpdate={(idx: number, field: string, value: string | string[]) =>
                 updateItem("publications", idx, field, value)
               }
-              onToggleBreakPage={(idx) => toggleBreakPage("publications", idx)}
+              onReorder={(from: number, to: number) => reorderItem("publications", from, to)}
+              onToggleBreakPage={(idx: number) => toggleBreakPage("publications", idx)}
               onAiGenerate={() =>
                 openAiModal("publications", t("publications"), {
                   items: [
@@ -368,10 +373,11 @@ export const ResumeEditor = () => {
                   topic: "",
                 })
               }
-              onRemove={(idx) => removeItem("volunteering", idx)}
-              onUpdate={(idx, field, value) =>
+              onRemove={(idx: number) => removeItem("volunteering", idx)}
+              onUpdate={(idx: number, field: string, value: string | string[]) =>
                 updateItem("volunteering", idx, field, value)
               }
+              onReorder={(from: number, to: number) => reorderItem("volunteering", from, to)}
               onAiGenerate={() =>
                 openAiModal("volunteering", t("volunteering"), {
                   items: [
@@ -394,10 +400,11 @@ export const ResumeEditor = () => {
             <LanguagesSection
               languages={resumeData.languages || []}
               onAdd={() => addItem("languages", { name: "", proficiency: "" })}
-              onRemove={(idx) => removeItem("languages", idx)}
-              onUpdate={(idx, field, value) =>
+              onRemove={(idx: number) => removeItem("languages", idx)}
+              onUpdate={(idx: number, field: string, value: string | string[]) =>
                 updateItem("languages", idx, field, value)
               }
+              onReorder={(from: number, to: number) => reorderItem("languages", from, to)}
               onAiGenerate={() =>
                 openAiModal("languages", t("languages"), {
                   items: [{ name: "string", proficiency: "string" }],
@@ -414,10 +421,11 @@ export const ResumeEditor = () => {
             <OtherTrainingSection
               otherTraining={resumeData.otherTraining || []}
               onAdd={() => addItem("otherTraining", { name: "" })}
-              onRemove={(idx) => removeItem("otherTraining", idx)}
-              onUpdate={(idx, field, value) =>
+              onRemove={(idx: number) => removeItem("otherTraining", idx)}
+              onUpdate={(idx: number, field: string, value: string | string[]) =>
                 updateItem("otherTraining", idx, field, value)
               }
+              onReorder={(from: number, to: number) => reorderItem("otherTraining", from, to)}
               onAiGenerate={() =>
                 openAiModal("otherTraining", t("otherTraining"), {
                   items: [{ name: "string" }],
@@ -443,10 +451,11 @@ export const ResumeEditor = () => {
                   email: "",
                 })
               }
-              onRemove={(idx) => removeItem("references", idx)}
-              onUpdate={(idx, field, value) =>
+              onRemove={(idx: number) => removeItem("references", idx)}
+              onUpdate={(idx: number, field: string, value: string | string[]) =>
                 updateItem("references", idx, field, value)
               }
+              onReorder={(from: number, to: number) => reorderItem("references", from, to)}
               onAiGenerate={() =>
                 openAiModal("references", t("references"), {
                   items: [

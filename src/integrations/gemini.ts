@@ -50,7 +50,7 @@ export const geminiTextModel = genAI.getGenerativeModel({
 
 // Get model by ID
 export const getGeminiModel = (modelId: string) => {
-  if (!ALLOWED_GEMINI_MODELS.includes(modelId)) {
+  if (!(ALLOWED_GEMINI_MODELS as any).includes(modelId)) {
     throw new Error(`Model ${modelId} is not allowed`);
   }
 
