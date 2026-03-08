@@ -11,9 +11,10 @@ interface SortableItemProps {
   id: string;
   children: React.ReactNode;
   className?: string;
+  disabled?: boolean;
 }
 
-export const SortableItem: React.FC<SortableItemProps> = ({ id, children, className }) => {
+export const SortableItem: React.FC<SortableItemProps> = ({ id, children, className, disabled = false }) => {
   const {
     attributes,
     listeners,
@@ -21,7 +22,7 @@ export const SortableItem: React.FC<SortableItemProps> = ({ id, children, classN
     transform,
     transition,
     isDragging,
-  } = useSortable({ id });
+  } = useSortable({ id, disabled });
 
   const style = {
     transform: CSS.Translate.toString(transform),
@@ -39,14 +40,16 @@ export const SortableItem: React.FC<SortableItemProps> = ({ id, children, classN
         {children}
         
         {/* Drag handle */}
-        <div 
-          {...attributes} 
-          {...listeners}
-          className="absolute top-3 right-3 p-1.5 text-slate-300 hover:text-indigo-500 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
-          title="Drag to reorder"
-        >
-          <GripVertical size={16} />
-        </div>
+        {!disabled && (
+          <div 
+            {...attributes} 
+            {...listeners}
+            className="absolute top-3 right-3 p-1.5 text-slate-300 hover:text-indigo-500 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
+            title="Drag to reorder"
+          >
+            <GripVertical size={16} />
+          </div>
+        )}
       </div>
     </div>
   );

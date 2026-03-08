@@ -227,22 +227,22 @@ export const ResumeEditor = () => {
     }
   };
 
-  const renderSection = (sectionId: string) => {
-    switch (sectionId) {
-      case "summary":
-        return (
-          <SortableSection id="summary" key="summary">
+  const renderSection = (sectionId: string, readOnly: boolean = false, defaultOpen?: boolean) => {
+    const sectionContent = (() => {
+      switch (sectionId) {
+        case "summary":
+          return (
             <SummarySection
               summary={resumeData.summary}
               onUpdate={updateSummary}
               onAiGenerate={refineContent}
+              readOnly={readOnly}
+              defaultOpen={defaultOpen}
             />
-          </SortableSection>
-        );
+          );
 
-      case "experience":
-        return (
-          <SortableSection id="experience" key="experience">
+        case "experience":
+          return (
             <ExperienceSection
               experience={resumeData.experience}
               onAdd={() =>
@@ -274,13 +274,13 @@ export const ResumeEditor = () => {
               }
               onAiGenerateDescription={refineContent}
               aiLoading={false}
+              readOnly={readOnly}
+              defaultOpen={defaultOpen}
             />
-          </SortableSection>
-        );
+          );
 
-      case "education":
-        return (
-          <SortableSection id="education" key="education">
+        case "education":
+          return (
             <EducationSection
               education={resumeData.education}
               onAdd={() =>
@@ -311,13 +311,13 @@ export const ResumeEditor = () => {
               }
               onAiGenerateDescription={refineContent}
               aiLoading={false}
+              readOnly={readOnly}
+              defaultOpen={defaultOpen}
             />
-          </SortableSection>
-        );
+          );
 
-      case "skills":
-        return (
-          <SortableSection id="skills" key="skills">
+        case "skills":
+          return (
             <SkillsSection
               skills={resumeData.skills}
               onUpdate={handleSkillsChange}
@@ -327,13 +327,13 @@ export const ResumeEditor = () => {
                 })
               }
               aiLoading={false}
+              readOnly={readOnly}
+              defaultOpen={defaultOpen}
             />
-          </SortableSection>
-        );
+          );
 
-      case "certifications":
-        return (
-          <SortableSection id="certifications" key="certifications">
+        case "certifications":
+          return (
             <CertificationsSection
               certifications={resumeData.certifications || []}
               onAdd={() =>
@@ -362,13 +362,13 @@ export const ResumeEditor = () => {
                 })
               }
               aiLoading={false}
+              readOnly={readOnly}
+              defaultOpen={defaultOpen}
             />
-          </SortableSection>
-        );
+          );
 
-      case "publications":
-        return (
-          <SortableSection id="publications" key="publications">
+        case "publications":
+          return (
             <PublicationsSection
               publications={resumeData.publications || []}
               onAdd={() =>
@@ -391,13 +391,13 @@ export const ResumeEditor = () => {
                 })
               }
               aiLoading={false}
+              readOnly={readOnly}
+              defaultOpen={defaultOpen}
             />
-          </SortableSection>
-        );
+          );
 
-      case "volunteering":
-        return (
-          <SortableSection id="volunteering" key="volunteering">
+        case "volunteering":
+          return (
             <VolunteeringSection
               volunteering={resumeData.volunteering || []}
               onAdd={() =>
@@ -424,13 +424,13 @@ export const ResumeEditor = () => {
                 })
               }
               aiLoading={false}
+              readOnly={readOnly}
+              defaultOpen={defaultOpen}
             />
-          </SortableSection>
-        );
+          );
 
-      case "languages":
-        return (
-          <SortableSection id="languages" key="languages">
+        case "languages":
+          return (
             <LanguagesSection
               languages={resumeData.languages || []}
               onAdd={() => addItem("languages", { name: "", proficiency: "" })}
@@ -445,13 +445,13 @@ export const ResumeEditor = () => {
                 })
               }
               aiLoading={false}
+              readOnly={readOnly}
+              defaultOpen={defaultOpen}
             />
-          </SortableSection>
-        );
+          );
 
-      case "otherTraining":
-        return (
-          <SortableSection id="otherTraining" key="otherTraining">
+        case "otherTraining":
+          return (
             <OtherTrainingSection
               otherTraining={resumeData.otherTraining || []}
               onAdd={() => addItem("otherTraining", { name: "" })}
@@ -467,13 +467,13 @@ export const ResumeEditor = () => {
               }
               onAiGenerateContent={refineContent}
               aiLoading={false}
+              readOnly={readOnly}
+              defaultOpen={defaultOpen}
             />
-          </SortableSection>
-        );
+          );
 
-      case "references":
-        return (
-          <SortableSection id="references" key="references">
+        case "references":
+          return (
             <ReferencesSection
               references={resumeData.references || []}
               onAdd={() =>
@@ -504,13 +504,23 @@ export const ResumeEditor = () => {
                 })
               }
               aiLoading={false}
+              readOnly={readOnly}
+              defaultOpen={defaultOpen}
             />
-          </SortableSection>
-        );
+          );
 
-      default:
-        return null;
-    }
+        default:
+          return null;
+      }
+    })();
+
+    if (readOnly) return sectionContent;
+
+    return (
+      <SortableSection id={sectionId} key={sectionId}>
+        {sectionContent}
+      </SortableSection>
+    );
   };
 
   return (
@@ -544,11 +554,12 @@ export const ResumeEditor = () => {
       {aiModalConfig && (
         <AISectionGeneratorModal
           isOpen={aiModalConfig.isOpen}
-          onClose={closeAiModal}
+          onClose={() => setAiModalConfig((prev) => prev ? { ...prev, isOpen: false } : null)}
           sectionTitle={aiModalConfig.sectionTitle}
           schema={aiModalConfig.schema}
           onApply={handleAiSectionApply}
           onGenerate={handleAiSectionGenerate}
+          currentContent={renderSection(aiModalConfig.sectionKey, true, true)}
         />
       )}
 
@@ -559,6 +570,17 @@ export const ResumeEditor = () => {
         personalInfo={resumeData.personalInfo}
         onApply={handlePersonalInfoAiApply}
         onGenerate={handlePersonalInfoAiGenerate}
+        currentContent={
+          <PersonalInfoSection
+            personalInfo={resumeData.personalInfo}
+            onUpdateField={() => {}}
+            onPhotoChange={() => {}}
+            onAiGenerate={() => {}}
+            aiLoading={false}
+            readOnly={true}
+            defaultOpen={true}
+          />
+        }
       />
     </div>
   );

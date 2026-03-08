@@ -14,6 +14,7 @@ interface AIPersonalInfoModalProps {
   personalInfo: ResumeData['personalInfo'];
   onApply: (data: ResumeData['personalInfo']) => void;
   onGenerate: (instruction: string, existingData: ResumeData['personalInfo']) => Promise<ResumeData['personalInfo']>;
+  currentContent?: React.ReactNode;
 }
 
 export const AIPersonalInfoModal = ({
@@ -22,6 +23,7 @@ export const AIPersonalInfoModal = ({
   personalInfo,
   onApply,
   onGenerate,
+  currentContent,
 }: AIPersonalInfoModalProps) => {
   const { t: tAi } = useTranslations('ai');
   const { t: tCommon } = useTranslations('common');
@@ -90,6 +92,7 @@ export const AIPersonalInfoModal = ({
               current: tAi.currentContent,
               result: tAi.result
             }} 
+            currentContent={currentContent}
           />
 
           <ChatPanel 
@@ -150,11 +153,13 @@ const ModalHeader = ({ title, subtitle, onClose }: { title: string; subtitle: st
 const PreviewPanel = ({ 
   currentInfo, 
   generatedInfo, 
-  translations 
+  translations,
+  currentContent,
 }: { 
   currentInfo: ResumeData['personalInfo']; 
   generatedInfo: ResumeData['personalInfo'] | null;
   translations: { current: string; result: string };
+  currentContent?: React.ReactNode;
 }) => (
   <div className="flex-1 overflow-y-auto p-6 border-r border-slate-100 bg-slate-50/30">
     <div className="max-w-md mx-auto">
@@ -162,15 +167,16 @@ const PreviewPanel = ({
         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
           {translations.current}
         </h3>
-        <PersonalInfoSection 
-          personalInfo={currentInfo}
-          summary=""
-          onUpdateField={() => {}}
-          onUpdateSummary={() => {}}
-          onAiGenerate={() => {}}
-          aiLoading={false}
-          readOnly={true}
-        />
+        {currentContent || (
+          <PersonalInfoSection 
+            personalInfo={currentInfo}
+            onUpdateField={() => {}}
+            onPhotoChange={() => {}}
+            onAiGenerate={() => {}}
+            aiLoading={false}
+            readOnly={true}
+          />
+        )}
       </div>
 
       {generatedInfo && (
@@ -182,9 +188,8 @@ const PreviewPanel = ({
           <div className="ring-2 ring-indigo-500 ring-offset-2 rounded-lg overflow-hidden shadow-lg">
             <PersonalInfoSection 
               personalInfo={generatedInfo}
-              summary=""
               onUpdateField={() => {}}
-              onUpdateSummary={() => {}}
+              onPhotoChange={() => {}}
               onAiGenerate={() => {}}
               aiLoading={false}
               readOnly={true}

@@ -10,12 +10,16 @@ type SummarySectionProps = {
   summary: string;
   onUpdate: (value: string) => void;
   onAiGenerate: (instruction: string, existingData: string) => Promise<string>;
+  readOnly?: boolean;
+  defaultOpen?: boolean;
 };
 
 const SummarySectionComponent = ({
   summary,
   onUpdate,
   onAiGenerate,
+  readOnly = false,
+  defaultOpen = false,
 }: SummarySectionProps) => {
   const { t } = useTranslations("editor");
 
@@ -27,6 +31,7 @@ const SummarySectionComponent = ({
           <FileText size={16} />
         </div>
       }
+      defaultOpen={defaultOpen}
     >
       <RichTextEditor
         label={t.labels.summary}
@@ -34,6 +39,7 @@ const SummarySectionComponent = ({
         onChange={onUpdate}
         onAiGenerate={onAiGenerate}
         minHeight={EDITOR_CONFIG.MIN_HEIGHT_SUMMARY}
+        readOnly={readOnly}
       />
     </Section>
   );

@@ -30,6 +30,8 @@ type OtherTrainingSectionProps = {
   onAiGenerate: () => void;
   onAiGenerateContent: (instruction: string, existingData: string) => Promise<string>;
   aiLoading: boolean;
+  readOnly?: boolean;
+  defaultOpen?: boolean;
 };
 
 const OtherTrainingSectionComponent = ({
@@ -41,6 +43,8 @@ const OtherTrainingSectionComponent = ({
   onAiGenerate,
   onAiGenerateContent,
   aiLoading,
+  readOnly = false,
+  defaultOpen = false,
 }: OtherTrainingSectionProps) => {
   const { t } = useTranslations("editor");
   const dndId = useId();
@@ -75,8 +79,9 @@ const OtherTrainingSectionComponent = ({
           <ClipboardList size={16} />
         </div>
       }
-      onAiClick={onAiGenerate}
+      onAiClick={readOnly ? undefined : onAiGenerate}
       aiLoading={aiLoading}
+      defaultOpen={defaultOpen}
     >
       <DndContext
         id={dndId}
@@ -92,24 +97,27 @@ const OtherTrainingSectionComponent = ({
           {otherTraining.map((training, idx) => {
             const itemId = training.id || idx.toString();
             return (
-              <SortableItem key={itemId} id={itemId}>
-                <div className="absolute top-2 right-2 flex gap-2 z-10">
-                  <button
-                    onClick={() => onRemove(idx)}
-                    className="p-1.5 bg-white text-slate-400 hover:text-red-500 rounded-full shadow-sm border border-slate-200 transition-all transform hover:scale-110"
-                    title={t.actions.remove}
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-                <div className="pr-10">
+              <SortableItem key={itemId} id={itemId} disabled={readOnly}>
+                {!readOnly && (
+                  <div className="absolute top-2 right-2 flex gap-2 z-10">
+                    <button
+                      onClick={() => onRemove(idx)}
+                      className="p-1.5 bg-white text-slate-400 hover:text-red-500 rounded-full shadow-sm border border-slate-200 transition-all transform hover:scale-110"
+                      title={t.actions.remove}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                )}
+                <div className={readOnly ? "pr-0" : "pr-10"}>
                   <RichTextEditor
                     label={t.labels.trainingName}
                     value={training.name || ""}
                     onChange={(v: string) => onUpdate(idx, "name", v)}
-                    onAiGenerate={onAiGenerateContent}
+                    onAiGenerate={readOnly ? undefined : onAiGenerateContent}
                     minHeight={EDITOR_CONFIG.MIN_HEIGHT_TRAINING}
                     placeholder="e.g. AWS Certified Solutions Architect"
+                    readOnly={readOnly}
                   />
                 </div>
               </SortableItem>
@@ -117,12 +125,14 @@ const OtherTrainingSectionComponent = ({
           })}
         </SortableContext>
       </DndContext>
-      <button
-        onClick={onAdd}
-        className="w-full py-2.5 text-indigo-600 text-sm font-semibold border-2 border-dashed border-indigo-100 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center justify-center gap-2"
-      >
-        <Plus size={EDITOR_CONFIG.ICON_SIZE_LARGE} /> {t.actions.addTraining}
-      </button>
+      {!readOnly && (
+        <button
+          onClick={onAdd}
+          className="w-full py-2.5 text-indigo-600 text-sm font-semibold border-2 border-dashed border-indigo-100 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center justify-center gap-2"
+        >
+          <Plus size={EDITOR_CONFIG.ICON_SIZE_LARGE} /> {t.actions.addTraining}
+        </button>
+      )}
     </Section>
   );
 };

@@ -14,6 +14,7 @@ type PersonalInfoSectionProps = {
   onAiGenerate: () => void;
   aiLoading: boolean;
   readOnly?: boolean;
+  defaultOpen?: boolean;
 };
 
 const PersonalInfoSectionComponent = ({
@@ -23,6 +24,7 @@ const PersonalInfoSectionComponent = ({
   onAiGenerate,
   aiLoading,
   readOnly = false,
+  defaultOpen = true,
 }: PersonalInfoSectionProps) => {
   const { t } = useTranslations("editor");
 
@@ -34,7 +36,7 @@ const PersonalInfoSectionComponent = ({
           <User size={16} />
         </div>
       }
-      defaultOpen={true}
+      defaultOpen={defaultOpen}
       onAiClick={readOnly ? undefined : onAiGenerate}
       aiLoading={aiLoading}
     >

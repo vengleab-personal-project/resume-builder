@@ -7,7 +7,6 @@ import { cn } from "@/shared/lib/utils";
 import { useTranslations } from "@/client/hooks/useTranslations";
 
 export { RichTextEditor } from "./RichTextEditor";
-
 interface SectionProps {
   title: string;
   icon?: React.ReactNode;
@@ -16,6 +15,7 @@ interface SectionProps {
   onAiClick?: () => void;
   aiLoading?: boolean;
   className?: string;
+  readOnly?: boolean;
 }
 
 export const Section = ({
@@ -26,6 +26,7 @@ export const Section = ({
   onAiClick,
   aiLoading,
   className,
+  readOnly = false,
 }: SectionProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
@@ -53,7 +54,7 @@ export const Section = ({
             <span className="text-sm font-bold tracking-tight text-slate-800">{title}</span>
           </div>
         </div>
-        {onAiClick && (
+        {onAiClick && !readOnly && (
           <AIButton
             label="Generate"
             onClick={(e) => {
@@ -143,6 +144,7 @@ interface TagInputProps {
   tags: string[];
   onChange: (tags: string[]) => void;
   placeholder?: string;
+  readOnly?: boolean;
 }
 
 export const TagInput = ({
@@ -150,6 +152,7 @@ export const TagInput = ({
   tags,
   onChange,
   placeholder,
+  readOnly = false,
 }: TagInputProps) => {
   const [inputValue, setInputValue] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -229,27 +232,31 @@ export const TagInput = ({
             className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-50 text-indigo-700 text-sm rounded border border-indigo-100 transition-colors"
           >
             {tag}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                removeTag(tag);
-              }}
-              className="hover:text-indigo-900 transition-colors p-0.5"
-              type="button"
-            >
-              <X size={12} />
-            </button>
+            {!readOnly && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeTag(tag);
+                }}
+                className="hover:text-indigo-900 transition-colors p-0.5"
+                type="button"
+              >
+                <X size={12} />
+              </button>
+            )}
           </span>
         ))}
-        <input
-          id={`tag-input-${label}`}
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={processedTags.length === 0 ? placeholder : ""}
-          className="flex-1 min-w-[120px] bg-transparent border-none outline-none text-sm p-1 placeholder:text-slate-400"
-        />
+        {!readOnly && (
+          <input
+            id={`tag-input-${label}`}
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={processedTags.length === 0 ? placeholder : ""}
+            className="flex-1 min-w-[120px] bg-transparent border-none outline-none text-sm p-1 placeholder:text-slate-400"
+          />
+        )}
       </div>
       {error && (
         <div className="mt-1.5 flex items-center gap-1.5 text-[11px] font-medium text-red-500 animate-in fade-in slide-in-from-top-1 duration-200">

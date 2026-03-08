@@ -29,6 +29,8 @@ type VolunteeringSectionProps = {
   onReorder: (fromIndex: number, toIndex: number) => void;
   onAiGenerate: () => void;
   aiLoading: boolean;
+  readOnly?: boolean;
+  defaultOpen?: boolean;
 };
 
 const VolunteeringSectionComponent = ({
@@ -39,6 +41,8 @@ const VolunteeringSectionComponent = ({
   onReorder,
   onAiGenerate,
   aiLoading,
+  readOnly = false,
+  defaultOpen = false,
 }: VolunteeringSectionProps) => {
   const { t } = useTranslations("editor");
   const dndId = useId();
@@ -73,8 +77,9 @@ const VolunteeringSectionComponent = ({
           <Heart size={16} />
         </div>
       }
-      onAiClick={onAiGenerate}
+      onAiClick={readOnly ? undefined : onAiGenerate}
       aiLoading={aiLoading}
+      defaultOpen={defaultOpen}
     >
       <DndContext
         id={dndId}
@@ -90,35 +95,40 @@ const VolunteeringSectionComponent = ({
           {volunteering.map((vol, idx) => {
             const itemId = vol.id || idx.toString();
             return (
-              <SortableItem key={itemId} id={itemId}>
-                <div className="absolute top-2 right-2 flex gap-2 z-10">
-                  <button
-                    onClick={() => onRemove(idx)}
-                    className="p-1.5 bg-white text-slate-400 hover:text-red-500 rounded-full shadow-sm border border-slate-200 transition-all transform hover:scale-110"
-                    title={t.actions.remove}
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-                <div className="pr-10">
+              <SortableItem key={itemId} id={itemId} disabled={readOnly}>
+                {!readOnly && (
+                  <div className="absolute top-2 right-2 flex gap-2 z-10">
+                    <button
+                      onClick={() => onRemove(idx)}
+                      className="p-1.5 bg-white text-slate-400 hover:text-red-500 rounded-full shadow-sm border border-slate-200 transition-all transform hover:scale-110"
+                      title={t.actions.remove}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                )}
+                <div className={readOnly ? "pr-0" : "pr-10"}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
                     <Input
                       label={t.labels.volRole}
                       value={vol.role}
                       onChange={(e) => onUpdate(idx, "role", e.target.value)}
                       placeholder={t.placeholders.newRole}
+                      readOnly={readOnly}
                     />
                     <Input
                       label={t.labels.volOrganization}
                       value={vol.organization || ""}
                       onChange={(e) => onUpdate(idx, "organization", e.target.value)}
                       placeholder={t.placeholders.newCompany}
+                      readOnly={readOnly}
                     />
                     <Input
                       label={t.labels.volTopic}
                       value={vol.topic || ""}
                       onChange={(e) => onUpdate(idx, "topic", e.target.value)}
                       placeholder="e.g. Community Outreach"
+                      readOnly={readOnly}
                     />
                   </div>
                 </div>
@@ -127,12 +137,15 @@ const VolunteeringSectionComponent = ({
           })}
         </SortableContext>
       </DndContext>
-      <button
-        onClick={onAdd}
-        className="w-full py-2.5 text-indigo-600 text-sm font-semibold border-2 border-dashed border-indigo-100 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center justify-center gap-2"
-      >
-        <Plus size={EDITOR_CONFIG.ICON_SIZE_LARGE} /> {t.actions.addVolunteering}
-      </button>
+      {!readOnly && (
+        <button
+          onClick={onAdd}
+          className="w-full py-2.5 text-indigo-600 text-sm font-semibold border-2 border-dashed border-indigo-100 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center justify-center gap-2"
+        >
+          <Plus size={EDITOR_CONFIG.ICON_SIZE_LARGE} />{" "}
+          {t.actions.addVolunteering}
+        </button>
+      )}
     </Section>
   );
 };

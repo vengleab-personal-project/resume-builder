@@ -24,7 +24,6 @@ const ReactQuill = dynamic(() => import("react-quill-new"), {
     />
   ),
 });
-
 interface RichTextEditorProps {
   label: string;
   value: string;
@@ -33,6 +32,7 @@ interface RichTextEditorProps {
   placeholder?: string;
   className?: string;
   minHeight?: string;
+  readOnly?: boolean;
 }
 
 const DEBOUNCE_MS = 300;
@@ -45,6 +45,7 @@ const RichTextEditorComponent = ({
   placeholder,
   className,
   minHeight = "100px",
+  readOnly = false,
 }: RichTextEditorProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isReady, setIsReady] = useState(false);
@@ -150,7 +151,7 @@ const RichTextEditorComponent = ({
         <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
           {label}
         </label>
-        {onAiGenerate && (
+        {onAiGenerate && !readOnly && (
           <AIButton onClick={() => setIsModalOpen(true)} variant="ghost" />
         )}
       </div>
@@ -170,6 +171,7 @@ const RichTextEditorComponent = ({
             formats={formats}
             placeholder={placeholder}
             className="rich-text-quill"
+            readOnly={readOnly}
           />
         ) : (
           <div

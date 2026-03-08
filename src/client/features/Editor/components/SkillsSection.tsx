@@ -10,6 +10,8 @@ type SkillsSectionProps = {
   onUpdate: (tags: string[]) => void;
   onAiGenerate: () => void;
   aiLoading: boolean;
+  readOnly?: boolean;
+  defaultOpen?: boolean;
 };
 
 const SkillsSectionComponent = ({
@@ -17,6 +19,8 @@ const SkillsSectionComponent = ({
   onUpdate,
   onAiGenerate,
   aiLoading,
+  readOnly = false,
+  defaultOpen = true,
 }: SkillsSectionProps) => {
   const { t } = useTranslations("editor");
 
@@ -28,14 +32,16 @@ const SkillsSectionComponent = ({
           <Brain size={16} />
         </div>
       }
-      onAiClick={onAiGenerate}
+      onAiClick={readOnly ? undefined : onAiGenerate}
       aiLoading={aiLoading}
+      defaultOpen={defaultOpen}
     >
       <TagInput
         label={t.labels.skills}
         tags={skills}
         onChange={onUpdate}
         placeholder={t.actions.addSkill}
+        readOnly={readOnly}
       />
     </Section>
   );

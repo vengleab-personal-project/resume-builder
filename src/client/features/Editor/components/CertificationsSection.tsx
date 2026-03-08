@@ -21,6 +21,7 @@ import { Plus, Trash2, Award } from "lucide-react";
 import { Section, Input } from "@/client/components/ui/FormElements";
 import { SortableItem } from "./SortableItem";
 import { useTranslations } from "@/client/hooks/useTranslations";
+import { cn } from "@/shared/lib/utils";
 import { EDITOR_CONFIG } from "@/shared/config/constants";
 import type { Certification } from "@/shared/types";
 
@@ -32,6 +33,8 @@ type CertificationsSectionProps = {
   onReorder: (fromIndex: number, toIndex: number) => void;
   onAiGenerate: () => void;
   aiLoading: boolean;
+  readOnly?: boolean;
+  defaultOpen?: boolean;
 };
 
 const CertificationsSectionComponent = ({
@@ -42,6 +45,8 @@ const CertificationsSectionComponent = ({
   onReorder,
   onAiGenerate,
   aiLoading,
+  readOnly = false,
+  defaultOpen = false,
 }: CertificationsSectionProps) => {
   const { t } = useTranslations("editor");
   const dndId = useId();
@@ -76,8 +81,9 @@ const CertificationsSectionComponent = ({
           <Award size={16} />
         </div>
       }
-      onAiClick={onAiGenerate}
+      onAiClick={readOnly ? undefined : onAiGenerate}
       aiLoading={aiLoading}
+      defaultOpen={defaultOpen}
     >
       <DndContext
         id={dndId}
@@ -98,39 +104,45 @@ const CertificationsSectionComponent = ({
             const itemId = certObj.id || idx.toString();
             
             return (
-              <SortableItem key={itemId} id={itemId}>
-                <div className="absolute top-2 right-2 flex gap-2 z-10">
-                  <button
-                    onClick={() => onRemove(idx)}
-                    className="p-1.5 bg-white text-slate-400 hover:text-red-500 rounded-full shadow-sm border border-slate-200 transition-all transform hover:scale-110"
-                    title={t.actions.remove}
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-                <div className="pr-8">
+              <SortableItem key={itemId} id={itemId} disabled={readOnly}>
+                {!readOnly && (
+                  <div className="absolute top-2 right-2 flex gap-2 z-10">
+                    <button
+                      onClick={() => onRemove(idx)}
+                      className="p-1.5 bg-white text-slate-400 hover:text-red-500 rounded-full shadow-sm border border-slate-200 transition-all transform hover:scale-110"
+                      title={t.actions.remove}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                )}
+                <div className={cn(readOnly ? "pr-0" : "pr-8")}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
                     <Input
                       label={t.labels.certName}
                       value={certObj.name}
                       onChange={(e) => onUpdate(idx, "name", e.target.value)}
+                      readOnly={readOnly}
                     />
                     <Input
                       label={t.labels.certIssuer}
                       value={certObj.issuer || ""}
                       onChange={(e) => onUpdate(idx, "issuer", e.target.value)}
+                      readOnly={readOnly}
                     />
                     <Input
                       label={t.labels.certExpire}
                       value={certObj.expireDate || ""}
                       onChange={(e) => onUpdate(idx, "expireDate", e.target.value)}
                       placeholder="MM/DD/YYYY"
+                      readOnly={readOnly}
                     />
                     <Input
                       label={t.labels.certYear}
                       value={certObj.year || ""}
                       onChange={(e) => onUpdate(idx, "year", e.target.value)}
                       placeholder="YYYY"
+                      readOnly={readOnly}
                     />
                   </div>
                 </div>
@@ -140,12 +152,15 @@ const CertificationsSectionComponent = ({
         </SortableContext>
       </DndContext>
 
-      <button
-        onClick={onAdd}
-        className="w-full py-2.5 text-indigo-600 text-sm font-semibold border-2 border-dashed border-indigo-100 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center justify-center gap-2"
-      >
-        <Plus size={EDITOR_CONFIG.ICON_SIZE_LARGE} /> {t.actions.addCertification}
-      </button>
+      {!readOnly && (
+        <button
+          onClick={onAdd}
+          className="w-full py-2.5 text-indigo-600 text-sm font-semibold border-2 border-dashed border-indigo-100 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center justify-center gap-2"
+        >
+          <Plus size={EDITOR_CONFIG.ICON_SIZE_LARGE} />{" "}
+          {t.actions.addCertification}
+        </button>
+      )}
     </Section>
   );
 };
