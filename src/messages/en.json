@@ -13,7 +13,8 @@
         "exporting": "Exporting...",
         "clear": "Clear",
         "clearData": "Clear all data",
-        "confirmClearData": "Are you sure you want to clear all data? This action cannot be undone."
+        "confirmClearData": "Are you sure you want to clear all data? This action cannot be undone.",
+        "apply": "Apply Changes"
     },
     "ai": {
         "assistant": "AI Assistant",
@@ -28,7 +29,9 @@
         "briefInfo": "Tell us about yourself",
         "briefInfoPlaceholder": "Briefly describe your background, experience, and what you'd like to highlight for this section...",
         "generateSection": "Generate {section}",
-        "items": "items"
+        "items": "items",
+        "resultReady": "Result Ready",
+        "reviewOnLeft": "Review the suggested changes on the left."
     },
     "viewMode": {
         "editor": "Editor",

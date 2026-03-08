@@ -11,3 +11,4 @@ export * from './VolunteeringSection';
 export * from './LanguagesSection';
 export * from './OtherTrainingSection';
 export * from './ReferencesSection';
+export * from './AIPersonalInfoModal';

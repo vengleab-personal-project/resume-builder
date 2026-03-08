@@ -38,6 +38,7 @@ import {
   LanguagesSection,
   OtherTrainingSection,
   ReferencesSection,
+  AIPersonalInfoModal,
 } from "./components";
 
 export const ResumeEditor = () => {
@@ -66,6 +67,9 @@ export const ResumeEditor = () => {
     schema: Record<string, unknown>;
   } | null>(null);
 
+  // State for Personal Info AI Modal
+  const [isPersonalInfoAiModalOpen, setIsPersonalInfoAiModalOpen] = useState(false);
+
   const openAiModal = useCallback((sectionKey: string, sectionTitle: string, schema: Record<string, unknown>) => {
     setAiModalConfig({ isOpen: true, sectionKey, sectionTitle, schema });
   }, []);
@@ -73,6 +77,36 @@ export const ResumeEditor = () => {
   const closeAiModal = useCallback(() => {
     setAiModalConfig(null);
   }, []);
+
+  const handlePersonalInfoAiApply = useCallback((data: typeof resumeData.personalInfo) => {
+    setResumeData({
+      ...resumeData,
+      personalInfo: data,
+    });
+  }, [resumeData, setResumeData]);
+
+  const handlePersonalInfoAiGenerate = useCallback(async (
+    instruction: string,
+    existingData: typeof resumeData.personalInfo
+  ): Promise<typeof resumeData.personalInfo> => {
+    const schema = {
+      name: "string",
+      title: "string",
+      email: "string",
+      phone: "string",
+      address: "string",
+      linkedin: "string",
+      website: "string",
+    };
+    
+    const items = await generateSectionWithContext<typeof resumeData.personalInfo>(
+      `Current info: ${JSON.stringify(existingData)}. Instruction: ${instruction}`,
+      "Personal Information",
+      schema
+    );
+    
+    return items[0] || existingData;
+  }, [generateSectionWithContext]);
 
   const handleAiSectionGenerate = useCallback(async <T,>(
     briefInfo: string,
@@ -485,17 +519,7 @@ export const ResumeEditor = () => {
         personalInfo={resumeData.personalInfo}
         onUpdateField={updatePersonalInfo}
         onPhotoChange={handlePhotoChange}
-        onAiGenerate={() =>
-          openAiModal("personalInfo", t("personalInfo"), {
-            name: "string",
-            title: "string",
-            email: "string",
-            phone: "string",
-            address: "string",
-            linkedin: "string",
-            website: "string",
-          })
-        }
+        onAiGenerate={() => setIsPersonalInfoAiModalOpen(true)}
         aiLoading={false}
       />
 
@@ -527,6 +551,15 @@ export const ResumeEditor = () => {
           onGenerate={handleAiSectionGenerate}
         />
       )}
+
+      {/* Personal Info AI Modal */}
+      <AIPersonalInfoModal
+        isOpen={isPersonalInfoAiModalOpen}
+        onClose={() => setIsPersonalInfoAiModalOpen(false)}
+        personalInfo={resumeData.personalInfo}
+        onApply={handlePersonalInfoAiApply}
+        onGenerate={handlePersonalInfoAiGenerate}
+      />
     </div>
   );
 };
