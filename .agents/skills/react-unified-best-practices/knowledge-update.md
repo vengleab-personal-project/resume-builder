@@ -15,11 +15,9 @@ A command to add, change, or remove content from `react-unified-best-practices` 
 ## Skill Structure
 
 ```
-.claude/skills/react-unified-best-practices/
+.agents/skills/react-unified-best-practices/
 ├── SKILL.md                     # Thin index + File Registry (always updated)
 ├── knowledge-update.md          # This file
-├── conflicts.md                 # Source conflict resolutions
-├── agent-extensions.md          # Suggested code-review-agent additions
 ├── patterns-mvvm.md             # Full MVVM implementation examples
 ├── patterns-compound.md         # Full Compound implementation examples
 └── rules/

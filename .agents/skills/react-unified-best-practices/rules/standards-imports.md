@@ -45,4 +45,4 @@ import Check from 'lucide-react/dist/esm/icons/check'
 
 Alternative: enable `experimental.optimizePackageImports` in `next.config.js` to auto-transform barrel imports at build time.
 
-> Internal `index.ts` barrels (e.g. `@/features/delivery-listing`) are fine — the bundler tree-shakes these. See `conflicts.md` §3 for the full rationale. Performance impact details: `vercel-react-best-practices` → `rules/bundle-barrel-imports.md`.
+> Internal `index.ts` barrels (e.g. `@/features/delivery-listing`) are fine — the bundler tree-shakes these. Performance impact details: `vercel-react-best-practices` → `rules/bundle-barrel-imports.md`.

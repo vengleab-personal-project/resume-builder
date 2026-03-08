@@ -9,7 +9,6 @@ Paths: `arch-folder-structure.md` → `src/app/` and `src/features/`
 - **Pages** (`page.tsx`) — composition only, zero business logic inline
 - **Page hooks** (`hooks/use<PageName>.ts`) — route-specific data wiring only
 - **Features** — reusable; must not be hard-coded to one route
-- New pages use `npm run generate:page -- <name>` (creates page, hook, and mock)
 
 ## Incorrect: logic in page
 

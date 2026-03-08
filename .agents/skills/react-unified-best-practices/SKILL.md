@@ -55,21 +55,20 @@ Read individual rule files for explanations and code examples.
 |------|-------|-----------|
 | `arch-folder-structure` | Single source of truth for all directory paths in the project | — |
 | `arch-page-feature-separation` | Pages compose only; features own logic and are route-agnostic | `arch-folder-structure` |
-| `arch-mvvm` | MVVM layers: View (thin JSX) + ViewModel (hook) + Model (services) | `arch-folder-structure`, `patterns-mvvm` |
+| `arch-mvvm` | MVVM layers: View (thin JSX) + ViewModel (hook) + Model (services) | `arch-folder-structure` |
 | `arch-view-decomposition` | When/how to split a large View into props-only sub-components | `arch-mvvm` |
-| `arch-compound` | Compound pattern: when to use, composition API | `arch-folder-structure`, `patterns-compound` |
-| `arch-store` | Zustand slices and scoped selectors — never `useAppStore` directly | `arch-folder-structure` |
-| `arch-mock-data` | Mock data flow — only through page-level hooks | `arch-folder-structure`, `arch-store` |
+| `arch-compound` | Compound pattern: when to use, composition API | `arch-folder-structure` |
+| `arch-store` | Zustand store — single file per domain | `arch-folder-structure` |
+| `arch-mock-data` | Mock data flow — through hooks only, never direct component imports | `arch-folder-structure` |
 | `standards-typescript` | No `any`, no `React.FC`, exported named prop types | — |
-| `standards-imports` | `@/` alias, import ordering, direct imports for external libs | `conflicts` §3 |
+| `standards-imports` | `@/` alias, import ordering, direct imports for external libs | — |
 | `standards-naming` | Naming conventions: files, components, hooks, services, mock vars | — |
 | `standards-styling` | Tailwind only, `cn()`, semantic tokens, component file structure | — |
 
 ### Supporting Files
 
 | File | Scope |
-|------|-------|
-| `patterns-mvvm` | Full MVVM code: ViewModel hook, thin View, view decomposition example |
+|------| ------|
+| `patterns-mvvm` | Full MVVM code: ViewModel hook at feature root, thin View, view decomposition example |
 | `patterns-compound` | Full Compound code: context, root, sub-components, barrel, usage |
-| `conflicts` | Source conflict resolutions (CLAUDE.md vs personal files) |
-| `agent-extensions` | Rules not yet in `code-review-agent` that should be added |
+| `knowledge-update.md` | Command to add, change, or remove rules while keeping all files consistent |

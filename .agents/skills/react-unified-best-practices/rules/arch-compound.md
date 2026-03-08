@@ -1,6 +1,6 @@
 # arch-compound
 
-Use compound components for reusable UI that has 2+ related sub-parts sharing internal state. Location: `src/components/compositions/<name>/`.
+Use compound components for reusable UI that has 2+ related sub-parts sharing internal state. Location: `src/components/ui/<name>/`.
 
 ## When to Use
 
@@ -13,9 +13,7 @@ Use compound components for reusable UI that has 2+ related sub-parts sharing in
 - Purely presentational
 - A simpler props API is clearly better
 
-Paths: `arch-folder-structure.md` → `src/components/compositions/<name>/`
-
-> Location is `src/components/compositions/`, not flat `src/components/`. See `conflicts.md` §2.
+Paths: `arch-folder-structure.md` → `src/components/ui/<name>/`
 
 ## Incorrect: configuration props
 

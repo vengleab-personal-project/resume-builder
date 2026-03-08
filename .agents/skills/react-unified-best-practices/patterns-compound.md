@@ -5,7 +5,7 @@ Full Compound Component implementation. Rule overview: `rules/arch-compound.md`.
 ## File Structure
 
 ```
-src/components/compositions/list/
+src/components/ui/List/
 ├── List.tsx              # Root component + static sub-component assignments
 ├── ListItem.tsx          # Sub-component
 ├── ListHeader.tsx        # Sub-component

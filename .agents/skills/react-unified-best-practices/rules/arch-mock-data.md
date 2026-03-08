@@ -1,37 +1,38 @@
 # arch-mock-data
 
-Mock data has a fixed location and must flow through hooks — never imported directly into components.
-
-Paths: `arch-folder-structure.md` → `src/mock/`
+Mock data must flow through hooks — never imported directly into components.
 
 ## Rules
 
-- Lives in the mock directory (`<page-name>/index.ts`) alongside its TypeScript types
-- Consumed by the page-level hook — never imported directly in a component or feature hook
+- Co-locate mock data with the feature or service that owns it (e.g. `src/features/<Feature>/`) or define it inline inside a hook
+- Consumed by a hook (feature ViewModel or a dedicated `use<Name>Mock.ts`) — never imported directly in a component
+- Type the mock data with the same interfaces used in production (`src/types/`)
 
 ## Incorrect
 
 ```tsx
-// ❌ Mock imported in component
-import { mockDeliveryItems } from '@/mock/deliveries'
+// ❌ Mock imported directly in component
+import { mockResumeData } from '../mockData'
 
-const DeliveryListing = () => {
-  return <ul>{mockDeliveryItems.map(...)}</ul>
+const ResumePreview = () => {
+  return <div>{mockResumeData.name}</div>
 }
 ```
 
 ## Correct
 
 ```tsx
-// src/app/deliveries/hooks/useDeliveries.ts — page hook owns the import
-import { mockDeliveryItems } from '@/mock/deliveries'
+// ✅ Hook owns the mock — component receives data via props or store
+// src/features/Resume/useResumePreviewLogic.ts
+import { mockResumeData } from '@/services/resumeService'
 
-export const useDeliveries = () => ({
-  items: mockDeliveryItems,
+export const useResumePreviewLogic = () => ({
+  resumeData: mockResumeData,
 })
 
-// DeliveryListing.tsx — receives data via props or store, never touches mock
-const DeliveryListing = ({ items }: Props) => {
-  return <ul>{items.map(...)}</ul>
+// ResumePreview.tsx — receives data from hook, no mock import
+const ResumePreview = () => {
+  const { resumeData } = useResumePreviewLogic()
+  return <div>{resumeData.name}</div>
 }
 ```

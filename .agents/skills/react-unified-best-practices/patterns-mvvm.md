@@ -5,14 +5,13 @@ Full MVVM implementation examples. Rule overview: `rules/arch-mvvm.md`.
 ## File Structure
 
 ```
-src/features/contact-form/
+src/features/ContactForm/
 ├── components/
-│   ├── ContactForm.tsx           # View — thin, calls ViewModel hook
-│   ├── FormHeader.tsx            # Sub-component (extracted when View > ~150 lines)
+│   ├── ContactForm.tsx             # View — thin, calls ViewModel hook
+│   ├── FormHeader.tsx              # Sub-component (extracted when View > ~150 lines)
 │   └── index.ts
-├── hooks/
-│   └── useContactFormLogic.ts    # ViewModel — all state, effects, handlers
-└── index.ts                      # Public barrel export
+├── useContactFormLogic.ts          # ViewModel — all state, effects, handlers
+└── index.ts                        # Public barrel export
 ```
 
 ## ViewModel
@@ -43,7 +42,7 @@ export const useContactFormLogic = ({ onSubmit }: ContactFormLogicProps) => {
 
 ```tsx
 // components/ContactForm.tsx
-import { useContactFormLogic } from '../hooks/useContactFormLogic'
+import { useContactFormLogic } from '../useContactFormLogic'
 
 export type ContactFormProps = {
   onSubmit: (name: string) => void

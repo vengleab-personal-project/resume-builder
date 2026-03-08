@@ -2,9 +2,7 @@
 
 Use the MVVM pattern for all feature components in `src/features/`. View renders UI; ViewModel owns all logic.
 
-Paths: `arch-folder-structure.md` → `src/features/<feature-name>/`
-
-> Hook lives in `hooks/` subfolder — not at the feature root. See `conflicts.md` §1.
+Paths: `arch-folder-structure.md` → `src/features/<FeatureName>/`
 
 ## Layer Responsibilities
 
@@ -56,5 +54,5 @@ const ContactForm = ({ onSubmit }: Props) => {
 }
 ```
 
-For full examples: `patterns-mvvm.md`  
-For view decomposition (View > ~150 lines): `rules/arch-view-decomposition.md`
+For full examples: `patterns-mvvm.md`
+For view decomposition (View > ~150 lines): `arch-view-decomposition.md`

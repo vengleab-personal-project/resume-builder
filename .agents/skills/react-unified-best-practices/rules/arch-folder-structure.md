@@ -4,39 +4,44 @@ Single source of truth for all directory paths. When a path changes, update here
 
 ```
 src/
-├── app/                              # Next.js App Router pages
-│   └── <page-name>/
-│       ├── page.tsx                  # Route entry — composition only
-│       └── hooks/
-│           └── use<PageName>.ts      # Route-specific data wiring
+├── app/                                    # Next.js App Router pages & API routes
+│   ├── <route>/
+│   │   └── page.tsx                        # Route entry — composition only
+│   └── api/
+│       └── <name>/
+│           └── route.ts                    # Thin handler — no business logic
 │
-├── features/                         # Reusable feature modules
-│   └── <feature-name>/
+├── features/                               # Feature modules with business logic
+│   └── <FeatureName>/
 │       ├── components/
-│       │   └── FeatureName.tsx       # View — thin, calls ViewModel hook
-│       ├── hooks/
-│       │   └── useFeatureName.ts     # ViewModel — all state, effects, handlers
-│       └── index.ts                  # Public barrel export
+│       │   └── FeatureName.tsx             # View — thin JSX, calls ViewModel hook
+│       ├── use<FeatureName>Logic.ts        # ViewModel — all state, effects, handlers
+│       └── index.ts                        # Public barrel export
 │
 ├── components/
-│   ├── ui/                           # shadcn/ui primitives (never hand-edit)
-│   └── compositions/                 # Compound components
-│       └── <name>/
-│           ├── ComponentName.tsx     # Root + static sub-component assignments
-│           ├── ComponentName.context.ts
-│           ├── ComponentName.types.ts
-│           └── index.ts
+│   ├── ui/                                 # Generic reusable UI, no business logic
+│   └── layouts/                            # Reusable layout components
 │
-├── store/
-│   ├── index.ts                      # Combines slices, exports scoped selectors
-│   └── slices/
-│       └── <domain>Slice.ts
+├── hooks/                                  # Common reusable React hooks
+│   └── use<HookName>.ts
 │
-├── mock/
-│   └── <page-name>/
-│       └── index.ts                  # TypeScript types + mock arrays
+├── store/                                  # Global state (Zustand)
+│   └── <domain>-store.ts
 │
-├── services/                         # Model layer — pure async functions
-└── lib/
-    └── utils.ts                      # cn() and shared utilities
+├── services/                               # Business logic & orchestration
+│   └── <name>Service.ts
+│
+├── integrations/                           # External API clients
+│   └── <provider>.ts
+│
+├── types/                                  # Shared TypeScript interfaces
+│   └── <domain>.ts
+│
+├── lib/                                    # Pure utility functions
+│   └── utils.ts
+│
+├── config/                                 # Constants & environment config
+│   └── constants.ts
+│
+└── styles/                                 # Global styles
 ```
