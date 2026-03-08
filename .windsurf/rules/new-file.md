@@ -1,5 +1,5 @@
 ---
-description: Organization of files
+description: When creation file, use this guide to decide where to place it
 trigger: model_decision
 ---
 # Next.js App Router - File Placement Guide
@@ -13,7 +13,7 @@ trigger: model_decision
 | `src/features/` | **Feature modules** - Components with business logic | `Upload/`, `Editor/`, `Resume/` |
 | `src/components/ui/` | **Reusable UI** - Generic components, no business logic | `Button.tsx`, `Input.tsx`, `Modal.tsx` |
 | `src/components/layouts/` | **Layout components** - Reusable layouts (not route-specific) | `MainLayout.tsx`, `DashboardLayout.tsx` |
-| `src/hooks/` | **Custom hooks** - Reusable React hooks | `useDebounce.ts`, `useMediaQuery.ts` |
+| `src/hooks/` | **Common hooks** - Reusable React hooks | `useDebounce.ts`, `useMediaQuery.ts` |
 | `src/store/` | **State management** - Global state (Zustand, Redux, etc.) | `resume-store.ts`, `auth-store.ts` |
 
 ### ⚙️ Backend
