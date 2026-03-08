@@ -140,28 +140,28 @@ Return the data in JSON format matching the provided schema.`,
 
   const updatePersonalInfo = useCallback(
     (key: string, val: string) => {
-      const current = useResumeStore.getState().resumeData;
-      setResumeData({
+      setResumeData((current) => ({
         ...current,
         personalInfo: { ...current.personalInfo, [key]: val },
-      });
+      }));
     },
     [setResumeData],
   );
 
   const addItem = useCallback(
     (key: SectionKey, item: unknown) => {
-      const current = useResumeStore.getState().resumeData;
-      const currentArray =
-        (current as unknown as Record<string, unknown[]>)[key] || [];
-      
-      const newItem = typeof item === 'object' && item !== null 
-        ? { ...item, id: crypto.randomUUID() }
-        : item;
+      setResumeData((current) => {
+        const currentArray =
+          (current as unknown as Record<string, unknown[]>)[key] || [];
+        
+        const newItem = typeof item === 'object' && item !== null 
+          ? { ...item, id: crypto.randomUUID() }
+          : item;
 
-      setResumeData({
-        ...current,
-        [key]: [...currentArray, newItem],
+        return {
+          ...current,
+          [key]: [...currentArray, newItem],
+        };
       });
     },
     [setResumeData],
@@ -169,53 +169,57 @@ Return the data in JSON format matching the provided schema.`,
 
   const removeItem = useCallback(
     (key: SectionKey, index: number) => {
-      const current = useResumeStore.getState().resumeData;
-      const list = [
-        ...((current as unknown as Record<string, unknown[]>)[key] || []),
-      ];
-      list.splice(index, 1);
-      setResumeData({ ...current, [key]: list });
+      setResumeData((current) => {
+        const list = [
+          ...((current as unknown as Record<string, unknown[]>)[key] || []),
+        ];
+        list.splice(index, 1);
+        return { ...current, [key]: list };
+      });
     },
     [setResumeData],
   );
 
   const updateItem = useCallback(
     (key: SectionKey, index: number, field: string, val: unknown) => {
-      const current = useResumeStore.getState().resumeData;
-      const list = [
-        ...((current as unknown as Record<string, unknown[]>)[key] as Array<
-          Record<string, unknown>
-        >),
-      ];
-      list[index] = { ...list[index], [field]: val };
-      setResumeData({ ...current, [key]: list });
+      setResumeData((current) => {
+        const list = [
+          ...((current as unknown as Record<string, unknown[]>)[key] as Array<
+            Record<string, unknown>
+          >),
+        ];
+        list[index] = { ...list[index], [field]: val };
+        return { ...current, [key]: list };
+      });
     },
     [setResumeData],
   );
 
   const toggleBreakPage = useCallback(
     (key: BreakPageKey, index: number) => {
-      const current = useResumeStore.getState().resumeData;
-      const list = [
-        ...(
-          current as unknown as Record<string, Array<{ breakPage?: boolean }>>
-        )[key],
-      ];
-      list[index] = { ...list[index], breakPage: !list[index].breakPage };
-      setResumeData({ ...current, [key]: list });
+      setResumeData((current) => {
+        const list = [
+          ...(
+            current as unknown as Record<string, Array<{ breakPage?: boolean }>>
+          )[key],
+        ];
+        list[index] = { ...list[index], breakPage: !list[index].breakPage };
+        return { ...current, [key]: list };
+      });
     },
     [setResumeData],
   );
 
   const reorderItem = useCallback(
     (key: SectionKey, fromIndex: number, toIndex: number) => {
-      const current = useResumeStore.getState().resumeData;
-      const list = [
-        ...((current as unknown as Record<string, unknown[]>)[key] || []),
-      ];
-      const [movedItem] = list.splice(fromIndex, 1);
-      list.splice(toIndex, 0, movedItem);
-      setResumeData({ ...current, [key]: list });
+      setResumeData((current) => {
+        const list = [
+          ...((current as unknown as Record<string, unknown[]>)[key] || []),
+        ];
+        const [movedItem] = list.splice(fromIndex, 1);
+        list.splice(toIndex, 0, movedItem);
+        return { ...current, [key]: list };
+      });
     },
     [setResumeData],
   );
@@ -229,30 +233,27 @@ Return the data in JSON format matching the provided schema.`,
 
   const updateSummary = useCallback(
     (v: string) => {
-      const current = useResumeStore.getState().resumeData;
-      setResumeData({ ...current, summary: v });
+      setResumeData((current) => ({ ...current, summary: v }));
     },
     [setResumeData],
   );
 
   const updateSkills = useCallback(
     (v: string) => {
-      const current = useResumeStore.getState().resumeData;
-      setResumeData({
+      setResumeData((current) => ({
         ...current,
         skills: v
           .split(",")
           .map((s) => s.trim())
           .filter(Boolean),
-      });
+      }));
     },
     [setResumeData],
   );
 
   const handleSkillsChange = useCallback(
     (tags: string[]) => {
-      const current = useResumeStore.getState().resumeData;
-      setResumeData({ ...current, skills: tags });
+      setResumeData((current) => ({ ...current, skills: tags }));
     },
     [setResumeData],
   );

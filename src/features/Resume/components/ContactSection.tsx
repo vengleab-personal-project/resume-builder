@@ -1,4 +1,13 @@
-import { Phone, Mail, MapPin, Linkedin, Globe } from 'lucide-react'
+import Phone from 'lucide-react/dist/esm/icons/phone'
+// @ts-ignore
+import Mail from 'lucide-react/dist/esm/icons/mail'
+// @ts-ignore
+import MapPin from 'lucide-react/dist/esm/icons/map-pin'
+// @ts-ignore
+import Linkedin from 'lucide-react/dist/esm/icons/linkedin'
+// @ts-ignore
+import Globe from 'lucide-react/dist/esm/icons/globe'
+// @ts-ignore
 
 import { ResumeData } from '@/types'
 

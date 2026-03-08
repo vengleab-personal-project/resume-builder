@@ -10,8 +10,8 @@ interface ResumeState {
   aiConfig: AIConfig;
   isParsing: boolean;
   viewMode: ViewMode;
-  setResumeData: (data: ResumeData) => void;
-  setSectionOrder: (order: string[]) => void;
+  setResumeData: (data: ResumeData | ((prev: ResumeData) => ResumeData)) => void;
+  setSectionOrder: (order: string[] | ((prev: string[]) => string[])) => void;
   updateNestedResumeData: (path: string, value: unknown) => void; // Helper for deep updates
   setTheme: (theme: Partial<ThemeConfig>) => void;
   setAIConfig: (config: Partial<AIConfig>) => void;
@@ -29,8 +29,12 @@ export const useResumeStore = create<ResumeState>()(
       aiConfig: INITIAL_AI_CONFIG as unknown as AIConfig,
       isParsing: false,
       viewMode: ViewMode.EDITOR,
-      setResumeData: (data) => set({ resumeData: data }),
-      setSectionOrder: (order) => set({ sectionOrder: order }),
+      setResumeData: (data) => set((state) => ({ 
+        resumeData: typeof data === 'function' ? data(state.resumeData) : data 
+      })),
+      setSectionOrder: (order) => set((state) => ({ 
+        sectionOrder: typeof order === 'function' ? order(state.sectionOrder) : order 
+      })),
       updateNestedResumeData: (path, value) => set((state) => {
         // Note: Simple implementation for now, could be improved with lodash set
         return { resumeData: { ...state.resumeData } }; 

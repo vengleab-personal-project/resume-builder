@@ -1,5 +1,6 @@
 import React from 'react'
-import { GraduationCap } from 'lucide-react'
+import GraduationCap from 'lucide-react/dist/esm/icons/graduation-cap'
+// @ts-ignore
 
 import { Education } from '@/types'
 import { normalizeHtmlSpaces } from '@/lib/htmlUtils'
