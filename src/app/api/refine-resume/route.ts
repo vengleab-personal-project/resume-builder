@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ENV } from "@/config/env";
-import { HTTP_STATUS, API_ERROR_MESSAGES } from "@/config/constants";
+import { ENV } from "@/shared/config/env";
+import { HTTP_STATUS, API_ERROR_MESSAGES } from "@/shared/config/constants";
 import {
   refineWithGemini,
   refineWithOpenAI,
   buildRefinementPrompt,
   generateMockRefinement,
-} from "@/services/refinementService";
+} from "@/server/services/refinementService";
 
 export async function POST(req: NextRequest) {
   try {

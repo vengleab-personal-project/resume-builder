@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DEFAULT_AI_CONFIG, HTTP_STATUS, API_ERROR_MESSAGES } from '@/config/constants';
-import { orchestrateResumeParsing } from '@/services/parseResumeOrchestrator';
+import { DEFAULT_AI_CONFIG, HTTP_STATUS, API_ERROR_MESSAGES } from '@/shared/config/constants';
+import { orchestrateResumeParsing } from '@/server/services/parseResumeOrchestrator';
 
 export async function POST(req: NextRequest) {
   try {

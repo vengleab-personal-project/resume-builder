@@ -1,0 +1,300 @@
+"use client";
+
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useResumeStore } from "@/client/store/resume-store";
+import { API_ENDPOINTS } from "@/shared/config/constants";
+
+type SectionKey =
+  | "experience"
+  | "education"
+  | "publications"
+  | "skills"
+  | "certifications"
+  | "volunteering"
+  | "languages"
+  | "otherTraining"
+  | "references";
+type BreakPageKey =
+  | "experience"
+  | "education"
+  | "publications"
+  | "volunteering"
+  | "otherTraining";
+
+export const useResumeEditorLogic = () => {
+  const { resumeData, setResumeData, aiConfig, sectionOrder, setSectionOrder } =
+    useResumeStore();
+  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>(
+    {},
+  );
+
+  // Keep a ref to latest resumeData to avoid stale closures in callbacks
+  const resumeDataRef = useRef(resumeData);
+  useEffect(() => {
+    resumeDataRef.current = resumeData;
+  }, [resumeData]);
+
+  const setLocalLoading = useCallback((key: string, val: boolean) => {
+    setLoadingStates((prev) => ({ ...prev, [key]: val }));
+  }, []);
+
+  const refineWithInstruction = useCallback(
+    async (
+      id: string,
+      currentVal: string,
+      instruction: string,
+      onDone: (res: string) => void,
+    ) => {
+      setLocalLoading(id, true);
+      try {
+        const config = useResumeStore.getState().aiConfig;
+        const res = await fetch("/api/refine-resume", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ instruction, content: currentVal, config }),
+        });
+        const data = await res.json();
+        if (data.result) onDone(data.result);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLocalLoading(id, false);
+      }
+    },
+    [setLocalLoading],
+  );
+
+  const generateItems = useCallback(
+    async (
+      id: string,
+      sectionTitle: string,
+      onDone: (data: unknown) => void,
+      schema: Record<string, unknown>,
+    ) => {
+      setLocalLoading(id, true);
+      try {
+        const config = useResumeStore.getState().aiConfig;
+        const res = await fetch("/api/refine-resume", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            instruction: `Generate professional and relevant entries for the resume section: ${sectionTitle} in JSON format.`,
+            schema,
+            config,
+          }),
+        });
+        const data = await res.json();
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        if (data.items && Array.isArray(data.items)) {
+          onDone(data.items);
+        } else if (Array.isArray(data)) {
+          onDone(data);
+        } else {
+          console.warn("AI returned unexpected data format for items", data);
+        }
+      } catch (err) {
+        console.error("Failed to generate items:", err);
+      } finally {
+        setLocalLoading(id, false);
+      }
+    },
+    [setLocalLoading],
+  );
+
+  const generateSectionWithContext = useCallback(
+    async <T>(
+      briefInfo: string,
+      sectionTitle: string,
+      schema: Record<string, unknown>,
+    ): Promise<T[]> => {
+      const config = useResumeStore.getState().aiConfig;
+      const res = await fetch(API_ENDPOINTS.REFINE_RESUME, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          instruction: `Based on the following information about the candidate, generate professional and relevant entries for the resume section "${sectionTitle}". 
+        
+Candidate Information:
+${briefInfo}
+
+Return the data in JSON format matching the provided schema.`,
+          schema,
+          config,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      if (data.items && Array.isArray(data.items)) {
+        return data.items as T[];
+      } else if (Array.isArray(data)) {
+        return data as T[];
+      }
+      throw new Error("Unexpected response format");
+    },
+    [],
+  );
+
+  const updatePersonalInfo = useCallback(
+    (key: string, val: string) => {
+      setResumeData((current) => ({
+        ...current,
+        personalInfo: { ...current.personalInfo, [key]: val },
+      }));
+    },
+    [setResumeData],
+  );
+
+  const addItem = useCallback(
+    (key: SectionKey, item: unknown) => {
+      setResumeData((current) => {
+        const currentArray =
+          (current as unknown as Record<string, unknown[]>)[key] || [];
+        
+        const newItem = typeof item === 'object' && item !== null 
+          ? { ...item, id: crypto.randomUUID() }
+          : item;
+
+        return {
+          ...current,
+          [key]: [...currentArray, newItem],
+        };
+      });
+    },
+    [setResumeData],
+  );
+
+  const removeItem = useCallback(
+    (key: SectionKey, index: number) => {
+      setResumeData((current) => {
+        const list = [
+          ...((current as unknown as Record<string, unknown[]>)[key] || []),
+        ];
+        list.splice(index, 1);
+        return { ...current, [key]: list };
+      });
+    },
+    [setResumeData],
+  );
+
+  const updateItem = useCallback(
+    (key: SectionKey, index: number, field: string, val: unknown) => {
+      setResumeData((current) => {
+        const list = [
+          ...((current as unknown as Record<string, unknown[]>)[key] as Array<
+            Record<string, unknown>
+          >),
+        ];
+        list[index] = { ...list[index], [field]: val };
+        return { ...current, [key]: list };
+      });
+    },
+    [setResumeData],
+  );
+
+  const toggleBreakPage = useCallback(
+    (key: BreakPageKey, index: number) => {
+      setResumeData((current) => {
+        const list = [
+          ...(
+            current as unknown as Record<string, Array<{ breakPage?: boolean }>>
+          )[key],
+        ];
+        list[index] = { ...list[index], breakPage: !list[index].breakPage };
+        return { ...current, [key]: list };
+      });
+    },
+    [setResumeData],
+  );
+
+  const reorderItem = useCallback(
+    (key: SectionKey, fromIndex: number, toIndex: number) => {
+      setResumeData((current) => {
+        const list = [
+          ...((current as unknown as Record<string, unknown[]>)[key] || []),
+        ];
+        const [movedItem] = list.splice(fromIndex, 1);
+        list.splice(toIndex, 0, movedItem);
+        return { ...current, [key]: list };
+      });
+    },
+    [setResumeData],
+  );
+
+  const updateSectionOrder = useCallback(
+    (newOrder: string[]) => {
+      setSectionOrder(newOrder);
+    },
+    [setSectionOrder],
+  );
+
+  const updateSummary = useCallback(
+    (v: string) => {
+      setResumeData((current) => ({ ...current, summary: v }));
+    },
+    [setResumeData],
+  );
+
+  const updateSkills = useCallback(
+    (v: string) => {
+      setResumeData((current) => ({
+        ...current,
+        skills: v
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      }));
+    },
+    [setResumeData],
+  );
+
+  const handleSkillsChange = useCallback(
+    (tags: string[]) => {
+      setResumeData((current) => ({ ...current, skills: tags }));
+    },
+    [setResumeData],
+  );
+
+  const refineContent = useCallback(
+    async (instruction: string, existingData: string): Promise<string> => {
+      const config = useResumeStore.getState().aiConfig;
+      const res = await fetch(API_ENDPOINTS.REFINE_RESUME, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          instruction,
+          content: existingData,
+          config,
+        }),
+      });
+      const data = await res.json();
+      return data.result || "";
+    },
+    [],
+  );
+
+  return {
+    resumeData,
+    loadingStates,
+    updatePersonalInfo,
+    addItem,
+    removeItem,
+    updateItem,
+    reorderItem,
+    updateSummary,
+    updateSkills,
+    handleSkillsChange,
+    refineWithInstruction,
+    generateItems,
+    generateSectionWithContext,
+    setResumeData,
+    toggleBreakPage,
+    updateSectionOrder,
+    sectionOrder,
+    aiConfig,
+    refineContent,
+  };
+};

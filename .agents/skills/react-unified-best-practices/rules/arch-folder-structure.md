@@ -4,44 +4,28 @@ Single source of truth for all directory paths. When a path changes, update here
 
 ```
 src/
-├── app/                                    # Next.js App Router pages & API routes
-│   ├── <route>/
-│   │   └── page.tsx                        # Route entry — composition only
-│   └── api/
+├── app/                      # Next.js App Router pages & API routes
+│   ├── (routes)/             # Route groups for frontend pages
+│   │   └── page.tsx          # Route entry — composition only
+│   └── api/                  # Next.js API Routes
 │       └── <name>/
-│           └── route.ts                    # Thin handler — no business logic
+│           └── route.ts      # Thin handler — no business logic
 │
-├── features/                               # Feature modules with business logic
-│   └── <FeatureName>/
-│       ├── components/
-│       │   └── FeatureName.tsx             # View — thin JSX, calls ViewModel hook
-│       ├── use<FeatureName>Logic.ts        # ViewModel — all state, effects, handlers
-│       └── index.ts                        # Public barrel export
+├── client/                   # FRONTEND ONLY (React components, browser APIs)
+│   ├── views/                # Page assemblies (e.g., Home, Landing)
+│   ├── features/             # Feature modules with business logic
+│   ├── components/           # Generic reusable UI, layouts
+│   ├── hooks/                # Common reusable React hooks
+│   ├── store/                # Global state (Zustand)
+│   └── styles/               # Global styles
 │
-├── components/
-│   ├── ui/                                 # Generic reusable UI, no business logic
-│   └── layouts/                            # Reusable layout components
+├── server/                   # BACKEND ONLY (Never shipped to browser)
+│   ├── services/             # Core backend logic & business orchestration
+│   └── integrations/         # External API clients (OpenAI, Gemini, etc.)
 │
-├── hooks/                                  # Common reusable React hooks
-│   └── use<HookName>.ts
-│
-├── store/                                  # Global state (Zustand)
-│   └── <domain>-store.ts
-│
-├── services/                               # Business logic & orchestration
-│   └── <name>Service.ts
-│
-├── integrations/                           # External API clients
-│   └── <provider>.ts
-│
-├── types/                                  # Shared TypeScript interfaces
-│   └── <domain>.ts
-│
-├── lib/                                    # Pure utility functions
-│   └── utils.ts
-│
-├── config/                                 # Constants & environment config
-│   └── constants.ts
-│
-└── styles/                                 # Global styles
+└── shared/                   # SHARED (Safe for both Client & Server)
+    ├── types/                # Shared TypeScript interfaces
+    ├── lib/                  # Pure utility functions
+    ├── messages/             # i18n messages
+    └── config/               # Constants & environment config
 ```
