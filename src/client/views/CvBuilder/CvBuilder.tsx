@@ -4,14 +4,14 @@ import React, { useState } from 'react';
 import { Printer, FileText, Eye, Loader2, Trash2, Upload as UploadIcon, Palette } from 'lucide-react';
 import { ResumeEditor, ThemeSwitcher } from '@/client/features/Editor';
 import { ResumePreview } from '@/client/features/Resume';
-import { useHomeLogic } from './useHomeLogic';
+import { useCvBuilderLogic } from './useCvBuilderLogic';
 import { useTranslations } from '@/client/hooks/useTranslations';
 import { useResumeStore } from '@/client/store/resume-store';
 import { ViewMode } from '@/shared/types';
 import { IngestModal } from '@/client/components/ui/IngestModal';
 
-export default function HomePage() {
-  const { handleExportPDF, isExporting } = useHomeLogic();
+export default function CvBuilder() {
+  const { handleExportPDF, isExporting } = useCvBuilderLogic();
   const { t: tHome } = useTranslations('home');
   const { t: tCommon } = useTranslations('common');
   const { t: tViewMode } = useTranslations('viewMode');

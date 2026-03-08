@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useResumeStore } from '@/client/store/resume-store';
 
-export const useHomeLogic = () => {
+export const useCvBuilderLogic = () => {
   const [isExporting, setIsExporting] = useState(false);
   const { resumeData } = useResumeStore();
 

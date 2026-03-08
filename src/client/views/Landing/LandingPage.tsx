@@ -45,7 +45,7 @@ export default function LandingPage() {
               <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
                 Login
               </Link>
-              <Link href="/" className="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-all shadow-sm hover:shadow-md active:scale-95">
+              <Link href="/builder" className="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-all shadow-sm hover:shadow-md active:scale-95">
                 Build Resume
               </Link>
             </div>
@@ -68,7 +68,7 @@ export default function LandingPage() {
                   Craft a standout resume with our intelligent tools, professional templates, and tailored suggestions.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Link href="/" className="px-8 py-3.5 bg-blue-600 text-white rounded-xl text-base font-semibold hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-600/25 active:scale-95 text-center">
+                  <Link href="/builder" className="px-8 py-3.5 bg-blue-600 text-white rounded-xl text-base font-semibold hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-600/25 active:scale-95 text-center">
                     Get Started for Free
                   </Link>
                 </div>
@@ -299,7 +299,7 @@ export default function LandingPage() {
               
               <div className="relative z-10">
                 <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-8">Ready to land your dream job?</h2>
-                <Link href="/" className="inline-block px-8 py-4 bg-blue-600 text-white rounded-xl text-lg font-semibold hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-600/25 active:scale-95">
+                <Link href="/builder" className="inline-block px-8 py-4 bg-blue-600 text-white rounded-xl text-lg font-semibold hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-600/25 active:scale-95">
                   Get Started Now
                 </Link>
               </div>
