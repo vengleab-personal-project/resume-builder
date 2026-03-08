@@ -28,14 +28,14 @@ const PersonalInfoSectionComponent = ({
 
   return (
     <Section
-      title={t("personalInfo")}
+      title={t.personalInfo}
       defaultOpen={true}
       onAiClick={readOnly ? undefined : onAiGenerate}
       aiLoading={aiLoading}
     >
       <div className="mb-4">
         <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 block">
-          {t("labels.photo")}
+          {t.labels.photo}
         </label>
         <div className="flex items-center gap-4">
           {personalInfo.photoUrl ? (
@@ -61,7 +61,7 @@ const PersonalInfoSectionComponent = ({
           )}
           {!readOnly && (
             <label className="cursor-pointer bg-white border border-slate-200 px-3 py-1.5 rounded text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors shadow-sm">
-              {personalInfo.photoUrl ? t("actions.change") : t("actions.upload")}
+              {personalInfo.photoUrl ? t.actions.change : t.actions.upload}
               <input
                 type="file"
                 className="hidden"
@@ -73,42 +73,42 @@ const PersonalInfoSectionComponent = ({
         </div>
       </div>
       <Input
-        label={t("labels.fullName")}
+        label={t.labels.fullName}
         value={personalInfo.name}
         onChange={(e) => onUpdateField("name", e.target.value)}
         readOnly={readOnly}
         className={readOnly ? "bg-transparent border-none p-0 focus:ring-0 focus:bg-transparent" : ""}
       />
       <Input
-        label={t("labels.jobTitle")}
+        label={t.labels.jobTitle}
         value={personalInfo.title || ""}
         onChange={(e) => onUpdateField("title", e.target.value)}
         readOnly={readOnly}
         className={readOnly ? "bg-transparent border-none p-0 focus:ring-0 focus:bg-transparent" : ""}
       />
       <Input
-        label={t("labels.email")}
+        label={t.labels.email}
         value={personalInfo.email}
         onChange={(e) => onUpdateField("email", e.target.value)}
         readOnly={readOnly}
         className={readOnly ? "bg-transparent border-none p-0 focus:ring-0 focus:bg-transparent" : ""}
       />
       <Input
-        label={t("labels.phone")}
+        label={t.labels.phone}
         value={personalInfo.phone}
         onChange={(e) => onUpdateField("phone", e.target.value)}
         readOnly={readOnly}
         className={readOnly ? "bg-transparent border-none p-0 focus:ring-0 focus:bg-transparent" : ""}
       />
       <Input
-        label={t("labels.address")}
+        label={t.labels.address}
         value={personalInfo.address}
         onChange={(e) => onUpdateField("address", e.target.value)}
         readOnly={readOnly}
         className={readOnly ? "bg-transparent border-none p-0 focus:ring-0 focus:bg-transparent" : ""}
       />
       <Input
-        label={t("labels.linkedin")}
+        label={t.labels.linkedin}
         value={personalInfo.linkedin}
         onChange={(e) => onUpdateField("linkedin", e.target.value)}
         readOnly={readOnly}

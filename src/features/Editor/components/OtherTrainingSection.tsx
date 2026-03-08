@@ -69,7 +69,7 @@ const OtherTrainingSectionComponent = ({
 
   return (
     <Section
-      title={`${t("otherTraining")} (${otherTraining.length})`}
+      title={`${t.otherTraining} (${otherTraining.length})`}
       onAiClick={onAiGenerate}
       aiLoading={aiLoading}
     >
@@ -92,14 +92,14 @@ const OtherTrainingSectionComponent = ({
                   <button
                     onClick={() => onRemove(idx)}
                     className="p-1.5 bg-white text-slate-400 hover:text-red-500 rounded-full shadow-sm border border-slate-200 transition-all transform hover:scale-110"
-                    title={t("actions.remove")}
+                    title={t.actions.remove}
                   >
                     <Trash2 size={14} />
                   </button>
                 </div>
                 <div className="pr-10">
                   <RichTextEditor
-                    label={t("labels.trainingName")}
+                    label={t.labels.trainingName}
                     value={training.name || ""}
                     onChange={(v: string) => onUpdate(idx, "name", v)}
                     onAiGenerate={onAiGenerateContent}
@@ -116,7 +116,7 @@ const OtherTrainingSectionComponent = ({
         onClick={onAdd}
         className="w-full py-2.5 text-indigo-600 text-sm font-semibold border-2 border-dashed border-indigo-100 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center justify-center gap-2"
       >
-        <Plus size={EDITOR_CONFIG.ICON_SIZE_LARGE} /> {t("actions.addTraining")}
+        <Plus size={EDITOR_CONFIG.ICON_SIZE_LARGE} /> {t.actions.addTraining}
       </button>
     </Section>
   );

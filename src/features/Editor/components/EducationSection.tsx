@@ -72,7 +72,7 @@ const EducationSectionComponent = ({
 
   return (
     <Section
-      title={`${t("education")} (${education.length})`}
+      title={`${t.education} (${education.length})`}
       onAiClick={onAiGenerate}
       aiLoading={aiLoading}
     >
@@ -102,8 +102,8 @@ const EducationSectionComponent = ({
                     )}
                     title={
                       edu.breakPage
-                        ? t("actions.removePageBreak")
-                        : t("actions.addPageBreak")
+                        ? t.actions.removePageBreak
+                        : t.actions.addPageBreak
                     }
                   >
                     <Scissors size={14} />
@@ -111,32 +111,32 @@ const EducationSectionComponent = ({
                   <button
                     onClick={() => onRemove(idx)}
                     className="p-1.5 bg-white text-slate-400 hover:text-red-500 rounded-full shadow-sm border border-slate-200 transition-all transform hover:scale-110"
-                    title={t("actions.remove")}
+                    title={t.actions.remove}
                   >
                     <Trash2 size={14} />
                   </button>
                 </div>
                 <div className="pr-16">
                   <Input
-                    label={t("labels.school")}
+                    label={t.labels.school}
                     value={edu.school}
                     onChange={(e) => onUpdate(idx, "school", e.target.value)}
-                    placeholder={t("placeholders.newSchool")}
+                    placeholder={t.placeholders.newSchool}
                   />
                   <Input
-                    label={t("labels.degree")}
+                    label={t.labels.degree}
                     value={edu.degree}
                     onChange={(e) => onUpdate(idx, "degree", e.target.value)}
                     placeholder="e.g. Bachelor of Science"
                   />
                   <Input
-                    label={t("labels.year")}
+                    label={t.labels.year}
                     value={edu.year}
                     onChange={(e) => onUpdate(idx, "year", e.target.value)}
                     placeholder="e.g. 2018 - 2022"
                   />
                   <RichTextEditor
-                    label={t("labels.description")}
+                    label={t.labels.description}
                     value={edu.description || ""}
                     onChange={(v: string) => onUpdate(idx, "description", v)}
                     placeholder="e.g., 3.8/4.0, First Class Honours, Summa Cum Laude"
@@ -153,7 +153,7 @@ const EducationSectionComponent = ({
         onClick={onAdd}
         className="w-full py-2.5 text-indigo-600 text-sm font-semibold border-2 border-dashed border-indigo-100 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center justify-center gap-2"
       >
-        <Plus size={EDITOR_CONFIG.ICON_SIZE_LARGE} /> {t("actions.addEducation")}
+        <Plus size={EDITOR_CONFIG.ICON_SIZE_LARGE} /> {t.actions.addEducation}
       </button>
     </Section>
   );

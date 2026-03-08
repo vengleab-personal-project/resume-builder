@@ -1,0 +1,214 @@
+const en = {
+    common: {
+        appTitle: "ResumeBuilder",
+        exportPrint: "Export / Print",
+        loading: "Loading...",
+        error: "Error",
+        cancel: "Cancel",
+        replace: "Replace",
+        amend: "Amend (Add to existing)",
+        errors: {
+            duplicateSkill: "This skill has already been added"
+        },
+        exporting: "Exporting...",
+        clear: "Clear",
+        clearData: "Clear all data",
+        confirmClearData: "Are you sure you want to clear all data? This action cannot be undone.",
+        apply: "Apply Changes"
+    },
+    ai: {
+        assistant: "AI Assistant",
+        currentContent: "Current Content",
+        noContent: "No content yet",
+        question: "What would you like to do?",
+        placeholder: "e.g., Make it more professional, add bullet points, improve clarity...",
+        generating: "Generating...",
+        generate: "Generate with AI",
+        result: "AI Generated Result",
+        regenerate: "Regenerate",
+        briefInfo: "Tell us about yourself",
+        briefInfoPlaceholder: "Briefly describe your background, experience, and what you'd like to highlight for this section...",
+        generateSection: "Generate {section}",
+        items: "items",
+        resultReady: "Result Ready",
+        reviewOnLeft: "Review the suggested changes on the left."
+    },
+    viewMode: {
+        editor: "Editor",
+        preview: "Preview"
+    },
+    preview: {
+        noExportedPdf: {
+            title: "No Exported PDF Yet",
+            description: "Click the \"Export / Print\" button to generate and download your PDF resume."
+        },
+        noPdfUploaded: {
+            title: "No PDF Uploaded",
+            description: "Upload your resume in the sidebar to see the original file here."
+        }
+    },
+    home: {
+        title: {
+            ai: "AI",
+            resume: "Resume",
+            builder: "Builder"
+        },
+        actions: {
+            ingest: "Ingest",
+            customize: "Customize"
+        },
+        sections: {
+            ingest: "1. Ingest",
+            customize: "2. Customize",
+            edit: "3. Edit Content"
+        }
+    },
+    ingest: {
+        title: "Ingest Resume",
+        description: "Upload or paste your resume to get started"
+    },
+    upload: {
+        title: "Upload Resume",
+        aiProvider: "AI Provider",
+        model: "Model",
+        analyzing: "Analyzing with AI...",
+        clickToUpload: "Click to Upload",
+        supportedFormats: "PDF, DOCX, or TXT",
+        pasteText: "Paste resume text instead",
+        or: "OR",
+        parseText: "Parse Text",
+        placeholderText: "Paste your resume content here...",
+        providers: {
+            openai: "OpenAI",
+            google: "Google Gemini"
+        },
+        cancel: "Cancel",
+        errors: {
+            noFile: "No file uploaded",
+            unsupportedFormat: "Unsupported file format",
+            parseError: "Failed to parse resume. Please try again."
+        }
+    },
+    editor: {
+        personalInfo: "Personal Information",
+        summary: "Professional Summary",
+        experience: "Work Experience",
+        education: "Education",
+        skills: "Skills",
+        certifications: "Professional Certification",
+        publications: "Publications",
+        volunteering: "Volunteering",
+        languages: "Language",
+        otherTraining: "Other Training",
+        references: "Reference",
+        theme: {
+            options: "Theme Options",
+            accentColor: "Accent Color",
+            typography: "Typography",
+            customColor: "Custom Color"
+        },
+        drag: {
+            reorder: "Drag to reorder"
+        },
+        placeholders: {
+            bullets: "One bullet per line",
+            newRole: "New Role",
+            newCompany: "New Company",
+            newSchool: "New School",
+            newPublication: "New Publication",
+            newVolunteering: "New Volunteering Role",
+            newOrganization: "Organization",
+            newTopic: "Topic",
+            newLanguage: "New Language",
+            newProficiency: "Proficiency",
+            newTraining: "New Training",
+            newReferenceName: "Reference Name",
+            newReferenceTitle: "Title",
+            newReferenceCompany: "Company"
+        },
+        labels: {
+            photo: "Profile Photo",
+            fullName: "Full Name",
+            jobTitle: "Job Title / Professional Headline",
+            email: "Email",
+            phone: "Phone",
+            address: "City, Country",
+            linkedin: "LinkedIn",
+            website: "Website",
+            summary: "Professional Summary",
+            role: "Job Title",
+            company: "Company",
+            dates: "Dates",
+            location: "Location",
+            achievements: "Achievements",
+            school: "School",
+            degree: "Degree",
+            year: "Year",
+            description: "Description",
+            skills: "Skills (Enter to add)",
+            certifications: "Certifications (One per line)",
+            certName: "Certification Name",
+            certIssuer: "Issuer",
+            certExpire: "Expire Date",
+            certYear: "Year",
+            publications: "Publications",
+            title: "Title",
+            link: "Link",
+            volRole: "Role / Event",
+            volOrganization: "Organization",
+            volTopic: "Topic",
+            langName: "Language",
+            langProficiency: "Proficiency (e.g., Fluent, Native)",
+            trainingName: "Training / Course Name",
+            refName: "Full Name",
+            refTitle: "Title",
+            refCompany: "Company",
+            refPhone: "Phone",
+            refEmail: "Email"
+        },
+        actions: {
+            addExperience: "Add Experience",
+            addEducation: "Add Education",
+            addPublication: "Add Publication",
+            addCertification: "Add Certification",
+            addVolunteering: "Add Volunteering",
+            addLanguage: "Add Language",
+            addTraining: "Add Training",
+            addReference: "Add Reference",
+            addSkill: "Add a skill...",
+            remove: "Remove",
+            clean: "Clean",
+            upload: "Upload",
+            change: "Change",
+            removePageBreak: "Remove page break",
+            addPageBreak: "Add page break after this item"
+        },
+        instructions: {
+            formatEmail: "Format this email address correctly",
+            generateSummary: "Write a professional 2-3 sentence resume summary for a candidate with these skills: {skills}",
+            improveSummary: "Make this summary more impactful and professional",
+            seniorJobTitle: "Suggest a more senior-sounding job title for: {title}",
+            improveBullets: "Turn these into strong, achievement-oriented bullet points starting with action verbs",
+            suggestSkills: "Based on this resume, suggest 5 more relevant technical skills for this candidate.",
+            cleanSkills: "Format these skills nicely, remove duplicates, and capitalize correctly. Return comma separated.",
+            generateSection: "Generate professional and relevant entries for the resume section: {section} in JSON format."
+        },
+        preview: {
+            profile: "Profile",
+            experience: "Work Experience",
+            education: "Education",
+            contact: "Contact",
+            skills: "Skills",
+            certifications: "Professional Certification",
+            publications: "Publications",
+            volunteering: "Volunteering",
+            languages: "Language",
+            otherTraining: "Other Training",
+            references: "Reference",
+            view: "View",
+            yourName: "Your Name"
+        }
+    }
+};
+
+export default en;

@@ -69,7 +69,7 @@ export function AISectionGeneratorModal<T>({
       const result = await onGenerate(briefInfo, sectionTitle, schema);
       setAiResult(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : tCommon('error'));
+      setError(err instanceof Error ? err.message : tCommon.error);
     } finally {
       setIsLoading(false);
     }
@@ -120,7 +120,7 @@ export function AISectionGeneratorModal<T>({
               <Sparkles className="w-5 h-5 text-indigo-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-slate-900">{tAi('assistant')}</h2>
+              <h2 className="text-lg font-semibold text-slate-900">{tAi.assistant}</h2>
               <p className="text-xs text-slate-500">{sectionTitle}</p>
             </div>
           </div>
@@ -137,12 +137,12 @@ export function AISectionGeneratorModal<T>({
           {/* Brief Info Input */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-              {tAi('briefInfo')}
+              {tAi.briefInfo}
             </label>
             <textarea
               value={briefInfo}
               onChange={(e) => setBriefInfo(e.target.value)}
-              placeholder={tAi('briefInfoPlaceholder')}
+              placeholder={tAi.briefInfoPlaceholder}
               className="w-full h-32 p-3 text-sm text-slate-900 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none placeholder:text-slate-400"
               disabled={isLoading}
             />
@@ -159,12 +159,12 @@ export function AISectionGeneratorModal<T>({
               {isLoading ? (
                 <>
                   <Loader2 size={16} className="animate-spin" />
-                  {tAi('generating')}
+                  {tAi.generating}
                 </>
               ) : (
                 <>
                   <Sparkles size={16} />
-                  {tAi('generate')}
+                  {tAi.generate}
                 </>
               )}
             </button>
@@ -182,7 +182,7 @@ export function AISectionGeneratorModal<T>({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  {tAi('result')} ({aiResult.length})
+                  {tAi.result} ({aiResult.length})
                 </label>
                 <button
                   onClick={handleGenerate}
@@ -190,7 +190,7 @@ export function AISectionGeneratorModal<T>({
                   className="text-xs text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1"
                 >
                   <RefreshCw size={12} />
-                  {tAi('regenerate')}
+                  {tAi.regenerate}
                 </button>
               </div>
               <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 max-h-64 overflow-auto">
@@ -207,19 +207,19 @@ export function AISectionGeneratorModal<T>({
               onClick={handleClose}
               className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
             >
-              {tCommon('cancel')}
+              {tCommon.cancel}
             </button>
             <button
               onClick={() => handleApply('amend')}
               className="px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
             >
-              {tCommon('amend')}
+              {tCommon.amend}
             </button>
             <button
               onClick={() => handleApply('replace')}
               className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm"
             >
-              {tCommon('replace')}
+              {tCommon.replace}
             </button>
           </div>
         )}

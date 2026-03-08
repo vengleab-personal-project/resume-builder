@@ -36,7 +36,7 @@ export const SortableSection: React.FC<SortableSectionProps> = ({ id, children }
         {...attributes}
         {...listeners}
         className="absolute -left-8 top-4 p-2 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-slate-600"
-        title={t('drag.reorder')}
+        title={t.drag.reorder}
       >
         <GripVertical size={EDITOR_CONFIG.ICON_SIZE_XL} />
       </div>

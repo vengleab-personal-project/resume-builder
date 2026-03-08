@@ -67,7 +67,7 @@ const LanguagesSectionComponent = ({
 
   return (
     <Section
-      title={`${t("languages")} (${languages.length})`}
+      title={`${t.languages} (${languages.length})`}
       onAiClick={onAiGenerate}
       aiLoading={aiLoading}
     >
@@ -90,20 +90,20 @@ const LanguagesSectionComponent = ({
                   <button
                     onClick={() => onRemove(idx)}
                     className="p-1.5 bg-white text-slate-400 hover:text-red-500 rounded-full shadow-sm border border-slate-200 transition-all transform hover:scale-110"
-                    title={t("actions.remove")}
+                    title={t.actions.remove}
                   >
                     <Trash2 size={14} />
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-3 pr-8">
                   <Input
-                    label={t("labels.langName")}
+                    label={t.labels.langName}
                     value={lang.name}
                     onChange={(e) => onUpdate(idx, "name", e.target.value)}
                     placeholder="e.g. English"
                   />
                   <Input
-                    label={t("labels.langProficiency")}
+                    label={t.labels.langProficiency}
                     value={lang.proficiency}
                     onChange={(e) => onUpdate(idx, "proficiency", e.target.value)}
                     placeholder="e.g. Native"
@@ -118,7 +118,7 @@ const LanguagesSectionComponent = ({
         onClick={onAdd}
         className="w-full py-2.5 text-indigo-600 text-sm font-semibold border-2 border-dashed border-indigo-100 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center justify-center gap-2"
       >
-        <Plus size={EDITOR_CONFIG.ICON_SIZE_LARGE} /> {t("actions.addLanguage")}
+        <Plus size={EDITOR_CONFIG.ICON_SIZE_LARGE} /> {t.actions.addLanguage}
       </button>
     </Section>
   );

@@ -21,15 +21,15 @@ const SkillsSectionComponent = ({
 
   return (
     <Section
-      title={t("skills")}
+      title={t.skills}
       onAiClick={onAiGenerate}
       aiLoading={aiLoading}
     >
       <TagInput
-        label={t("labels.skills")}
+        label={t.labels.skills}
         tags={skills}
         onChange={onUpdate}
-        placeholder={t("actions.addSkill")}
+        placeholder={t.actions.addSkill}
       />
     </Section>
   );

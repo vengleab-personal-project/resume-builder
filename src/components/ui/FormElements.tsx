@@ -176,7 +176,7 @@ export const TagInput = ({
     if (
       processedTags.some((t) => t.toLowerCase() === trimmedValue.toLowerCase())
     ) {
-      setError(t("errors.duplicateSkill"));
+      setError(t.errors.duplicateSkill);
       return;
     }
 

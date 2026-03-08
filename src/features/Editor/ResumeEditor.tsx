@@ -247,8 +247,8 @@ export const ResumeEditor = () => {
               experience={resumeData.experience}
               onAdd={() =>
                 addItem("experience", {
-                  role: t("placeholders.newRole"),
-                  company: t("placeholders.newCompany"),
+                  role: t.placeholders.newRole,
+                  company: t.placeholders.newCompany,
                   dates: "",
                   description: "",
                 })
@@ -260,7 +260,7 @@ export const ResumeEditor = () => {
               onToggleBreakPage={(idx: number) => toggleBreakPage("experience", idx)}
               onReorder={(from: number, to: number) => reorderItem("experience", from, to)}
               onAiGenerate={() =>
-                openAiModal("experience", t("experience"), {
+                openAiModal("experience", t.experience, {
                   items: [
                     {
                       role: "string",
@@ -285,7 +285,7 @@ export const ResumeEditor = () => {
               education={resumeData.education}
               onAdd={() =>
                 addItem("education", {
-                  school: t("placeholders.newSchool"),
+                  school: t.placeholders.newSchool,
                   degree: "",
                   year: "",
                   description: "",
@@ -298,7 +298,7 @@ export const ResumeEditor = () => {
               onReorder={(from: number, to: number) => reorderItem("education", from, to)}
               onToggleBreakPage={(idx: number) => toggleBreakPage("education", idx)}
               onAiGenerate={() =>
-                openAiModal("education", t("education"), {
+                openAiModal("education", t.education, {
                   items: [
                     {
                       school: "string",
@@ -322,7 +322,7 @@ export const ResumeEditor = () => {
               skills={resumeData.skills}
               onUpdate={handleSkillsChange}
               onAiGenerate={() =>
-                openAiModal("skills", t("skills"), {
+                openAiModal("skills", t.skills, {
                   items: ["string (skill name)"],
                 })
               }
@@ -350,7 +350,7 @@ export const ResumeEditor = () => {
               }
               onReorder={(from: number, to: number) => reorderItem("certifications", from, to)}
               onAiGenerate={() =>
-                openAiModal("certifications", t("certifications"), {
+                openAiModal("certifications", t.certifications, {
                   items: [
                     {
                       name: "string",
@@ -373,7 +373,7 @@ export const ResumeEditor = () => {
               publications={resumeData.publications || []}
               onAdd={() =>
                 addItem("publications", {
-                  title: t("placeholders.newPublication"),
+                  title: t.placeholders.newPublication,
                   link: "",
                 })
               }
@@ -384,7 +384,7 @@ export const ResumeEditor = () => {
               onReorder={(from: number, to: number) => reorderItem("publications", from, to)}
               onToggleBreakPage={(idx: number) => toggleBreakPage("publications", idx)}
               onAiGenerate={() =>
-                openAiModal("publications", t("publications"), {
+                openAiModal("publications", t.publications, {
                   items: [
                     { title: "string", link: "string", date: "string" },
                   ],
@@ -413,7 +413,7 @@ export const ResumeEditor = () => {
               }
               onReorder={(from: number, to: number) => reorderItem("volunteering", from, to)}
               onAiGenerate={() =>
-                openAiModal("volunteering", t("volunteering"), {
+                openAiModal("volunteering", t.volunteering, {
                   items: [
                     {
                       role: "string",
@@ -440,7 +440,7 @@ export const ResumeEditor = () => {
               }
               onReorder={(from: number, to: number) => reorderItem("languages", from, to)}
               onAiGenerate={() =>
-                openAiModal("languages", t("languages"), {
+                openAiModal("languages", t.languages, {
                   items: [{ name: "string", proficiency: "string" }],
                 })
               }
@@ -461,7 +461,7 @@ export const ResumeEditor = () => {
               }
               onReorder={(from: number, to: number) => reorderItem("otherTraining", from, to)}
               onAiGenerate={() =>
-                openAiModal("otherTraining", t("otherTraining"), {
+                openAiModal("otherTraining", t.otherTraining, {
                   items: [{ name: "string" }],
                 })
               }
@@ -491,7 +491,7 @@ export const ResumeEditor = () => {
               }
               onReorder={(from: number, to: number) => reorderItem("references", from, to)}
               onAiGenerate={() =>
-                openAiModal("references", t("references"), {
+                openAiModal("references", t.references, {
                   items: [
                     {
                       name: "string",

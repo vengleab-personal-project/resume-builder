@@ -63,7 +63,7 @@ export const AIPersonalInfoModal = ({
       const result = await onGenerate(instruction, personalInfo);
       setAiResult(result);
     } catch (err) {
-      setGenerationError(err instanceof Error ? err.message : tCommon('error'));
+      setGenerationError(err instanceof Error ? err.message : tCommon.error);
     } finally {
       setIsGenerating(false);
     }
@@ -80,15 +80,15 @@ export const AIPersonalInfoModal = ({
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl h-[85vh] overflow-hidden flex flex-col">
-        <ModalHeader title={tAi('assistant')} subtitle={tEditor('personalInfo')} onClose={onClose} />
+        <ModalHeader title={tAi.assistant} subtitle={tEditor.personalInfo} onClose={onClose} />
 
         <div className="flex-1 flex overflow-hidden">
           <PreviewPanel 
             currentInfo={personalInfo} 
             generatedInfo={aiResult} 
             translations={{
-              current: tAi('currentContent'),
-              result: tAi('result')
+              current: tAi.currentContent,
+              result: tAi.result
             }} 
           />
 
@@ -100,11 +100,11 @@ export const AIPersonalInfoModal = ({
             error={generationError}
             hasResult={!!aiResult}
             translations={{
-              placeholder: tAi('placeholder'),
-              generating: tAi('generating'),
-              resultReady: tAi('resultReady') || 'I have generated a professional profile for you.',
-              reviewOnLeft: tAi('reviewOnLeft') || 'Review the suggested changes on the left.',
-              briefInfo: tAi('briefInfoPlaceholder')
+              placeholder: tAi.placeholder,
+              generating: tAi.generating,
+              resultReady: tAi.resultReady || 'I have generated a professional profile for you.',
+              reviewOnLeft: tAi.reviewOnLeft || 'Review the suggested changes on the left.',
+              briefInfo: tAi.briefInfoPlaceholder
             }}
           />
         </div>
@@ -114,8 +114,8 @@ export const AIPersonalInfoModal = ({
             onCancel={() => setAiResult(null)} 
             onApply={handleApplyChanges}
             labels={{
-              cancel: tAi('regenerate'),
-              apply: tCommon('apply')
+              cancel: tAi.regenerate,
+              apply: tCommon.apply
             }}
           />
         )}

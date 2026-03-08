@@ -49,14 +49,14 @@ const ResumePreviewComponent = () => {
   const renderSection = (sectionId: string) => {
     switch (sectionId) {
       case 'summary':
-        return summary ? <SummarySection key="summary" summary={summary} title={t('preview.profile')} /> : null;
+        return summary ? <SummarySection key="summary" summary={summary} title={t.preview.profile} /> : null;
       case 'experience':
         return hasData(experience) ? (
           <ExperienceSection
             key="experience"
             experience={experience}
             primaryColor={theme.primaryColor}
-            title={t('preview.experience')}
+            title={t.preview.experience}
           />
         ) : null;
       case 'education':
@@ -65,35 +65,35 @@ const ResumePreviewComponent = () => {
             key="education"
             education={education}
             primaryColor={theme.primaryColor}
-            title={t('preview.education')}
+            title={t.preview.education}
           />
         ) : null;
       case 'skills':
-        return hasData(skills) ? <SkillsSection key="skills" skills={skills} title={t('preview.skills')} /> : null;
+        return hasData(skills) ? <SkillsSection key="skills" skills={skills} title={t.preview.skills} /> : null;
       case 'certifications':
         return hasData(certifications) ? (
           <CertificationsSection
             key="certifications"
             certifications={certifications}
             primaryColor={theme.primaryColor}
-            title={t('preview.certifications')}
+            title={t.preview.certifications}
           />
         ) : null;
       case 'volunteering':
-        return hasData(volunteering) ? <VolunteeringSection key="volunteering" volunteering={volunteering} title={t('preview.volunteering')} /> : null;
+        return hasData(volunteering) ? <VolunteeringSection key="volunteering" volunteering={volunteering} title={t.preview.volunteering} /> : null;
       case 'languages':
-        return hasData(languages) ? <LanguagesSection key="languages" languages={languages} title={t('preview.languages')} /> : null;
+        return hasData(languages) ? <LanguagesSection key="languages" languages={languages} title={t.preview.languages} /> : null;
       case 'otherTraining':
-        return hasData(otherTraining) ? <OtherTrainingSection key="otherTraining" otherTraining={otherTraining} title={t('preview.otherTraining')} /> : null;
+        return hasData(otherTraining) ? <OtherTrainingSection key="otherTraining" otherTraining={otherTraining} title={t.preview.otherTraining} /> : null;
       case 'references':
-        return hasData(references) ? <ReferencesSection key="references" references={references} title={t('preview.references')} /> : null;
+        return hasData(references) ? <ReferencesSection key="references" references={references} title={t.preview.references} /> : null;
       case 'publications':
         return hasData(publications) ? (
           <PublicationsSection
             key="publications"
             publications={publications}
-            title={t('preview.publications')}
-            viewLabel={t('preview.view')}
+            title={t.preview.publications}
+            viewLabel={t.preview.view}
           />
         ) : null;
       default:
@@ -113,7 +113,7 @@ const ResumePreviewComponent = () => {
         title={personalInfo?.title}
         photoUrl={personalInfo?.photoUrl}
         primaryColor={theme.primaryColor}
-        namePlaceholder={t('preview.yourName')}
+        namePlaceholder={t.preview.yourName}
       />
 
       {/* Main Content Area (2 Columns) */}
@@ -147,7 +147,7 @@ const ResumePreviewComponent = () => {
             <ContactSection
               personalInfo={personalInfo}
               primaryColor={theme.primaryColor}
-              title={t('preview.contact')}
+              title={t.preview.contact}
             />
           </div>
 

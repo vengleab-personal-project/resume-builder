@@ -14,7 +14,7 @@ export const ThemeSwitcher: React.FC = () => {
       {/* Color Column */}
       <div>
         <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 block">
-          {t('theme.accentColor')}
+          {t.theme.accentColor}
         </label>
         <div className="flex flex-wrap gap-2">
           {THEME_COLORS.map((c) => (
@@ -36,7 +36,7 @@ export const ThemeSwitcher: React.FC = () => {
               className="absolute -top-1 -left-1 w-10 h-10 p-0 border-0 cursor-pointer opacity-0"
               value={theme.primaryColor}
               onChange={(e) => setTheme({ primaryColor: e.target.value })}
-              title={t('theme.customColor')}
+              title={t.theme.customColor}
             />
           </div>
         </div>
@@ -45,7 +45,7 @@ export const ThemeSwitcher: React.FC = () => {
       {/* Font Column */}
       <div>
         <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 block">
-          {t('theme.typography')}
+          {t.theme.typography}
         </label>
         <div className="flex gap-2">
           {THEME_FONTS.map((f) => (

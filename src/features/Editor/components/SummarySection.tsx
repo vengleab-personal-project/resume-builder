@@ -19,9 +19,9 @@ const SummarySectionComponent = ({
   const { t } = useTranslations("editor");
 
   return (
-    <Section title={t("summary")}>
+    <Section title={t.summary}>
       <RichTextEditor
-        label={t("labels.summary")}
+        label={t.labels.summary}
         value={summary}
         onChange={onUpdate}
         onAiGenerate={onAiGenerate}

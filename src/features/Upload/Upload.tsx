@@ -38,7 +38,7 @@ export const Upload: React.FC = () => {
     <div className="p-4 bg-white rounded-lg shadow-sm border border-slate-200 space-y-4">
       <div className="space-y-3">
         <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">
-          {t('aiProvider')}
+          {t.aiProvider}
         </label>
         <div className="grid grid-cols-2 gap-2">
           {Object.values(AI_PROVIDERS).map((providerId) => {
@@ -59,7 +59,7 @@ export const Upload: React.FC = () => {
                 `}
               >
                 {Icon && <Icon size={14} />}
-                {t(`providers.${providerId}`)}
+                {t.providers[providerId as keyof typeof t.providers]}
               </button>
             );
           })}
@@ -68,7 +68,7 @@ export const Upload: React.FC = () => {
 
       <div className="space-y-2">
         <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">
-          {t('model')}
+          {t.model}
         </label>
         <select
           value={aiConfig.model}
@@ -108,7 +108,7 @@ export const Upload: React.FC = () => {
           {isParsing ? (
             <>
               <Loader2 className="w-8 h-8 text-indigo-500 animate-spin mb-2" />
-              <p className="text-sm text-slate-500 font-medium">{t('analyzing')}</p>
+              <p className="text-sm text-slate-500 font-medium">{t.analyzing}</p>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -117,14 +117,14 @@ export const Upload: React.FC = () => {
                 className="mt-2 px-3 py-1 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-md hover:bg-slate-50 hover:border-slate-300 transition-colors flex items-center gap-1"
               >
                 <X size={12} />
-                {t('cancel')}
+                {t.cancel}
               </button>
             </>
           ) : (
             <>
               <UploadIcon className="w-8 h-8 text-indigo-500 mb-2" />
-              <p className="text-sm text-slate-700 font-medium">{t('clickToUpload')}</p>
-              <p className="text-xs text-slate-400 mt-1">{t('supportedFormats')}</p>
+              <p className="text-sm text-slate-700 font-medium">{t.clickToUpload}</p>
+              <p className="text-xs text-slate-400 mt-1">{t.supportedFormats}</p>
             </>
           )}
         </div>
@@ -134,7 +134,7 @@ export const Upload: React.FC = () => {
             <div className="w-full border-t border-slate-200"></div>
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-slate-400 font-medium">{t('or')}</span>
+            <span className="bg-white px-2 text-slate-400 font-medium">{t.or}</span>
           </div>
         </div>
 
@@ -142,7 +142,7 @@ export const Upload: React.FC = () => {
           <textarea
             value={pastedText}
             onChange={(e) => setPastedText(e.target.value)}
-            placeholder={t('placeholderText')}
+            placeholder={t.placeholderText}
             className="w-full h-32 p-3 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none"
             disabled={isParsing}
           />
@@ -159,10 +159,10 @@ export const Upload: React.FC = () => {
             {isParsing ? (
               <div className="flex items-center justify-center gap-2">
                 <Loader2 size={14} className="animate-spin" />
-                {t('analyzing')}
+                {t.analyzing}
               </div>
             ) : (
-              t('parseText')
+              t.parseText
             )}
           </button>
         </div>
@@ -171,7 +171,7 @@ export const Upload: React.FC = () => {
       {error && (
         <div className="mt-3 flex items-center gap-2 text-red-500 text-sm bg-red-50 p-2 rounded">
           <AlertCircle size={16} />
-          {t('errors.parseError')}
+          {t.errors.parseError}
         </div>
       )}
     </div>

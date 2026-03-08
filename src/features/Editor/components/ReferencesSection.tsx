@@ -67,7 +67,7 @@ const ReferencesSectionComponent = ({
 
   return (
     <Section
-      title={`${t("references")} (${references.length})`}
+      title={`${t.references} (${references.length})`}
       onAiClick={onAiGenerate}
       aiLoading={aiLoading}
     >
@@ -90,27 +90,27 @@ const ReferencesSectionComponent = ({
                   <button
                     onClick={() => onRemove(idx)}
                     className="p-1.5 bg-white text-slate-400 hover:text-red-500 rounded-full shadow-sm border border-slate-200 transition-all transform hover:scale-110"
-                    title={t("actions.remove")}
+                    title={t.actions.remove}
                   >
                     <Trash2 size={14} />
                   </button>
                 </div>
                 <div className="pr-10">
                   <Input
-                    label={t("labels.refName")}
+                    label={t.labels.refName}
                     value={ref.name}
                     onChange={(e) => onUpdate(idx, "name", e.target.value)}
                     placeholder="e.g. John Doe"
                   />
                   <div className="grid grid-cols-2 gap-3">
                     <Input
-                      label={t("labels.refTitle")}
+                      label={t.labels.refTitle}
                       value={ref.title || ""}
                       onChange={(e) => onUpdate(idx, "title", e.target.value)}
                       placeholder="e.g. Senior Manager"
                     />
                     <Input
-                      label={t("labels.refCompany")}
+                      label={t.labels.refCompany}
                       value={ref.company || ""}
                       onChange={(e) => onUpdate(idx, "company", e.target.value)}
                       placeholder="e.g. Acme Corp"
@@ -118,13 +118,13 @@ const ReferencesSectionComponent = ({
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <Input
-                      label={t("labels.refPhone")}
+                      label={t.labels.refPhone}
                       value={ref.phone || ""}
                       onChange={(e) => onUpdate(idx, "phone", e.target.value)}
                       placeholder="+1 234 567 890"
                     />
                     <Input
-                      label={t("labels.refEmail")}
+                      label={t.labels.refEmail}
                       value={ref.email || ""}
                       onChange={(e) => onUpdate(idx, "email", e.target.value)}
                       placeholder="john.doe@example.com"
@@ -140,7 +140,7 @@ const ReferencesSectionComponent = ({
         onClick={onAdd}
         className="w-full py-2.5 text-indigo-600 text-sm font-semibold border-2 border-dashed border-indigo-100 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center justify-center gap-2"
       >
-        <Plus size={EDITOR_CONFIG.ICON_SIZE_LARGE} /> {t("actions.addReference")}
+        <Plus size={EDITOR_CONFIG.ICON_SIZE_LARGE} /> {t.actions.addReference}
       </button>
     </Section>
   );

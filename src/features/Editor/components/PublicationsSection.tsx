@@ -70,7 +70,7 @@ const PublicationsSectionComponent = ({
 
   return (
     <Section
-      title={`${t("publications")} (${publications.length})`}
+      title={`${t.publications} (${publications.length})`}
       onAiClick={onAiGenerate}
       aiLoading={aiLoading}
     >
@@ -100,8 +100,8 @@ const PublicationsSectionComponent = ({
                     )}
                     title={
                       pub.breakPage
-                        ? t("actions.removePageBreak")
-                        : t("actions.addPageBreak")
+                        ? t.actions.removePageBreak
+                        : t.actions.addPageBreak
                     }
                   >
                     <Scissors size={14} />
@@ -109,20 +109,20 @@ const PublicationsSectionComponent = ({
                   <button
                     onClick={() => onRemove(idx)}
                     className="p-1.5 bg-white text-slate-400 hover:text-red-500 rounded-full shadow-sm border border-slate-200 transition-all transform hover:scale-110"
-                    title={t("actions.remove")}
+                    title={t.actions.remove}
                   >
                     <Trash2 size={14} />
                   </button>
                 </div>
                 <div className="pr-16">
                   <Input
-                    label={t("labels.title")}
+                    label={t.labels.title}
                     value={pub.title}
                     onChange={(e) => onUpdate(idx, "title", e.target.value)}
                     placeholder="e.g. Impact of AI on Modern Medicine"
                   />
                   <Input
-                    label={t("labels.link")}
+                    label={t.labels.link}
                     value={pub.link || ""}
                     onChange={(e) => onUpdate(idx, "link", e.target.value)}
                     placeholder="e.g. https://doi.org/..."
@@ -137,7 +137,7 @@ const PublicationsSectionComponent = ({
         onClick={onAdd}
         className="w-full py-2.5 text-indigo-600 text-sm font-semibold border-2 border-dashed border-indigo-100 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center justify-center gap-2"
       >
-        <Plus size={EDITOR_CONFIG.ICON_SIZE_LARGE} /> {t("actions.addPublication")}
+        <Plus size={EDITOR_CONFIG.ICON_SIZE_LARGE} /> {t.actions.addPublication}
       </button>
     </Section>
   );

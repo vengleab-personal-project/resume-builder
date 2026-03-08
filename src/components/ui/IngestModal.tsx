@@ -25,8 +25,8 @@ export const IngestModal = ({ isOpen, onClose }: IngestModalProps) => {
               <UploadIcon className="w-5 h-5 text-indigo-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-slate-900">{t('title')}</h2>
-              <p className="text-xs text-slate-500">{t('description')}</p>
+              <h2 className="text-lg font-semibold text-slate-900">{t.title}</h2>
+              <p className="text-xs text-slate-500">{t.description}</p>
             </div>
           </div>
           <button
