@@ -1,6 +1,7 @@
 "use client";
 
 import React, { memo } from "react";
+import { FileText } from "lucide-react";
 import { Section, RichTextEditor } from "@/client/components/ui/FormElements";
 import { useTranslations } from "@/client/hooks/useTranslations";
 import { EDITOR_CONFIG } from "@/shared/config/constants";
@@ -19,7 +20,14 @@ const SummarySectionComponent = ({
   const { t } = useTranslations("editor");
 
   return (
-    <Section title={t.summary}>
+    <Section
+      title={t.summary}
+      icon={
+        <div className="bg-amber-500 p-1.5 rounded-lg text-white">
+          <FileText size={16} />
+        </div>
+      }
+    >
       <RichTextEditor
         label={t.labels.summary}
         value={summary}

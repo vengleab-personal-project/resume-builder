@@ -14,7 +14,7 @@ import {
   verticalListSortingStrategy, 
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Users } from "lucide-react";
 import { Section, Input } from "@/client/components/ui/FormElements";
 import { SortableItem } from "./SortableItem";
 import { useTranslations } from "@/client/hooks/useTranslations";
@@ -68,6 +68,11 @@ const ReferencesSectionComponent = ({
   return (
     <Section
       title={`${t.references} (${references.length})`}
+      icon={
+        <div className="bg-teal-500 p-1.5 rounded-lg text-white">
+          <Users size={16} />
+        </div>
+      }
       onAiClick={onAiGenerate}
       aiLoading={aiLoading}
     >
@@ -96,13 +101,13 @@ const ReferencesSectionComponent = ({
                   </button>
                 </div>
                 <div className="pr-10">
-                  <Input
-                    label={t.labels.refName}
-                    value={ref.name}
-                    onChange={(e) => onUpdate(idx, "name", e.target.value)}
-                    placeholder="e.g. John Doe"
-                  />
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+                    <Input
+                      label={t.labels.refName}
+                      value={ref.name}
+                      onChange={(e) => onUpdate(idx, "name", e.target.value)}
+                      placeholder="e.g. John Doe"
+                    />
                     <Input
                       label={t.labels.refTitle}
                       value={ref.title || ""}
@@ -115,8 +120,6 @@ const ReferencesSectionComponent = ({
                       onChange={(e) => onUpdate(idx, "company", e.target.value)}
                       placeholder="e.g. Acme Corp"
                     />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
                     <Input
                       label={t.labels.refPhone}
                       value={ref.phone || ""}

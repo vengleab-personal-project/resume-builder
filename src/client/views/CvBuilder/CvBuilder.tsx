@@ -121,7 +121,7 @@ export default function CvBuilder() {
         
         {/* Left Panel: Controls (Scrollable) */}
         {viewMode === ViewMode.EDITOR && (
-          <div className="w-[450px] bg-slate-50 border-r border-slate-200 flex flex-col flex-shrink-0 h-[calc(100vh-64px)] overflow-y-auto print:hidden">
+          <div className="w-[600px] bg-slate-50 border-r border-slate-200 flex flex-col flex-shrink-0 h-[calc(100vh-64px)] overflow-y-auto print:hidden">
             <div className="p-6">
               <ResumeEditor />
             </div>

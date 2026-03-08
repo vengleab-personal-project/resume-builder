@@ -14,7 +14,7 @@ import {
   verticalListSortingStrategy, 
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Languages } from "lucide-react";
 import { Section, Input } from "@/client/components/ui/FormElements";
 import { SortableItem } from "./SortableItem";
 import { useTranslations } from "@/client/hooks/useTranslations";
@@ -68,6 +68,11 @@ const LanguagesSectionComponent = ({
   return (
     <Section
       title={`${t.languages} (${languages.length})`}
+      icon={
+        <div className="bg-cyan-500 p-1.5 rounded-lg text-white">
+          <Languages size={16} />
+        </div>
+      }
       onAiClick={onAiGenerate}
       aiLoading={aiLoading}
     >
@@ -95,7 +100,7 @@ const LanguagesSectionComponent = ({
                     <Trash2 size={14} />
                   </button>
                 </div>
-                <div className="grid grid-cols-2 gap-3 pr-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 pr-8">
                   <Input
                     label={t.labels.langName}
                     value={lang.name}

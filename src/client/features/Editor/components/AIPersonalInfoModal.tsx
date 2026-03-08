@@ -164,8 +164,9 @@ const PreviewPanel = ({
         </h3>
         <PersonalInfoSection 
           personalInfo={currentInfo}
+          summary=""
           onUpdateField={() => {}}
-          onPhotoChange={() => {}}
+          onUpdateSummary={() => {}}
           onAiGenerate={() => {}}
           aiLoading={false}
           readOnly={true}
@@ -181,8 +182,9 @@ const PreviewPanel = ({
           <div className="ring-2 ring-indigo-500 ring-offset-2 rounded-lg overflow-hidden shadow-lg">
             <PersonalInfoSection 
               personalInfo={generatedInfo}
+              summary=""
               onUpdateField={() => {}}
-              onPhotoChange={() => {}}
+              onUpdateSummary={() => {}}
               onAiGenerate={() => {}}
               aiLoading={false}
               readOnly={true}

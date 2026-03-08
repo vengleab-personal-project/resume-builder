@@ -14,7 +14,7 @@ import {
   verticalListSortingStrategy, 
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Heart } from "lucide-react";
 import { Section, Input } from "@/client/components/ui/FormElements";
 import { SortableItem } from "./SortableItem";
 import { useTranslations } from "@/client/hooks/useTranslations";
@@ -68,6 +68,11 @@ const VolunteeringSectionComponent = ({
   return (
     <Section
       title={`${t.volunteering} (${volunteering.length})`}
+      icon={
+        <div className="bg-pink-500 p-1.5 rounded-lg text-white">
+          <Heart size={16} />
+        </div>
+      }
       onAiClick={onAiGenerate}
       aiLoading={aiLoading}
     >
@@ -96,24 +101,26 @@ const VolunteeringSectionComponent = ({
                   </button>
                 </div>
                 <div className="pr-10">
-                  <Input
-                    label={t.labels.volRole}
-                    value={vol.role}
-                    onChange={(e) => onUpdate(idx, "role", e.target.value)}
-                    placeholder={t.placeholders.newRole}
-                  />
-                  <Input
-                    label={t.labels.volOrganization}
-                    value={vol.organization || ""}
-                    onChange={(e) => onUpdate(idx, "organization", e.target.value)}
-                    placeholder={t.placeholders.newCompany}
-                  />
-                  <Input
-                    label={t.labels.volTopic}
-                    value={vol.topic || ""}
-                    onChange={(e) => onUpdate(idx, "topic", e.target.value)}
-                    placeholder="e.g. Community Outreach"
-                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+                    <Input
+                      label={t.labels.volRole}
+                      value={vol.role}
+                      onChange={(e) => onUpdate(idx, "role", e.target.value)}
+                      placeholder={t.placeholders.newRole}
+                    />
+                    <Input
+                      label={t.labels.volOrganization}
+                      value={vol.organization || ""}
+                      onChange={(e) => onUpdate(idx, "organization", e.target.value)}
+                      placeholder={t.placeholders.newCompany}
+                    />
+                    <Input
+                      label={t.labels.volTopic}
+                      value={vol.topic || ""}
+                      onChange={(e) => onUpdate(idx, "topic", e.target.value)}
+                      placeholder="e.g. Community Outreach"
+                    />
+                  </div>
                 </div>
               </SortableItem>
             );

@@ -14,7 +14,7 @@ import {
   verticalListSortingStrategy, 
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { Plus, Trash2, Scissors } from "lucide-react";
+import { Plus, Trash2, Scissors, GraduationCap } from "lucide-react";
 import { Section, Input, RichTextEditor } from "@/client/components/ui/FormElements";
 import { SortableItem } from "./SortableItem";
 import { useTranslations } from "@/client/hooks/useTranslations";
@@ -73,6 +73,11 @@ const EducationSectionComponent = ({
   return (
     <Section
       title={`${t.education} (${education.length})`}
+      icon={
+        <div className="bg-emerald-500 p-1.5 rounded-lg text-white">
+          <GraduationCap size={16} />
+        </div>
+      }
       onAiClick={onAiGenerate}
       aiLoading={aiLoading}
     >
@@ -117,24 +122,26 @@ const EducationSectionComponent = ({
                   </button>
                 </div>
                 <div className="pr-16">
-                  <Input
-                    label={t.labels.school}
-                    value={edu.school}
-                    onChange={(e) => onUpdate(idx, "school", e.target.value)}
-                    placeholder={t.placeholders.newSchool}
-                  />
-                  <Input
-                    label={t.labels.degree}
-                    value={edu.degree}
-                    onChange={(e) => onUpdate(idx, "degree", e.target.value)}
-                    placeholder="e.g. Bachelor of Science"
-                  />
-                  <Input
-                    label={t.labels.year}
-                    value={edu.year}
-                    onChange={(e) => onUpdate(idx, "year", e.target.value)}
-                    placeholder="e.g. 2018 - 2022"
-                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+                    <Input
+                      label={t.labels.school}
+                      value={edu.school}
+                      onChange={(e) => onUpdate(idx, "school", e.target.value)}
+                      placeholder={t.placeholders.newSchool}
+                    />
+                    <Input
+                      label={t.labels.degree}
+                      value={edu.degree}
+                      onChange={(e) => onUpdate(idx, "degree", e.target.value)}
+                      placeholder="e.g. Bachelor of Science"
+                    />
+                    <Input
+                      label={t.labels.year}
+                      value={edu.year}
+                      onChange={(e) => onUpdate(idx, "year", e.target.value)}
+                      placeholder="e.g. 2018 - 2022"
+                    />
+                  </div>
                   <RichTextEditor
                     label={t.labels.description}
                     value={edu.description || ""}

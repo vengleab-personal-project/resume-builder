@@ -1,7 +1,7 @@
 "use client";
 
 import React, { memo } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, User } from "lucide-react";
 import { Section, Input } from "@/client/components/ui/FormElements";
 import { useTranslations } from "@/client/hooks/useTranslations";
 import { EDITOR_CONFIG } from "@/shared/config/constants";
@@ -29,6 +29,11 @@ const PersonalInfoSectionComponent = ({
   return (
     <Section
       title={t.personalInfo}
+      icon={
+        <div className="bg-indigo-500 p-1.5 rounded-lg text-white">
+          <User size={16} />
+        </div>
+      }
       defaultOpen={true}
       onAiClick={readOnly ? undefined : onAiGenerate}
       aiLoading={aiLoading}
@@ -72,48 +77,50 @@ const PersonalInfoSectionComponent = ({
           )}
         </div>
       </div>
-      <Input
-        label={t.labels.fullName}
-        value={personalInfo.name}
-        onChange={(e) => onUpdateField("name", e.target.value)}
-        readOnly={readOnly}
-        className={readOnly ? "bg-transparent border-none p-0 focus:ring-0 focus:bg-transparent" : ""}
-      />
-      <Input
-        label={t.labels.jobTitle}
-        value={personalInfo.title || ""}
-        onChange={(e) => onUpdateField("title", e.target.value)}
-        readOnly={readOnly}
-        className={readOnly ? "bg-transparent border-none p-0 focus:ring-0 focus:bg-transparent" : ""}
-      />
-      <Input
-        label={t.labels.email}
-        value={personalInfo.email}
-        onChange={(e) => onUpdateField("email", e.target.value)}
-        readOnly={readOnly}
-        className={readOnly ? "bg-transparent border-none p-0 focus:ring-0 focus:bg-transparent" : ""}
-      />
-      <Input
-        label={t.labels.phone}
-        value={personalInfo.phone}
-        onChange={(e) => onUpdateField("phone", e.target.value)}
-        readOnly={readOnly}
-        className={readOnly ? "bg-transparent border-none p-0 focus:ring-0 focus:bg-transparent" : ""}
-      />
-      <Input
-        label={t.labels.address}
-        value={personalInfo.address}
-        onChange={(e) => onUpdateField("address", e.target.value)}
-        readOnly={readOnly}
-        className={readOnly ? "bg-transparent border-none p-0 focus:ring-0 focus:bg-transparent" : ""}
-      />
-      <Input
-        label={t.labels.linkedin}
-        value={personalInfo.linkedin}
-        onChange={(e) => onUpdateField("linkedin", e.target.value)}
-        readOnly={readOnly}
-        className={readOnly ? "bg-transparent border-none p-0 focus:ring-0 focus:bg-transparent" : ""}
-      />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+        <Input
+          label={t.labels.fullName}
+          value={personalInfo.name}
+          onChange={(e) => onUpdateField("name", e.target.value)}
+          readOnly={readOnly}
+          className={readOnly ? "bg-transparent border-none p-0 focus:ring-0 focus:bg-transparent" : ""}
+        />
+        <Input
+          label={t.labels.jobTitle}
+          value={personalInfo.title || ""}
+          onChange={(e) => onUpdateField("title", e.target.value)}
+          readOnly={readOnly}
+          className={readOnly ? "bg-transparent border-none p-0 focus:ring-0 focus:bg-transparent" : ""}
+        />
+        <Input
+          label={t.labels.email}
+          value={personalInfo.email}
+          onChange={(e) => onUpdateField("email", e.target.value)}
+          readOnly={readOnly}
+          className={readOnly ? "bg-transparent border-none p-0 focus:ring-0 focus:bg-transparent" : ""}
+        />
+        <Input
+          label={t.labels.phone}
+          value={personalInfo.phone}
+          onChange={(e) => onUpdateField("phone", e.target.value)}
+          readOnly={readOnly}
+          className={readOnly ? "bg-transparent border-none p-0 focus:ring-0 focus:bg-transparent" : ""}
+        />
+        <Input
+          label={t.labels.address}
+          value={personalInfo.address}
+          onChange={(e) => onUpdateField("address", e.target.value)}
+          readOnly={readOnly}
+          className={readOnly ? "bg-transparent border-none p-0 focus:ring-0 focus:bg-transparent" : ""}
+        />
+        <Input
+          label={t.labels.linkedin}
+          value={personalInfo.linkedin}
+          onChange={(e) => onUpdateField("linkedin", e.target.value)}
+          readOnly={readOnly}
+          className={readOnly ? "bg-transparent border-none p-0 focus:ring-0 focus:bg-transparent" : ""}
+        />
+      </div>
     </Section>
   );
 };

@@ -14,7 +14,7 @@ import {
   verticalListSortingStrategy, 
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { Plus, Trash2, Scissors } from "lucide-react";
+import { Plus, Trash2, Scissors, BookOpen } from "lucide-react";
 import { Section, Input } from "@/client/components/ui/FormElements";
 import { SortableItem } from "./SortableItem";
 import { useTranslations } from "@/client/hooks/useTranslations";
@@ -71,6 +71,11 @@ const PublicationsSectionComponent = ({
   return (
     <Section
       title={`${t.publications} (${publications.length})`}
+      icon={
+        <div className="bg-rose-500 p-1.5 rounded-lg text-white">
+          <BookOpen size={16} />
+        </div>
+      }
       onAiClick={onAiGenerate}
       aiLoading={aiLoading}
     >
@@ -115,18 +120,20 @@ const PublicationsSectionComponent = ({
                   </button>
                 </div>
                 <div className="pr-16">
-                  <Input
-                    label={t.labels.title}
-                    value={pub.title}
-                    onChange={(e) => onUpdate(idx, "title", e.target.value)}
-                    placeholder="e.g. Impact of AI on Modern Medicine"
-                  />
-                  <Input
-                    label={t.labels.link}
-                    value={pub.link || ""}
-                    onChange={(e) => onUpdate(idx, "link", e.target.value)}
-                    placeholder="e.g. https://doi.org/..."
-                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+                    <Input
+                      label={t.labels.title}
+                      value={pub.title}
+                      onChange={(e) => onUpdate(idx, "title", e.target.value)}
+                      placeholder="e.g. Impact of AI on Modern Medicine"
+                    />
+                    <Input
+                      label={t.labels.link}
+                      value={pub.link || ""}
+                      onChange={(e) => onUpdate(idx, "link", e.target.value)}
+                      placeholder="e.g. https://doi.org/..."
+                    />
+                  </div>
                 </div>
               </SortableItem>
             );

@@ -17,7 +17,7 @@ import {
   verticalListSortingStrategy 
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Award } from "lucide-react";
 import { Section, Input } from "@/client/components/ui/FormElements";
 import { SortableItem } from "./SortableItem";
 import { useTranslations } from "@/client/hooks/useTranslations";
@@ -71,6 +71,11 @@ const CertificationsSectionComponent = ({
   return (
     <Section
       title={`${t.certifications} (${certifications.length})`}
+      icon={
+        <div className="bg-yellow-500 p-1.5 rounded-lg text-white">
+          <Award size={16} />
+        </div>
+      }
       onAiClick={onAiGenerate}
       aiLoading={aiLoading}
     >
@@ -104,17 +109,17 @@ const CertificationsSectionComponent = ({
                   </button>
                 </div>
                 <div className="pr-8">
-                  <Input
-                    label={t.labels.certName}
-                    value={certObj.name}
-                    onChange={(e) => onUpdate(idx, "name", e.target.value)}
-                  />
-                  <Input
-                    label={t.labels.certIssuer}
-                    value={certObj.issuer || ""}
-                    onChange={(e) => onUpdate(idx, "issuer", e.target.value)}
-                  />
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+                    <Input
+                      label={t.labels.certName}
+                      value={certObj.name}
+                      onChange={(e) => onUpdate(idx, "name", e.target.value)}
+                    />
+                    <Input
+                      label={t.labels.certIssuer}
+                      value={certObj.issuer || ""}
+                      onChange={(e) => onUpdate(idx, "issuer", e.target.value)}
+                    />
                     <Input
                       label={t.labels.certExpire}
                       value={certObj.expireDate || ""}

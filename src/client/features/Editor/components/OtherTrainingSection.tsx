@@ -14,7 +14,7 @@ import {
   verticalListSortingStrategy, 
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, ClipboardList } from "lucide-react";
 import { Section, RichTextEditor } from "@/client/components/ui/FormElements";
 import { SortableItem } from "./SortableItem";
 import { useTranslations } from "@/client/hooks/useTranslations";
@@ -70,6 +70,11 @@ const OtherTrainingSectionComponent = ({
   return (
     <Section
       title={`${t.otherTraining} (${otherTraining.length})`}
+      icon={
+        <div className="bg-orange-500 p-1.5 rounded-lg text-white">
+          <ClipboardList size={16} />
+        </div>
+      }
       onAiClick={onAiGenerate}
       aiLoading={aiLoading}
     >

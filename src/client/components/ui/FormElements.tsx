@@ -10,6 +10,7 @@ export { RichTextEditor } from "./RichTextEditor";
 
 interface SectionProps {
   title: string;
+  icon?: React.ReactNode;
   children: React.ReactNode;
   defaultOpen?: boolean;
   onAiClick?: () => void;
@@ -19,6 +20,7 @@ interface SectionProps {
 
 export const Section = ({
   title,
+  icon,
   children,
   defaultOpen = false,
   onAiClick,
@@ -38,13 +40,18 @@ export const Section = ({
         className="w-full flex items-center justify-between p-3 text-left font-medium text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <div className="flex items-center gap-2">
-          {isOpen ? (
-            <ChevronDown size={16} className="text-slate-400" />
-          ) : (
-            <ChevronRight size={16} className="text-slate-400" />
-          )}
-          <span className="text-sm font-semibold tracking-tight">{title}</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {isOpen ? (
+              <ChevronDown size={16} className="text-slate-400" />
+            ) : (
+              <ChevronRight size={16} className="text-slate-400" />
+            )}
+          </div>
+          <div className="flex items-center gap-2.5">
+            {icon && <div className="flex-shrink-0">{icon}</div>}
+            <span className="text-sm font-bold tracking-tight text-slate-800">{title}</span>
+          </div>
         </div>
         {onAiClick && (
           <AIButton

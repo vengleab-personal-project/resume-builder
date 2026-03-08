@@ -14,7 +14,7 @@ import {
   verticalListSortingStrategy, 
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { Plus, Trash2, Scissors } from "lucide-react";
+import { Plus, Trash2, Scissors, Briefcase } from "lucide-react";
 import { Section, Input, RichTextEditor } from "@/client/components/ui/FormElements";
 import { SortableItem } from "./SortableItem";
 import { useTranslations } from "@/client/hooks/useTranslations";
@@ -76,6 +76,11 @@ const ExperienceSectionComponent = ({
   return (
     <Section
       title={`${t.experience} (${experience.length})`}
+      icon={
+        <div className="bg-blue-500 p-1.5 rounded-lg text-white">
+          <Briefcase size={16} />
+        </div>
+      }
       onAiClick={onAiGenerate}
       aiLoading={aiLoading}
     >
@@ -120,19 +125,19 @@ const ExperienceSectionComponent = ({
                   </button>
                 </div>
                 <div className="pr-16">
-                  <Input
-                    label={t.labels.role}
-                    value={exp.role}
-                    onChange={(e) => onUpdate(idx, "role", e.target.value)}
-                    placeholder={t.placeholders.newRole}
-                  />
-                  <Input
-                    label={t.labels.company}
-                    value={exp.company}
-                    onChange={(e) => onUpdate(idx, "company", e.target.value)}
-                    placeholder={t.placeholders.newCompany}
-                  />
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+                    <Input
+                      label={t.labels.role}
+                      value={exp.role}
+                      onChange={(e) => onUpdate(idx, "role", e.target.value)}
+                      placeholder={t.placeholders.newRole}
+                    />
+                    <Input
+                      label={t.labels.company}
+                      value={exp.company}
+                      onChange={(e) => onUpdate(idx, "company", e.target.value)}
+                      placeholder={t.placeholders.newCompany}
+                    />
                     <Input
                       label={t.labels.dates}
                       value={exp.dates}
