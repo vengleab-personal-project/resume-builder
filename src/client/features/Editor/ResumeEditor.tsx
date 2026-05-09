@@ -25,21 +25,19 @@ import {
 } from "@dnd-kit/modifiers";
 import type { Experience, Education, Certification, Publication, Volunteering, Language, Training, Reference } from "@/shared/types";
 import { AISectionGeneratorModal } from "@/client/components/ui/AISectionGeneratorModal";
-import {
-  SortableSection,
-  PersonalInfoSection,
-  SummarySection,
-  ExperienceSection,
-  EducationSection,
-  SkillsSection,
-  CertificationsSection,
-  PublicationsSection,
-  VolunteeringSection,
-  LanguagesSection,
-  OtherTrainingSection,
-  ReferencesSection,
-  AIPersonalInfoModal,
-} from "./components";
+import { SortableSection } from "./components/SortableSection";
+import { PersonalInfoSection } from "./components/PersonalInfoSection";
+import { SummarySection } from "./components/SummarySection";
+import { ExperienceSection } from "./components/ExperienceSection";
+import { EducationSection } from "./components/EducationSection";
+import { SkillsSection } from "./components/SkillsSection";
+import { CertificationsSection } from "./components/CertificationsSection";
+import { PublicationsSection } from "./components/PublicationsSection";
+import { VolunteeringSection } from "./components/VolunteeringSection";
+import { LanguagesSection } from "./components/LanguagesSection";
+import { OtherTrainingSection } from "./components/OtherTrainingSection";
+import { ReferencesSection } from "./components/ReferencesSection";
+import { AIPersonalInfoModal } from "./components/AIPersonalInfoModal";
 
 export const ResumeEditor = () => {
   const {
@@ -227,293 +225,296 @@ export const ResumeEditor = () => {
     }
   };
 
+  const renderSectionContent = (sectionId: string, readOnly: boolean = false, defaultOpen?: boolean) => {
+    switch (sectionId) {
+      case "summary":
+        return (
+          <SummarySection
+            summary={resumeData.summary}
+            onUpdate={updateSummary}
+            onAiGenerate={refineContent}
+            readOnly={readOnly}
+            defaultOpen={defaultOpen}
+          />
+        );
+
+      case "experience":
+        return (
+          <ExperienceSection
+            experience={resumeData.experience}
+            onAdd={() =>
+              addItem("experience", {
+                role: t.placeholders.newRole,
+                company: t.placeholders.newCompany,
+                dates: "",
+                description: "",
+              })
+            }
+            onRemove={(idx: number) => removeItem("experience", idx)}
+            onUpdate={(idx: number, field: string, value: string | string[]) =>
+              updateItem("experience", idx, field, value)
+            }
+            onToggleBreakPage={(idx: number) => toggleBreakPage("experience", idx)}
+            onReorder={(from: number, to: number) => reorderItem("experience", from, to)}
+            onAiGenerate={() =>
+              openAiModal("experience", t.experience, {
+                items: [
+                  {
+                    role: "string",
+                    company: "string",
+                    dates: "string",
+                    location: "string",
+                    description: "string (achievement-oriented bullet points)",
+                  },
+                ],
+              })
+            }
+            onAiGenerateDescription={refineContent}
+            aiLoading={false}
+            readOnly={readOnly}
+            defaultOpen={defaultOpen}
+          />
+        );
+
+      case "education":
+        return (
+          <EducationSection
+            education={resumeData.education}
+            onAdd={() =>
+              addItem("education", {
+                school: t.placeholders.newSchool,
+                degree: "",
+                year: "",
+                description: "",
+              })
+            }
+            onRemove={(idx: number) => removeItem("education", idx)}
+            onUpdate={(idx: number, field: string, value: string | string[]) =>
+              updateItem("education", idx, field, value)
+            }
+            onReorder={(from: number, to: number) => reorderItem("education", from, to)}
+            onToggleBreakPage={(idx: number) => toggleBreakPage("education", idx)}
+            onAiGenerate={() =>
+              openAiModal("education", t.education, {
+                items: [
+                  {
+                    school: "string",
+                    degree: "string",
+                    year: "string",
+                    description: "string",
+                  },
+                ],
+              })
+            }
+            onAiGenerateDescription={refineContent}
+            aiLoading={false}
+            readOnly={readOnly}
+            defaultOpen={defaultOpen}
+          />
+        );
+
+      case "skills":
+        return (
+          <SkillsSection
+            skills={resumeData.skills}
+            onUpdate={handleSkillsChange}
+            onAiGenerate={() =>
+              openAiModal("skills", t.skills, {
+                items: ["string (skill name)"],
+              })
+            }
+            aiLoading={false}
+            readOnly={readOnly}
+            defaultOpen={defaultOpen}
+          />
+        );
+
+      case "certifications":
+        return (
+          <CertificationsSection
+            certifications={resumeData.certifications || []}
+            onAdd={() =>
+              addItem("certifications", {
+                name: "",
+                issuer: "",
+                expireDate: "",
+                year: "",
+              })
+            }
+            onRemove={(idx: number) => removeItem("certifications", idx)}
+            onUpdate={(idx: number, field: string, value: string | string[]) =>
+              updateItem("certifications", idx, field, value)
+            }
+            onReorder={(from: number, to: number) => reorderItem("certifications", from, to)}
+            onAiGenerate={() =>
+              openAiModal("certifications", t.certifications, {
+                items: [
+                  {
+                    name: "string",
+                    issuer: "string",
+                    expireDate: "string",
+                    year: "string",
+                  },
+                ],
+              })
+            }
+            aiLoading={false}
+            readOnly={readOnly}
+            defaultOpen={defaultOpen}
+          />
+        );
+
+      case "publications":
+        return (
+          <PublicationsSection
+            publications={resumeData.publications || []}
+            onAdd={() =>
+              addItem("publications", {
+                title: t.placeholders.newPublication,
+                link: "",
+              })
+            }
+            onRemove={(idx: number) => removeItem("publications", idx)}
+            onUpdate={(idx: number, field: string, value: string | string[]) =>
+              updateItem("publications", idx, field, value)
+            }
+            onReorder={(from: number, to: number) => reorderItem("publications", from, to)}
+            onToggleBreakPage={(idx: number) => toggleBreakPage("publications", idx)}
+            onAiGenerate={() =>
+              openAiModal("publications", t.publications, {
+                items: [
+                  { title: "string", link: "string", date: "string" },
+                ],
+              })
+            }
+            aiLoading={false}
+            readOnly={readOnly}
+            defaultOpen={defaultOpen}
+          />
+        );
+
+      case "volunteering":
+        return (
+          <VolunteeringSection
+            volunteering={resumeData.volunteering || []}
+            onAdd={() =>
+              addItem("volunteering", {
+                role: "",
+                organization: "",
+                topic: "",
+              })
+            }
+            onRemove={(idx: number) => removeItem("volunteering", idx)}
+            onUpdate={(idx: number, field: string, value: string | string[]) =>
+              updateItem("volunteering", idx, field, value)
+            }
+            onReorder={(from: number, to: number) => reorderItem("volunteering", from, to)}
+            onAiGenerate={() =>
+              openAiModal("volunteering", t.volunteering, {
+                items: [
+                  {
+                    role: "string",
+                    organization: "string",
+                    topic: "string",
+                  },
+                ],
+              })
+            }
+            aiLoading={false}
+            readOnly={readOnly}
+            defaultOpen={defaultOpen}
+          />
+        );
+
+      case "languages":
+        return (
+          <LanguagesSection
+            languages={resumeData.languages || []}
+            onAdd={() => addItem("languages", { name: "", proficiency: "" })}
+            onRemove={(idx: number) => removeItem("languages", idx)}
+            onUpdate={(idx: number, field: string, value: string | string[]) =>
+              updateItem("languages", idx, field, value)
+            }
+            onReorder={(from: number, to: number) => reorderItem("languages", from, to)}
+            onAiGenerate={() =>
+              openAiModal("languages", t.languages, {
+                items: [{ name: "string", proficiency: "string" }],
+              })
+            }
+            aiLoading={false}
+            readOnly={readOnly}
+            defaultOpen={defaultOpen}
+          />
+        );
+
+      case "otherTraining":
+        return (
+          <OtherTrainingSection
+            otherTraining={resumeData.otherTraining || []}
+            onAdd={() => addItem("otherTraining", { name: "" })}
+            onRemove={(idx: number) => removeItem("otherTraining", idx)}
+            onUpdate={(idx: number, field: string, value: string | string[]) =>
+              updateItem("otherTraining", idx, field, value)
+            }
+            onReorder={(from: number, to: number) => reorderItem("otherTraining", from, to)}
+            onAiGenerate={() =>
+              openAiModal("otherTraining", t.otherTraining, {
+                items: [{ name: "string" }],
+              })
+            }
+            onAiGenerateContent={refineContent}
+            aiLoading={false}
+            readOnly={readOnly}
+            defaultOpen={defaultOpen}
+          />
+        );
+
+      case "references":
+        return (
+          <ReferencesSection
+            references={resumeData.references || []}
+            onAdd={() =>
+              addItem("references", {
+                name: "",
+                title: "",
+                company: "",
+                phone: "",
+                email: "",
+              })
+            }
+            onRemove={(idx: number) => removeItem("references", idx)}
+            onUpdate={(idx: number, field: string, value: string | string[]) =>
+              updateItem("references", idx, field, value)
+            }
+            onReorder={(from: number, to: number) => reorderItem("references", from, to)}
+            onAiGenerate={() =>
+              openAiModal("references", t.references, {
+                items: [
+                  {
+                    name: "string",
+                    title: "string",
+                    company: "string",
+                    phone: "string",
+                    email: "string",
+                  },
+                ],
+              })
+            }
+            aiLoading={false}
+            readOnly={readOnly}
+            defaultOpen={defaultOpen}
+          />
+        );
+
+      default:
+        return null;
+    }
+  };
+
   const renderSection = (sectionId: string, readOnly: boolean = false, defaultOpen?: boolean) => {
-    const sectionContent = (() => {
-      switch (sectionId) {
-        case "summary":
-          return (
-            <SummarySection
-              summary={resumeData.summary}
-              onUpdate={updateSummary}
-              onAiGenerate={refineContent}
-              readOnly={readOnly}
-              defaultOpen={defaultOpen}
-            />
-          );
+    const sectionContent = renderSectionContent(sectionId, readOnly, defaultOpen);
 
-        case "experience":
-          return (
-            <ExperienceSection
-              experience={resumeData.experience}
-              onAdd={() =>
-                addItem("experience", {
-                  role: t.placeholders.newRole,
-                  company: t.placeholders.newCompany,
-                  dates: "",
-                  description: "",
-                })
-              }
-              onRemove={(idx: number) => removeItem("experience", idx)}
-              onUpdate={(idx: number, field: string, value: string | string[]) =>
-                updateItem("experience", idx, field, value)
-              }
-              onToggleBreakPage={(idx: number) => toggleBreakPage("experience", idx)}
-              onReorder={(from: number, to: number) => reorderItem("experience", from, to)}
-              onAiGenerate={() =>
-                openAiModal("experience", t.experience, {
-                  items: [
-                    {
-                      role: "string",
-                      company: "string",
-                      dates: "string",
-                      location: "string",
-                      description: "string (achievement-oriented bullet points)",
-                    },
-                  ],
-                })
-              }
-              onAiGenerateDescription={refineContent}
-              aiLoading={false}
-              readOnly={readOnly}
-              defaultOpen={defaultOpen}
-            />
-          );
-
-        case "education":
-          return (
-            <EducationSection
-              education={resumeData.education}
-              onAdd={() =>
-                addItem("education", {
-                  school: t.placeholders.newSchool,
-                  degree: "",
-                  year: "",
-                  description: "",
-                })
-              }
-              onRemove={(idx: number) => removeItem("education", idx)}
-              onUpdate={(idx: number, field: string, value: string | string[]) =>
-                updateItem("education", idx, field, value)
-              }
-              onReorder={(from: number, to: number) => reorderItem("education", from, to)}
-              onToggleBreakPage={(idx: number) => toggleBreakPage("education", idx)}
-              onAiGenerate={() =>
-                openAiModal("education", t.education, {
-                  items: [
-                    {
-                      school: "string",
-                      degree: "string",
-                      year: "string",
-                      description: "string",
-                    },
-                  ],
-                })
-              }
-              onAiGenerateDescription={refineContent}
-              aiLoading={false}
-              readOnly={readOnly}
-              defaultOpen={defaultOpen}
-            />
-          );
-
-        case "skills":
-          return (
-            <SkillsSection
-              skills={resumeData.skills}
-              onUpdate={handleSkillsChange}
-              onAiGenerate={() =>
-                openAiModal("skills", t.skills, {
-                  items: ["string (skill name)"],
-                })
-              }
-              aiLoading={false}
-              readOnly={readOnly}
-              defaultOpen={defaultOpen}
-            />
-          );
-
-        case "certifications":
-          return (
-            <CertificationsSection
-              certifications={resumeData.certifications || []}
-              onAdd={() =>
-                addItem("certifications", {
-                  name: "",
-                  issuer: "",
-                  expireDate: "",
-                  year: "",
-                })
-              }
-              onRemove={(idx: number) => removeItem("certifications", idx)}
-              onUpdate={(idx: number, field: string, value: string | string[]) =>
-                updateItem("certifications", idx, field, value)
-              }
-              onReorder={(from: number, to: number) => reorderItem("certifications", from, to)}
-              onAiGenerate={() =>
-                openAiModal("certifications", t.certifications, {
-                  items: [
-                    {
-                      name: "string",
-                      issuer: "string",
-                      expireDate: "string",
-                      year: "string",
-                    },
-                  ],
-                })
-              }
-              aiLoading={false}
-              readOnly={readOnly}
-              defaultOpen={defaultOpen}
-            />
-          );
-
-        case "publications":
-          return (
-            <PublicationsSection
-              publications={resumeData.publications || []}
-              onAdd={() =>
-                addItem("publications", {
-                  title: t.placeholders.newPublication,
-                  link: "",
-                })
-              }
-              onRemove={(idx: number) => removeItem("publications", idx)}
-              onUpdate={(idx: number, field: string, value: string | string[]) =>
-                updateItem("publications", idx, field, value)
-              }
-              onReorder={(from: number, to: number) => reorderItem("publications", from, to)}
-              onToggleBreakPage={(idx: number) => toggleBreakPage("publications", idx)}
-              onAiGenerate={() =>
-                openAiModal("publications", t.publications, {
-                  items: [
-                    { title: "string", link: "string", date: "string" },
-                  ],
-                })
-              }
-              aiLoading={false}
-              readOnly={readOnly}
-              defaultOpen={defaultOpen}
-            />
-          );
-
-        case "volunteering":
-          return (
-            <VolunteeringSection
-              volunteering={resumeData.volunteering || []}
-              onAdd={() =>
-                addItem("volunteering", {
-                  role: "",
-                  organization: "",
-                  topic: "",
-                })
-              }
-              onRemove={(idx: number) => removeItem("volunteering", idx)}
-              onUpdate={(idx: number, field: string, value: string | string[]) =>
-                updateItem("volunteering", idx, field, value)
-              }
-              onReorder={(from: number, to: number) => reorderItem("volunteering", from, to)}
-              onAiGenerate={() =>
-                openAiModal("volunteering", t.volunteering, {
-                  items: [
-                    {
-                      role: "string",
-                      organization: "string",
-                      topic: "string",
-                    },
-                  ],
-                })
-              }
-              aiLoading={false}
-              readOnly={readOnly}
-              defaultOpen={defaultOpen}
-            />
-          );
-
-        case "languages":
-          return (
-            <LanguagesSection
-              languages={resumeData.languages || []}
-              onAdd={() => addItem("languages", { name: "", proficiency: "" })}
-              onRemove={(idx: number) => removeItem("languages", idx)}
-              onUpdate={(idx: number, field: string, value: string | string[]) =>
-                updateItem("languages", idx, field, value)
-              }
-              onReorder={(from: number, to: number) => reorderItem("languages", from, to)}
-              onAiGenerate={() =>
-                openAiModal("languages", t.languages, {
-                  items: [{ name: "string", proficiency: "string" }],
-                })
-              }
-              aiLoading={false}
-              readOnly={readOnly}
-              defaultOpen={defaultOpen}
-            />
-          );
-
-        case "otherTraining":
-          return (
-            <OtherTrainingSection
-              otherTraining={resumeData.otherTraining || []}
-              onAdd={() => addItem("otherTraining", { name: "" })}
-              onRemove={(idx: number) => removeItem("otherTraining", idx)}
-              onUpdate={(idx: number, field: string, value: string | string[]) =>
-                updateItem("otherTraining", idx, field, value)
-              }
-              onReorder={(from: number, to: number) => reorderItem("otherTraining", from, to)}
-              onAiGenerate={() =>
-                openAiModal("otherTraining", t.otherTraining, {
-                  items: [{ name: "string" }],
-                })
-              }
-              onAiGenerateContent={refineContent}
-              aiLoading={false}
-              readOnly={readOnly}
-              defaultOpen={defaultOpen}
-            />
-          );
-
-        case "references":
-          return (
-            <ReferencesSection
-              references={resumeData.references || []}
-              onAdd={() =>
-                addItem("references", {
-                  name: "",
-                  title: "",
-                  company: "",
-                  phone: "",
-                  email: "",
-                })
-              }
-              onRemove={(idx: number) => removeItem("references", idx)}
-              onUpdate={(idx: number, field: string, value: string | string[]) =>
-                updateItem("references", idx, field, value)
-              }
-              onReorder={(from: number, to: number) => reorderItem("references", from, to)}
-              onAiGenerate={() =>
-                openAiModal("references", t.references, {
-                  items: [
-                    {
-                      name: "string",
-                      title: "string",
-                      company: "string",
-                      phone: "string",
-                      email: "string",
-                    },
-                  ],
-                })
-              }
-              aiLoading={false}
-              readOnly={readOnly}
-              defaultOpen={defaultOpen}
-            />
-          );
-
-        default:
-          return null;
-      }
-    })();
-
+    if (!sectionContent) return null;
     if (readOnly) return sectionContent;
 
     return (
