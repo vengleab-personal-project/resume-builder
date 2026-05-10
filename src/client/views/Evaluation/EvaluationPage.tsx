@@ -1,26 +1,15 @@
 "use client";
 
-import { X, Sparkles, ClipboardList } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { Sparkles, ClipboardList } from 'lucide-react';
 import { useEvaluationLogic } from './useEvaluationLogic';
 import { EvaluationJobInput } from './EvaluationJobInput';
 import { EvaluationResultPanel } from './EvaluationResultPanel';
 
-interface EvaluationPageProps {
-  onClose?: () => void;
-}
-
-export function EvaluationPage({ onClose }: EvaluationPageProps) {
+export function EvaluationPage() {
   const vm = useEvaluationLogic();
-  const router = useRouter();
-
-  const handleClose = () => {
-    if (onClose) onClose();
-    else router.push('/');
-  };
 
   return (
-    <div className="h-screen w-full flex bg-slate-100">
+    <div className="h-full w-full flex bg-slate-100">
       {/* Left sidebar — always visible */}
       <aside className="w-80 xl:w-96 bg-white border-r border-slate-200 flex flex-col flex-shrink-0 h-full overflow-hidden">
         {/* Sidebar header */}
@@ -34,14 +23,6 @@ export function EvaluationPage({ onClose }: EvaluationPageProps) {
               <p className="text-[11px] text-slate-400">Candidate Intelligence</p>
             </div>
           </div>
-          <button
-            id="btn-close-evaluation"
-            onClick={handleClose}
-            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-all"
-            aria-label="Close evaluation"
-          >
-            <X size={18} />
-          </button>
         </div>
 
         {/* Candidate summary card */}

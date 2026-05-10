@@ -27,29 +27,21 @@ export default function CvBuilder() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-sans text-slate-900">
+    <div className="h-full flex flex-col font-sans text-slate-900 bg-slate-100 relative">
       
       {/* App Header */}
       <header className="bg-white border-b border-slate-200 flex flex-col sticky top-0 z-50 print:hidden">
         <div className="h-16 flex items-center justify-between px-6">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
-              {tHome.title.ai}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg">
+              <FileText size={18} />
             </div>
-            <h1 className="text-xl font-bold text-slate-800 tracking-tight">
-              {tHome.title.resume}<span className="text-indigo-600">{tHome.title.builder}</span>
+            <h1 className="text-lg font-semibold text-slate-800 tracking-tight">
+              Resume Editor
             </h1>
           </div>
           
           <div className="flex items-center gap-3">
-            <Link
-              id="btn-open-evaluation"
-              href="/evaluation"
-              className="flex items-center gap-2 px-3 py-2 text-purple-600 hover:bg-purple-50 rounded-md text-sm font-medium transition-all"
-            >
-              <Sparkles size={16} />
-              <span className="hidden md:inline">Evaluate</span>
-            </Link>
 
             <button
               onClick={() => setIsIngestModalOpen(true)}
