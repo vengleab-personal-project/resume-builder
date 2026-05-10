@@ -8,8 +8,8 @@ import { useCvBuilderLogic } from './useCvBuilderLogic';
 import { useTranslations } from '@/client/hooks/useTranslations';
 import { useResumeStore } from '@/client/store/resume-store';
 import { ViewMode } from '@/shared/types';
+import Link from 'next/link';
 import { IngestModal } from '@/client/components/ui/IngestModal';
-import { EvaluationPage } from '@/client/views/Evaluation';
 
 export default function CvBuilder() {
   const { handleExportPDF, isExporting } = useCvBuilderLogic();
@@ -19,7 +19,6 @@ export default function CvBuilder() {
   const { viewMode, setViewMode, resetData } = useResumeStore();
   const [isIngestModalOpen, setIsIngestModalOpen] = useState(false);
   const [showCustomize, setShowCustomize] = useState(false);
-  const [isEvaluationOpen, setIsEvaluationOpen] = useState(false);
 
   const handleClearData = () => {
     if (window.confirm(tCommon.confirmClearData)) {
@@ -43,14 +42,14 @@ export default function CvBuilder() {
           </div>
           
           <div className="flex items-center gap-3">
-            <button
+            <Link
               id="btn-open-evaluation"
-              onClick={() => setIsEvaluationOpen(true)}
+              href="/evaluation"
               className="flex items-center gap-2 px-3 py-2 text-purple-600 hover:bg-purple-50 rounded-md text-sm font-medium transition-all"
             >
               <Sparkles size={16} />
               <span className="hidden md:inline">Evaluate</span>
-            </button>
+            </Link>
 
             <button
               onClick={() => setIsIngestModalOpen(true)}
@@ -151,11 +150,6 @@ export default function CvBuilder() {
 
       {/* Modals */}
       <IngestModal isOpen={isIngestModalOpen} onClose={() => setIsIngestModalOpen(false)} />
-
-      {/* Evaluation Page Overlay */}
-      {isEvaluationOpen && (
-        <EvaluationPage onClose={() => setIsEvaluationOpen(false)} />
-      )}
     </div>
   );
 }

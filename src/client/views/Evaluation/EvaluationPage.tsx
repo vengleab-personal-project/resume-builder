@@ -1,19 +1,26 @@
 "use client";
 
 import { X, Sparkles, ClipboardList } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEvaluationLogic } from './useEvaluationLogic';
 import { EvaluationJobInput } from './EvaluationJobInput';
 import { EvaluationResultPanel } from './EvaluationResultPanel';
 
 interface EvaluationPageProps {
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 export function EvaluationPage({ onClose }: EvaluationPageProps) {
   const vm = useEvaluationLogic();
+  const router = useRouter();
+
+  const handleClose = () => {
+    if (onClose) onClose();
+    else router.push('/');
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex bg-slate-100">
+    <div className="h-screen w-full flex bg-slate-100">
       {/* Left sidebar — always visible */}
       <aside className="w-80 xl:w-96 bg-white border-r border-slate-200 flex flex-col flex-shrink-0 h-full overflow-hidden">
         {/* Sidebar header */}
@@ -29,7 +36,7 @@ export function EvaluationPage({ onClose }: EvaluationPageProps) {
           </div>
           <button
             id="btn-close-evaluation"
-            onClick={onClose}
+            onClick={handleClose}
             className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-all"
             aria-label="Close evaluation"
           >
