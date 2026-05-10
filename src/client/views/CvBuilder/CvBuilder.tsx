@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Printer, FileText, Eye, Loader2, Trash2, Upload as UploadIcon, Palette } from 'lucide-react';
+import { Printer, FileText, Eye, Loader2, Trash2, Upload as UploadIcon, Palette, Sparkles } from 'lucide-react';
 import { ResumeEditor, ThemeSwitcher } from '@/client/features/Editor';
 import { ResumePreview } from '@/client/features/Resume';
 import { useCvBuilderLogic } from './useCvBuilderLogic';
@@ -9,6 +9,7 @@ import { useTranslations } from '@/client/hooks/useTranslations';
 import { useResumeStore } from '@/client/store/resume-store';
 import { ViewMode } from '@/shared/types';
 import { IngestModal } from '@/client/components/ui/IngestModal';
+import { EvaluationPage } from '@/client/views/Evaluation';
 
 export default function CvBuilder() {
   const { handleExportPDF, isExporting } = useCvBuilderLogic();
@@ -18,6 +19,7 @@ export default function CvBuilder() {
   const { viewMode, setViewMode, resetData } = useResumeStore();
   const [isIngestModalOpen, setIsIngestModalOpen] = useState(false);
   const [showCustomize, setShowCustomize] = useState(false);
+  const [isEvaluationOpen, setIsEvaluationOpen] = useState(false);
 
   const handleClearData = () => {
     if (window.confirm(tCommon.confirmClearData)) {
@@ -41,6 +43,15 @@ export default function CvBuilder() {
           </div>
           
           <div className="flex items-center gap-3">
+            <button
+              id="btn-open-evaluation"
+              onClick={() => setIsEvaluationOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 text-purple-600 hover:bg-purple-50 rounded-md text-sm font-medium transition-all"
+            >
+              <Sparkles size={16} />
+              <span className="hidden md:inline">Evaluate</span>
+            </button>
+
             <button
               onClick={() => setIsIngestModalOpen(true)}
               className="flex items-center gap-2 px-3 py-2 text-indigo-600 hover:bg-indigo-50 rounded-md text-sm font-medium transition-all"
@@ -140,6 +151,11 @@ export default function CvBuilder() {
 
       {/* Modals */}
       <IngestModal isOpen={isIngestModalOpen} onClose={() => setIsIngestModalOpen(false)} />
+
+      {/* Evaluation Page Overlay */}
+      {isEvaluationOpen && (
+        <EvaluationPage onClose={() => setIsEvaluationOpen(false)} />
+      )}
     </div>
   );
 }
