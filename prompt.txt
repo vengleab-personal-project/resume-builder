@@ -1,0 +1,166 @@
+Contact
+Phnom Penh
++85510633853 (Home)
+sovengleab@gmail.com
+www.linkedin.com/in/vengleab-so
+(LinkedIn)
+stackoverflow.com/
+users/10519373/vengleab-so
+(Other)
+Top Skills
+Big Data
+Big Data Analytics
+Data Architects
+Languages
+Khmer (Native or Bilingual)
+Chinese (Limited Working)
+English (Full Professional)
+Vengleab So
+Certified AWS Solutions Architect | Big Data engineer | Data
+Scientist | Technical Lead | IT lecturer
+Phnom Penh, Cambodia
+Summary
+As a Lead Engineer at Slash, I apply my extensive skills and
+knowledge in data engineering, AI, and software engineering to
+deliver innovative and scalable solutions for clients across various
+domains. I have over 8 years of experience in working with local
+and international firms and startups, developing and architecting full-
+stack web and mobile applications, cloud computing systems, data
+platforms, and AI solutions.
+I am passionate about leveraging big data and cloud technologies
+to enable near real-time analytics, business insights, and machine
+learning for clients. I have successfully led and contributed to
+several projects, such as Aqua, a social experience platform that
+connects people, creators, and brands through music, arts, games,
+and community, and Tanaku, a startup that aims to democratize
+home ownership in Indonesia. I am also a certified AWS Solutions
+Architect Associate and a university lecturer, sharing my expertise
+and experience with students and professionals. I always strive for
+excellence, quality, and timely delivery, and I am eager to learn new
+things and challenge myself.
+Experience
+University of Puthisastra
+University Lecturer
+June 2020 - Present (5 years 8 months)
+Phnom Penh, Cambodia
+Lecturer for Master's Degree students
+- Distributed Computing with Hadoop (Big Data)
+Lecturer for Bachelor's Degree students
+- Web Development with Framework ( ReactJS)
+- Mobile Development ( React Native )
+- Software Engineering
+Page 1 of 5
+- Web Services (NodeJS)
+Sunrise Institute
+Instructor
+February 2024 - Present (2 years)
+Cambodia
+Instructor of:
+- Big Data with Hadoop
+- Data science fundamental
+Slash
+Lead AI, Data and Software Engineer
+May 2021 - Present (4 years 9 months)
+Project Experience and Roles:
+Lead Data Engineer (Mar 2022 - Present)
+Aqua: A refreshingly new social experience that brings people, creators, and
+brands together
+through music, the arts, games, interests, and community.
+• Redesign data platform, architecting data warehouse, data lake, and data
+mart.
+• Help clients to build data platforms using Big Data technology for near real-
+time analytics,
+business insight, and machine learning purposes.
+A.I Lead (Sep 2021 – Jan 2022)
+Tanaku: A startup that aims to democratize home ownership in Indonesia.
+• Serve as technical consultation to evaluate vendors’ AI credit Loan approval
+applications.
+• Help clients architect in-house systems to enable integration with an on-
+premises AI
+solution.
+• Set up a VPN and secure our client's private cloud and enable the vendor to
+access the cloud.
+• Facilitate and provide solutions for the vendor to deploy cloud instead of on-
+premises.
+A.I. Developer (Dec 2021 – Jun 2021)
+Como Shambhala Anywhere: An App that offers access to a blend of curated
+wellness
+Page 2 of 5
+experiences from yoga, Pilates, functional fitness, strength training, meditation,
+and more.
+• To help our client research and develop an AI recommender system.
+• Help clients to customize recommender algorithms to meet client
+expectations.
+• Build end-to-end MLOps from scratch using AWS services for Continuous
+Training and
+Deployment (CT/CD)
+• Expose the A.I. model as API and integrate it with their existing backend
+system.
+360Wellness (Rebranding as Defit): A lifestyle app with inbuilt Game-Fi and
+Social-Fi elements
+• To help our client take over their web app service from a former vendor with a
+very
+migrate their
+the least amount of support from the previous vendor, and successfully
+infrastructure to AWS serverless service with CI/CD to automated test and
+deploy.
+• Improve existing features.
+ABA Bank
+9 months
+Risk and Compliance Data Analyst
+February 2021 - April 2021 (3 months)
+Phnom Penh, Cambodia
+- Build and iteratively improve dashboard and report, transactional analyzing
+tools for the operational team, management and Chief Compliance & Risk
+Officer
+- Analyze, find patterns/outlier in data, and propose scenario, rules, and factors
+for transaction monitoring and customer risk profile
+- Observe, analyze, and gather feedback for enhancing rules and scenarios
+- Debrief scenario, rules, and factors to operational teams
+- Adhoc data analysis for data-driven decision supports
+Compliance Data Analyst
+August 2020 - February 2021 (7 months)
+Phnom Penh, Cambodia
+Slash.co
+Page 3 of 5
+Full-stack Developer
+March 2019 - August 2020 (1 year 6 months)
+Phnom Penh, Cambodia
+- Involve in AXA insurance microservice projects using nextjs and node
+- Support team member and other teams to solve technical issues
+- Code reviewing
+- Mentoring mid-level and junior developer
+Gaea-sys
+Senior Salesforce Developer
+August 2017 - March 2019 (1 year 8 months)
+Phnom Penh
+- Mainly develop and system integrate between Salesforce CRM and other
+platforms (DFP, Billing System and Product configuration) for eBay Corp
+include eBay US, eBay Australia, eBay Germany, eBay Denmark
+- Maintenance Java application, NodeJS project
+- Support other team and train new member
+Seatel Group
+IT Officer
+2015 - 2016 (1 year)
+Phnom Penh
+- Analyses and clean data
+- Transform data to report
+- Automated send report data via using Java & Mysql
+Ming FA Chiness School - 明华中文学校
+Chinese Teacher
+2011 - 2013 (2 years)
+Baktuk
+Education
+University of Puthisastra
+Master's degree, Data Science · (2019 - 2021)
+Setec Institute
+Bachelor of Management of Information System (IT), Information
+Technology · (2014 - 2018)
+Page 4 of 5
+Korea Software HRD
+IT Expert, Spring Framework · (2017 - 2017)
+CKCC
+Scholarship Course, iOS · (2017 - 2018)
+CKCC
+Scholarship Training, Android Development · (2017 - 2017)
+Page 5 of 5
