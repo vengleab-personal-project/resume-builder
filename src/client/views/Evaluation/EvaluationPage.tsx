@@ -130,7 +130,7 @@ export function EvaluationPage({ onClose }: EvaluationPageProps) {
         </div>
 
         {/* Content area */}
-        <div className="flex-1 p-8 max-w-2xl mx-auto w-full">
+        <div className="flex-1 p-8 max-w-8xl mx-auto w-full">
           {vm.result ? (
             <EvaluationResultPanel
               result={vm.result}

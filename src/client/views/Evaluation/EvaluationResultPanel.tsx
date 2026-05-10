@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircle, AlertTriangle, XCircle, TrendingUp } from 'lucide-react';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import type { EvaluationResult } from './useEvaluationLogic';
 
 interface EvaluationResultPanelProps {
@@ -97,37 +98,65 @@ export function EvaluationResultPanel({ result, onReevaluate }: EvaluationResult
         </div>
       </div>
 
-      {/* Metrics */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        <h4 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-indigo-500 inline-block" />
-          Technical Proficiency
-        </h4>
-        <div className="flex flex-col gap-5">
-          {result.metrics.map(metric => {
-            const pct = (metric.score / metric.maxScore) * 100;
-            return (
-              <div key={metric.label}>
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-sm font-medium text-slate-800">{metric.label}</span>
-                  <span className="text-sm font-bold text-slate-900">
-                    {metric.score}
-                    <span className="text-slate-400 font-normal">/{metric.maxScore}</span>
-                  </span>
+      {/* 2-Column Metrics & Radar */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left Col: Evaluation Breakdown */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h4 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-indigo-500 inline-block" />
+            Evaluation Breakdown
+          </h4>
+          <div className="flex flex-col gap-5">
+            {result.metrics.map(metric => {
+              const pct = (metric.score / metric.maxScore) * 100;
+              return (
+                <div key={metric.label}>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-sm font-medium text-slate-800">{metric.label}</span>
+                    <span className="text-sm font-bold text-slate-900">
+                      {metric.score}
+                      <span className="text-slate-400 font-normal">/{metric.maxScore}</span>
+                    </span>
+                  </div>
+                  <div className={`h-1.5 rounded-full ${STATUS_TRACK_COLORS[metric.status]}`}>
+                    <div
+                      className={`h-full rounded-full ${STATUS_COLORS[metric.status]} transition-all duration-700 ease-out`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
+                    <span className="font-medium text-slate-600">AI Analysis: </span>
+                    {metric.analysis}
+                  </p>
                 </div>
-                <div className={`h-1.5 rounded-full ${STATUS_TRACK_COLORS[metric.status]}`}>
-                  <div
-                    className={`h-full rounded-full ${STATUS_COLORS[metric.status]} transition-all duration-700 ease-out`}
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-                <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
-                  <span className="font-medium text-slate-600">AI Analysis: </span>
-                  {metric.analysis}
-                </p>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Right Col: Radar Chart */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col">
+          <h4 className="text-sm font-semibold text-slate-700 mb-6 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-indigo-500 inline-block" />
+            Technical Proficiency
+          </h4>
+          <div className="flex-1 w-full min-h-[350px] flex items-center justify-center">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart cx="50%" cy="50%" outerRadius="70%" data={result.metrics.map(m => ({ label: m.label, scorePct: (m.score / m.maxScore) * 100 }))}>
+                <PolarGrid stroke="#e2e8f0" />
+                <PolarAngleAxis dataKey="label" tick={{ fill: '#475569', fontSize: 10, fontWeight: 600 }} />
+                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                <Radar
+                  name="Proficiency"
+                  dataKey="scorePct"
+                  stroke="#3b82f6"
+                  strokeWidth={3}
+                  fill="#eff6ff"
+                  fillOpacity={0.8}
+                />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
