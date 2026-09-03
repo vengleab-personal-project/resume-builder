@@ -77,6 +77,7 @@ const en = {
         },
         actions: {
             ingest: "Ingest",
+            buildWithAi: "Build with AI",
             customize: "Customize"
         },
         sections: {
@@ -254,11 +255,13 @@ const en = {
             buildResume: "Build Resume"
         },
         hero: {
+            badge: "✨ AI-Powered CV Builder • 100% Free",
             titlePrefix: "Build a ",
             titleHighlight: "Professional Resume",
             titleSuffix: " in Minutes with AI",
             description: "Craft a standout resume with our intelligent tools, professional templates, and tailored suggestions.",
             ctaButton: "Get Started for Free",
+            noCreditCard: "No credit card required • Instant PDF & Word export",
             aiBadge: "AI"
         },
         templates: {

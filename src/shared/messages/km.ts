@@ -79,6 +79,7 @@ const km: typeof en = {
         },
         actions: {
             ingest: "បញ្ចូលប្រវត្តិរូប",
+            buildWithAi: "បង្កើតជាមួយ AI",
             customize: "កែប្រែទម្រង់"
         },
         sections: {
@@ -256,11 +257,13 @@ const km: typeof en = {
             buildResume: "បង្កើតប្រវត្តិរូប"
         },
         hero: {
+            badge: "✨ កម្មវិធីបង្កើតប្រវត្តិរូបវៃឆ្លាតជាមួយ AI • ឥតគិតថ្លៃ ១០០%",
             titlePrefix: "បង្កើត",
             titleHighlight: "ប្រវត្តិរូបវិជ្ជាជីវៈ",
             titleSuffix: " ត្រឹមតែប៉ុន្មាននាទីជាមួយ AI",
             description: "បង្កើតប្រវត្តិរូបដ៏លេចធ្លោជាមួយនឹងឧបករណ៍វៃឆ្លាត គំរូប្រកបដោយវិជ្ជាជីវៈ និងការផ្ដល់យោបល់សមស្របតាមតម្រូវការរបស់អ្នក។",
             ctaButton: "ចាប់ផ្តើមដោយឥតគិតថ្លៃ",
+            noCreditCard: "មិនត្រូវការកាតធនាគារ • ទាញយកជា PDF & Word ភ្លាមៗ",
             aiBadge: "AI"
         },
         templates: {

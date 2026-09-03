@@ -12,7 +12,8 @@ import {
   Facebook, 
   Instagram, 
   CheckCircle,
-  Sparkles
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 import { useTranslations } from '@/client/hooks/useTranslations';
 import { LanguageSwitcher } from '@/client/components/ui/LanguageSwitcher';
@@ -48,20 +49,23 @@ export default function LandingPage() {
               <Link href="#pricing" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
                 {t.nav.pricing}
               </Link>
-              <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
+              {/* Temporarily hidden login button */}
+              {/* <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
                 {t.nav.login}
-              </Link>
+              </Link> */}
               <LanguageSwitcher variant="pill" />
-              <Link href="/builder" className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md active:scale-95">
-                {t.nav.buildResume}
+              <Link href="/builder" className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-lg text-sm font-semibold transition-all shadow-md shadow-indigo-600/25 hover:shadow-indigo-600/40 active:scale-95">
+                <Sparkles size={15} className="text-amber-300" />
+                <span>{t.nav.buildResume}</span>
               </Link>
             </div>
 
             {/* Mobile Actions */}
             <div className="flex items-center gap-2 md:hidden">
               <LanguageSwitcher variant="pill" />
-              <Link href="/builder" className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold">
-                {t.nav.buildResume}
+              <Link href="/builder" className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold">
+                <Sparkles size={12} className="text-amber-300" />
+                <span>{t.nav.buildResume}</span>
               </Link>
             </div>
           </div>
@@ -76,6 +80,12 @@ export default function LandingPage() {
               
               {/* Hero Copy */}
               <div className="max-w-2xl">
+                {/* Value highlight pill badge */}
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 border border-indigo-200/80 text-indigo-700 text-xs sm:text-sm font-semibold mb-6 shadow-xs">
+                  <Sparkles size={15} className="text-indigo-600 animate-pulse" />
+                  <span>{t.hero.badge}</span>
+                </div>
+
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.2] mb-6">
                   {t.hero.titlePrefix}
                   <span className="text-indigo-600">{t.hero.titleHighlight}</span>
@@ -84,10 +94,28 @@ export default function LandingPage() {
                 <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-lg">
                   {t.hero.description}
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Link href="/builder" className="px-8 py-3.5 bg-indigo-600 text-white rounded-xl text-base font-semibold hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-600/25 active:scale-95 text-center">
-                    {t.hero.ctaButton}
-                  </Link>
+
+                {/* High-Visibility Hero CTA */}
+                <div className="flex flex-col items-start gap-4">
+                  <div className="relative group w-full sm:w-auto">
+                    {/* Glowing animated background underlay */}
+                    <div className="absolute -inset-1 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 rounded-2xl blur-lg opacity-75 group-hover:opacity-100 transition duration-300 animate-pulse"></div>
+
+                    <Link
+                      href="/builder"
+                      className="relative flex items-center justify-center gap-3 px-10 py-4.5 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl text-lg sm:text-xl font-extrabold shadow-2xl shadow-indigo-600/40 hover:shadow-indigo-600/60 active:scale-95 transition-all text-center w-full sm:w-auto tracking-wide"
+                    >
+                      <Sparkles size={22} className="text-amber-300 shrink-0" />
+                      <span>{t.hero.ctaButton}</span>
+                      <ArrowRight size={22} className="group-hover:translate-x-1.5 transition-transform shrink-0" />
+                    </Link>
+                  </div>
+
+                  {/* Trust check badge */}
+                  <p className="text-xs sm:text-sm font-medium text-slate-500 flex items-center gap-2 pt-1">
+                    <CheckCircle size={16} className="text-emerald-500 shrink-0" />
+                    <span>{t.hero.noCreditCard}</span>
+                  </p>
                 </div>
               </div>
 
@@ -313,9 +341,17 @@ export default function LandingPage() {
               
               <div className="relative z-10">
                 <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-8">{t.cta.title}</h2>
-                <Link href="/builder" className="inline-block px-8 py-4 bg-indigo-600 text-white rounded-xl text-lg font-semibold hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-600/25 active:scale-95">
-                  {t.cta.button}
-                </Link>
+                <div className="relative inline-block group">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 rounded-2xl blur-md opacity-70 group-hover:opacity-100 transition duration-300 animate-pulse"></div>
+                  <Link
+                    href="/builder"
+                    className="relative flex items-center justify-center gap-3 px-10 py-4.5 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl text-lg font-bold shadow-xl hover:shadow-2xl active:scale-95 transition-all"
+                  >
+                    <Sparkles size={20} className="text-amber-300" />
+                    <span>{t.cta.button}</span>
+                    <ArrowRight size={20} className="group-hover:translate-x-1.5 transition-transform" />
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

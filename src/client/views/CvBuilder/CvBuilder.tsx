@@ -17,11 +17,31 @@ export default function CvBuilder() {
   const { t: tHome } = useTranslations('home');
   const { t: tCommon } = useTranslations('common');
   const { t: tViewMode } = useTranslations('viewMode');
-  const { viewMode, setViewMode, resetData } = useResumeStore();
+  const { viewMode, setViewMode, resetData, resumeData } = useResumeStore();
   const [isIngestModalOpen, setIsIngestModalOpen] = useState(false);
   const [showCustomize, setShowCustomize] = useState(false);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
+  const hasAutoCheckedRef = useRef(false);
+
+  // Auto popup Ingest modal by default when CV is empty
+  useEffect(() => {
+    if (hasAutoCheckedRef.current) return;
+    hasAutoCheckedRef.current = true;
+
+    const isEmpty =
+      (!resumeData.experience || resumeData.experience.length === 0) &&
+      (!resumeData.education || resumeData.education.length === 0) &&
+      (!resumeData.skills || resumeData.skills.length === 0) &&
+      (!resumeData.summary || resumeData.summary.trim() === '') &&
+      (!resumeData.personalInfo?.name ||
+        resumeData.personalInfo.name === 'Your Name' ||
+        resumeData.personalInfo.name.trim() === '');
+
+    if (isEmpty) {
+      setIsIngestModalOpen(true);
+    }
+  }, [resumeData]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -38,6 +58,7 @@ export default function CvBuilder() {
   const handleClearData = () => {
     if (window.confirm(tCommon.confirmClearData)) {
       resetData();
+      setIsIngestModalOpen(true);
     }
   };
 
@@ -59,12 +80,14 @@ export default function CvBuilder() {
           <div className="flex items-center gap-3">
             <LanguageSwitcher variant="subtle" />
 
+            {/* Build with AI (Ingest) Button */}
             <button
               onClick={() => setIsIngestModalOpen(true)}
-              className="flex items-center gap-2 px-3 py-2 text-indigo-600 hover:bg-indigo-50 rounded-md text-sm font-medium transition-all"
+              className="flex items-center gap-2 px-3.5 py-1.5 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-lg text-sm font-semibold shadow-sm hover:shadow-md transition-all active:scale-95 group"
+              title={tHome.actions.buildWithAi || tHome.actions.ingest}
             >
-              <UploadIcon size={16} />
-              <span className="hidden md:inline">{tHome.actions.ingest}</span>
+              <Sparkles size={15} className="text-amber-300 group-hover:rotate-12 transition-transform" />
+              <span>{tHome.actions.buildWithAi || tHome.actions.ingest}</span>
             </button>
 
             <button
