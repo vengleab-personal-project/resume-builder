@@ -383,6 +383,9 @@ const km: typeof en = {
         keyStrengths: "ចំណុចខ្លាំងសំខាន់ៗ",
         gapsToImprove: "ចន្លោះប្រហោង និងចំណុចត្រូវកែលម្អ",
         interviewTalkingPoints: "ចំណុចគន្លឹះសម្រាប់ការសម្ភាសន៍",
+        copyQuestions: "ចម្លងសំណួរ",
+        copied: "បានចម្លង!",
+        evaluationFailed: "ការវាយតម្លៃប្រវត្តិរូបបរាជ័យ។ សូមព្យាយាមម្តងទៀត។",
         evaluatedAt: "បានវាយតម្លៃ {time}",
         reevaluateButton: "វាយតម្លៃឡើងវិញជាមួយ JD ថ្មី",
         verdicts: {

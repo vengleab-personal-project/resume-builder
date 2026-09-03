@@ -1,6 +1,17 @@
 "use client";
 
-import { CheckCircle, AlertTriangle, XCircle, TrendingUp } from 'lucide-react';
+import React, { useState } from 'react';
+import { 
+  CheckCircle, 
+  AlertTriangle, 
+  XCircle, 
+  TrendingUp, 
+  ThumbsUp, 
+  AlertCircle, 
+  MessageSquare, 
+  Copy, 
+  Check 
+} from 'lucide-react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import type { EvaluationResult } from './useEvaluationLogic';
 import { useTranslations } from '@/client/hooks/useTranslations';
@@ -74,6 +85,7 @@ function ScoreRing({ score, radarScoreLabel }: { score: number; radarScoreLabel:
 
 export function EvaluationResultPanel({ result, onReevaluate }: EvaluationResultPanelProps) {
   const { t, locale } = useTranslations('evaluation');
+  const [hasCopiedQuestions, setHasCopiedQuestions] = useState(false);
 
   const recommendationLabel = (() => {
     switch (result.recommendation) {
@@ -89,6 +101,14 @@ export function EvaluationResultPanel({ result, onReevaluate }: EvaluationResult
         return result.recommendation;
     }
   })();
+
+  const handleCopyQuestions = () => {
+    if (!result.interviewQuestions || result.interviewQuestions.length === 0) return;
+    const text = result.interviewQuestions.map((q, idx) => `${idx + 1}. ${q}`).join('\n\n');
+    navigator.clipboard.writeText(text);
+    setHasCopiedQuestions(true);
+    setTimeout(() => setHasCopiedQuestions(false), 2000);
+  };
 
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -115,6 +135,47 @@ export function EvaluationResultPanel({ result, onReevaluate }: EvaluationResult
           </div>
         </div>
       </div>
+
+      {/* Strengths & Gaps Cards */}
+      {((result.strengths && result.strengths.length > 0) || (result.gaps && result.gaps.length > 0)) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Strengths */}
+          {result.strengths && result.strengths.length > 0 && (
+            <div className="bg-emerald-50/50 rounded-2xl border border-emerald-100 p-5 shadow-xs">
+              <h4 className="text-sm font-bold text-emerald-800 mb-3 flex items-center gap-2">
+                <ThumbsUp size={16} className="text-emerald-600" />
+                {t.keyStrengths}
+              </h4>
+              <ul className="space-y-2.5">
+                {result.strengths.map((strength, i) => (
+                  <li key={i} className="flex items-start gap-2 text-xs text-slate-700 leading-relaxed">
+                    <CheckCircle size={14} className="text-emerald-500 shrink-0 mt-0.5" />
+                    <span>{strength}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Gaps */}
+          {result.gaps && result.gaps.length > 0 && (
+            <div className="bg-amber-50/50 rounded-2xl border border-amber-100 p-5 shadow-xs">
+              <h4 className="text-sm font-bold text-amber-800 mb-3 flex items-center gap-2">
+                <AlertCircle size={16} className="text-amber-600" />
+                {t.gapsToImprove}
+              </h4>
+              <ul className="space-y-2.5">
+                {result.gaps.map((gap, i) => (
+                  <li key={i} className="flex items-start gap-2 text-xs text-slate-700 leading-relaxed">
+                    <AlertTriangle size={14} className="text-amber-500 shrink-0 mt-0.5" />
+                    <span>{gap}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 2-Column Metrics & Radar */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -176,6 +237,46 @@ export function EvaluationResultPanel({ result, onReevaluate }: EvaluationResult
           </div>
         </div>
       </div>
+
+      {/* Tailored Interview Questions */}
+      {result.interviewQuestions && result.interviewQuestions.length > 0 && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <MessageSquare size={16} className="text-indigo-600" />
+              {t.interviewTalkingPoints}
+            </h4>
+            <button
+              onClick={handleCopyQuestions}
+              className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700 px-3 py-1.5 rounded-lg border border-indigo-100 bg-indigo-50/60 hover:bg-indigo-50 transition-all"
+            >
+              {hasCopiedQuestions ? (
+                <>
+                  <Check size={13} className="text-emerald-600" />
+                  <span className="text-emerald-700">{t.copied}</span>
+                </>
+              ) : (
+                <>
+                  <Copy size={13} />
+                  <span>{t.copyQuestions}</span>
+                </>
+              )}
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {result.interviewQuestions.map((q, idx) => (
+              <div key={idx} className="p-4 rounded-xl bg-slate-50 border border-slate-100 flex flex-col justify-between">
+                <p className="text-xs text-slate-700 leading-relaxed italic mb-2">
+                  &ldquo;{q}&rdquo;
+                </p>
+                <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">
+                  Q{idx + 1}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Detailed prompts */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">

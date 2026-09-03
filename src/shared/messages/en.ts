@@ -381,6 +381,9 @@ const en = {
         keyStrengths: "Key Strengths",
         gapsToImprove: "Gaps & Areas to Improve",
         interviewTalkingPoints: "Interview Talking Points",
+        copyQuestions: "Copy Questions",
+        copied: "Copied!",
+        evaluationFailed: "Failed to evaluate resume. Please try again.",
         evaluatedAt: "Evaluated {time}",
         reevaluateButton: "Re-evaluate with New JD",
         verdicts: {
