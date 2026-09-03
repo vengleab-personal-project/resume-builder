@@ -10,21 +10,21 @@ export const AI_MODELS = {
     // { id: 'gpt-3.5-turbo', name: 'GPT-3.5 (Fast)' },
   ],
   [AI_PROVIDERS.GOOGLE]: [
-    { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash (Fast & Smart)' },
     { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash (Fast & Smart)' },
+    { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash (Fast & Smart)' },
     { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro (Advanced)' },
   ],
 } as const;
 
 export const GEMINI_MODEL_IDS = {
-  FLASH_PREVIEW: 'gemini-3-flash-preview',
   FLASH_PREVIEW_3_8: 'gemini-3.8-flash',
+  FLASH_PREVIEW: 'gemini-3-flash-preview',
   PRO_PREVIEW: 'gemini-3-pro-preview',
 } as const;
 
 export const DEFAULT_AI_CONFIG = {
-  PROVIDER: AI_PROVIDERS.OPENAI,
-  MODEL: 'gpt-4o',
+  PROVIDER: AI_PROVIDERS.GOOGLE,
+  MODEL: GEMINI_MODEL_IDS.FLASH_PREVIEW_3_8,
 } as const;
 
 export const FILE_LIMITS = {

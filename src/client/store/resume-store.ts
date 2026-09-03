@@ -47,6 +47,7 @@ export const useResumeStore = create<ResumeState>()(
         resumeData: INITIAL_RESUME_DATA as unknown as ResumeData,
         sectionOrder: INITIAL_SECTION_ORDER as unknown as string[],
         theme: INITIAL_THEME as unknown as ThemeConfig,
+        aiConfig: INITIAL_AI_CONFIG as unknown as AIConfig,
       }),
     }),
     {
@@ -58,6 +59,18 @@ export const useResumeStore = create<ResumeState>()(
         theme: state.theme,
         aiConfig: state.aiConfig 
       }),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          if (
+            !state.aiConfig ||
+            state.aiConfig.provider === 'openai' ||
+            state.aiConfig.model === 'gemini-3-flash-preview' ||
+            state.aiConfig.model === 'gpt-4o'
+          ) {
+            state.aiConfig = INITIAL_AI_CONFIG as unknown as AIConfig;
+          }
+        }
+      },
     }
   )
 );

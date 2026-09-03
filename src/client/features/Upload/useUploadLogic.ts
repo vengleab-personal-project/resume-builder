@@ -96,7 +96,7 @@ export const useUploadLogic = () => {
   const handleProviderChange = (provider: AIProvider) => {
     const defaultModels: Record<AIProvider, AIModel> = {
       openai: 'gpt-4o',
-      google: 'gemini-3-flash-preview'
+      google: 'gemini-3.8-flash'
     };
     setAIConfig({ provider, model: defaultModels[provider] });
   };
