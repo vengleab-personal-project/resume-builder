@@ -2,10 +2,14 @@
 
 import { useState } from 'react';
 import { useResumeStore } from '@/client/store/resume-store';
+import { useTranslations } from '@/client/hooks/useTranslations';
+import { generateResumeDocx } from './generateResumeDocx';
 
 export const useCvBuilderLogic = () => {
   const [isExporting, setIsExporting] = useState(false);
-  const { resumeData } = useResumeStore();
+  const [isExportingDocx, setIsExportingDocx] = useState(false);
+  const { resumeData, theme, sectionOrder } = useResumeStore();
+  const { t } = useTranslations('editor');
 
   const handleExportPDF = async () => {
     const element = document.getElementById('resume-preview');
@@ -38,8 +42,28 @@ export const useCvBuilderLogic = () => {
     }
   };
 
+  const handleExportDocx = async () => {
+    setIsExportingDocx(true);
+
+    try {
+      const blob = await generateResumeDocx(resumeData, theme, sectionOrder, t.preview);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${resumeData.personalInfo.name || 'resume'}.docx`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('DOCX export failed:', error);
+    } finally {
+      setIsExportingDocx(false);
+    }
+  };
+
   return {
     isExporting,
-    handleExportPDF
+    isExportingDocx,
+    handleExportPDF,
+    handleExportDocx
   };
 };

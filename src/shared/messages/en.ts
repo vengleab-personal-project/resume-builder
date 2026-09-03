@@ -11,6 +11,8 @@ const en = {
             duplicateSkill: "This skill has already been added"
         },
         exporting: "Exporting...",
+        exportDocx: "Export as DOCX",
+        exportingDocx: "Exporting DOCX...",
         clear: "Clear",
         clearData: "Clear all data",
         confirmClearData: "Are you sure you want to clear all data? This action cannot be undone.",

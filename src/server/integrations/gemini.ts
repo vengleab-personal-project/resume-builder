@@ -34,14 +34,14 @@ const SAFETY_SETTINGS = [
 ];
 
 export const geminiModel = genAI.getGenerativeModel({ 
-  model: GEMINI_MODEL_IDS.FLASH_PREVIEW, 
+  model: GEMINI_MODEL_IDS.FLASH_PREVIEW_3_8, 
   generationConfig: JSON_RESPONSE_CONFIG,
   safetySettings: SAFETY_SETTINGS,
 });
 
 // Helper for single text response (override config)
 export const geminiTextModel = genAI.getGenerativeModel({ 
-  model: GEMINI_MODEL_IDS.FLASH_PREVIEW,
+  model: GEMINI_MODEL_IDS.FLASH_PREVIEW_3_8,
   safetySettings: SAFETY_SETTINGS,
   generationConfig: {
     maxOutputTokens: AI_CONFIG.MAX_OUTPUT_TOKENS,

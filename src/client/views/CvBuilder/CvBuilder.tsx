@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Printer, FileText, Eye, Loader2, Trash2, Upload as UploadIcon, Palette, Sparkles } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Printer, FileText, FileDown, ChevronDown, Eye, Loader2, Trash2, Upload as UploadIcon, Palette, Sparkles } from 'lucide-react';
 import { ResumeEditor, ThemeSwitcher } from '@/client/features/Editor';
 import { ResumePreview } from '@/client/features/Resume';
 import { useCvBuilderLogic } from './useCvBuilderLogic';
@@ -12,13 +12,27 @@ import Link from 'next/link';
 import { IngestModal } from '@/client/components/ui/IngestModal';
 
 export default function CvBuilder() {
-  const { handleExportPDF, isExporting } = useCvBuilderLogic();
+  const { handleExportPDF, handleExportDocx, isExporting, isExportingDocx } = useCvBuilderLogic();
   const { t: tHome } = useTranslations('home');
   const { t: tCommon } = useTranslations('common');
   const { t: tViewMode } = useTranslations('viewMode');
   const { viewMode, setViewMode, resetData } = useResumeStore();
   const [isIngestModalOpen, setIsIngestModalOpen] = useState(false);
   const [showCustomize, setShowCustomize] = useState(false);
+  const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
+        setIsExportMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const isExportBusy = isExporting || isExportingDocx;
 
   const handleClearData = () => {
     if (window.confirm(tCommon.confirmClearData)) {
@@ -93,18 +107,46 @@ export default function CvBuilder() {
               <span className="hidden md:inline">{tCommon.clear}</span>
             </button>
 
-            <button 
-              onClick={handleExportPDF}
-              disabled={isExporting}
-              className={`flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-md text-sm font-medium hover:bg-slate-800 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              {isExporting ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <Printer size={16} />
+            <div className="relative" ref={exportMenuRef}>
+              <button
+                onClick={() => setIsExportMenuOpen((open) => !open)}
+                disabled={isExportBusy}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-md text-sm font-medium hover:bg-slate-800 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isExportBusy ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Printer size={16} />
+                )}
+                {isExporting ? tCommon.exporting : isExportingDocx ? tCommon.exportingDocx : tCommon.exportPrint}
+                {!isExportBusy && <ChevronDown size={14} />}
+              </button>
+
+              {isExportMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-md shadow-lg py-1 z-50">
+                  <button
+                    onClick={() => {
+                      setIsExportMenuOpen(false);
+                      handleExportPDF();
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 text-left"
+                  >
+                    <Printer size={16} />
+                    {tCommon.exportPrint}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsExportMenuOpen(false);
+                      handleExportDocx();
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 text-left"
+                  >
+                    <FileDown size={16} />
+                    {tCommon.exportDocx}
+                  </button>
+                </div>
               )}
-              {isExporting ? tCommon.exporting : tCommon.exportPrint}
-            </button>
+            </div>
           </div>
         </div>
 
