@@ -129,21 +129,43 @@ const htmlToParagraphs = (html: string, textColor: string, size: number): Paragr
   return paragraphs;
 };
 
+const isKhmer = (str?: string) => Boolean(str && /[\u1780-\u17FF\u19E0-\u19FF]/.test(str));
+
 /** Sidebar heading: dark text over a light rule, like SidebarSectionHeading. */
-const sidebarHeading = (text: string) =>
-  new Paragraph({
+const sidebarHeading = (text: string) => {
+  const khmer = isKhmer(text);
+  return new Paragraph({
     spacing: { before: 280, after: 160 },
     border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: SLATE_300 } },
-    children: [new TextRun({ text: text.toUpperCase(), bold: true, size: 20, characterSpacing: 30, color: SLATE_800 })],
+    children: [
+      new TextRun({
+        text: khmer ? text : text.toUpperCase(),
+        bold: true,
+        size: 20,
+        characterSpacing: khmer ? undefined : 30,
+        color: SLATE_800,
+      }),
+    ],
   });
+};
 
 /** Main heading: accent colored text over an accent rule, like MainSectionHeading. */
-const mainHeading = (text: string, color: string) =>
-  new Paragraph({
+const mainHeading = (text: string, color: string) => {
+  const khmer = isKhmer(text);
+  return new Paragraph({
     spacing: { before: 320, after: 200 },
     border: { bottom: { style: BorderStyle.SINGLE, size: 12, color } },
-    children: [new TextRun({ text: text.toUpperCase(), bold: true, size: 26, characterSpacing: 40, color })],
+    children: [
+      new TextRun({
+        text: khmer ? text : text.toUpperCase(),
+        bold: true,
+        size: 26,
+        characterSpacing: khmer ? undefined : 40,
+        color,
+      }),
+    ],
   });
+};
 
 const line = (
   text: string,
@@ -386,10 +408,12 @@ export const generateResumeDocx = async (
                 spacing: { after: 80 },
                 children: [
                   new TextRun({
-                    text: (personalInfo.name || 'Your Name').toUpperCase(),
+                    text: isKhmer(personalInfo.name)
+                      ? (personalInfo.name || 'Your Name')
+                      : (personalInfo.name || 'Your Name').toUpperCase(),
                     bold: true,
                     size: 52,
-                    characterSpacing: 20,
+                    characterSpacing: isKhmer(personalInfo.name) ? undefined : 20,
                     color: WHITE,
                   }),
                 ],
