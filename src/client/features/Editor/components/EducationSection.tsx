@@ -141,14 +141,14 @@ const EducationSectionComponent = ({
                       label={t.labels.degree}
                       value={edu.degree}
                       onChange={(e) => onUpdate(idx, "degree", e.target.value)}
-                      placeholder="e.g. Bachelor of Science"
+                      placeholder={t.placeholders.degree}
                       readOnly={readOnly}
                     />
                     <Input
                       label={t.labels.year}
                       value={edu.year}
                       onChange={(e) => onUpdate(idx, "year", e.target.value)}
-                      placeholder="e.g. 2018 - 2022"
+                      placeholder={t.placeholders.year}
                       readOnly={readOnly}
                     />
                   </div>
@@ -156,7 +156,7 @@ const EducationSectionComponent = ({
                     label={t.labels.description}
                     value={edu.description || ""}
                     onChange={(v: string) => onUpdate(idx, "description", v)}
-                    placeholder="e.g., 3.8/4.0, First Class Honours, Summa Cum Laude"
+                    placeholder={t.placeholders.gpa}
                     onAiGenerate={readOnly ? undefined : onAiGenerateDescription}
                     minHeight={EDITOR_CONFIG.MIN_HEIGHT_DESCRIPTION}
                     readOnly={readOnly}

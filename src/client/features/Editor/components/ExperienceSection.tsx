@@ -151,14 +151,14 @@ const ExperienceSectionComponent = ({
                       label={t.labels.dates}
                       value={exp.dates}
                       onChange={(e) => onUpdate(idx, "dates", e.target.value)}
-                      placeholder="e.g. Jan 2022 - Present"
+                      placeholder={t.placeholders.dates}
                       readOnly={readOnly}
                     />
                     <Input
                       label={t.labels.location}
                       value={exp.location || ""}
                       onChange={(e) => onUpdate(idx, "location", e.target.value)}
-                      placeholder="e.g. London, UK"
+                      placeholder={t.placeholders.location}
                       readOnly={readOnly}
                     />
                   </div>

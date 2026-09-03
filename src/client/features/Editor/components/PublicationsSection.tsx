@@ -132,14 +132,14 @@ const PublicationsSectionComponent = ({
                       label={t.labels.title}
                       value={pub.title}
                       onChange={(e) => onUpdate(idx, "title", e.target.value)}
-                      placeholder="e.g. Impact of AI on Modern Medicine"
+                      placeholder={t.placeholders.publicationTitle}
                       readOnly={readOnly}
                     />
                     <Input
                       label={t.labels.link}
                       value={pub.link || ""}
                       onChange={(e) => onUpdate(idx, "link", e.target.value)}
-                      placeholder="e.g. https://doi.org/..."
+                      placeholder={t.placeholders.publicationLink}
                       readOnly={readOnly}
                     />
                   </div>

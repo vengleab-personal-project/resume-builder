@@ -2,6 +2,7 @@
 
 import { FileText, Upload, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
 import type { InputMode } from './useEvaluationLogic';
+import { useTranslations } from '@/client/hooks/useTranslations';
 
 interface EvaluationJobInputProps {
   inputMode: InputMode;
@@ -9,7 +10,7 @@ interface EvaluationJobInputProps {
   jobDescription: string;
   onJobDescriptionChange: (val: string) => void;
   pdfFile: File | null;
-  fileInputRef: React.RefObject<HTMLInputElement>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   hasPersistedJD: boolean;
   onClearJD: () => void;
@@ -32,6 +33,8 @@ export function EvaluationJobInput({
   isEvaluating,
   canEvaluate,
 }: EvaluationJobInputProps) {
+  const { t } = useTranslations('evaluation');
+
   return (
     <div className="flex flex-col gap-6">
       {/* Persisted JD banner */}
@@ -39,14 +42,14 @@ export function EvaluationJobInput({
         <div className="flex items-center gap-3 px-4 py-3 bg-indigo-50 border border-indigo-200 rounded-xl">
           <CheckCircle2 size={16} className="text-indigo-600 flex-shrink-0" />
           <p className="text-sm text-indigo-700 flex-1">
-            Job description loaded from your last session.
+            {t.sessionLoaded}
           </p>
           <button
             onClick={onClearJD}
             className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
           >
             <RefreshCw size={12} />
-            Clear & Reset
+            {t.clearReset}
           </button>
         </div>
       )}
@@ -62,7 +65,7 @@ export function EvaluationJobInput({
           }`}
         >
           <FileText size={15} />
-          Paste Text
+          {t.tabPasteText}
         </button>
         <button
           onClick={() => onSetInputMode('pdf')}
@@ -73,7 +76,7 @@ export function EvaluationJobInput({
           }`}
         >
           <Upload size={15} />
-          Upload PDF
+          {t.tabUploadPdf}
         </button>
       </div>
 
@@ -81,18 +84,18 @@ export function EvaluationJobInput({
       {inputMode === 'text' ? (
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-slate-700">
-            Job Description
+            {t.targetJdLabel}
           </label>
           <textarea
             id="jd-textarea"
             value={jobDescription}
             onChange={e => onJobDescriptionChange(e.target.value)}
-            placeholder="Paste the full job description here — include requirements, responsibilities, and desired skills..."
+            placeholder={t.jdPlaceholder}
             rows={12}
             className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-all resize-none"
           />
           <p className="text-xs text-slate-400">
-            {jobDescription.length} characters — minimum 20 required
+            {jobDescription.length} {t.charactersCount} — {t.minRecommended}
           </p>
         </div>
       ) : (
@@ -118,7 +121,7 @@ export function EvaluationJobInput({
               </div>
               <div className="text-center">
                 <p className="text-sm font-semibold text-indigo-700">{pdfFile.name}</p>
-                <p className="text-xs text-slate-500 mt-1">Click to replace</p>
+                <p className="text-xs text-slate-500 mt-1">{t.dropPdfPrompt}</p>
               </div>
             </>
           ) : (
@@ -127,8 +130,8 @@ export function EvaluationJobInput({
                 <Upload className="text-slate-500" size={24} />
               </div>
               <div className="text-center">
-                <p className="text-sm font-semibold text-slate-700">Click to upload PDF</p>
-                <p className="text-xs text-slate-500 mt-1">Job description in PDF format</p>
+                <p className="text-sm font-semibold text-slate-700">{t.uploadJdTitle}</p>
+                <p className="text-xs text-slate-500 mt-1">{t.pdfConstraint}</p>
               </div>
             </>
           )}
@@ -139,7 +142,7 @@ export function EvaluationJobInput({
       <div className="flex items-start gap-2 text-xs text-slate-500">
         <AlertCircle size={14} className="flex-shrink-0 mt-0.5 text-amber-500" />
         <span>
-          Your job description is saved locally in your browser and will be pre-filled next time you open this page.
+          {t.provideJdDesc}
         </span>
       </div>
 
@@ -153,12 +156,12 @@ export function EvaluationJobInput({
         {isEvaluating ? (
           <>
             <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            Evaluating CV...
+            {t.evaluatingButton}
           </>
         ) : (
           <>
             <span className="text-base">✦</span>
-            Run AI Evaluation
+            {t.evaluateButton}
           </>
         )}
       </button>

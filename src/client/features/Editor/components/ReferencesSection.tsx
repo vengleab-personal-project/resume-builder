@@ -113,35 +113,35 @@ const ReferencesSectionComponent = ({
                       label={t.labels.refName}
                       value={ref.name}
                       onChange={(e) => onUpdate(idx, "name", e.target.value)}
-                      placeholder="e.g. John Doe"
+                      placeholder={t.placeholders.newReferenceName}
                       readOnly={readOnly}
                     />
                     <Input
                       label={t.labels.refTitle}
                       value={ref.title || ""}
                       onChange={(e) => onUpdate(idx, "title", e.target.value)}
-                      placeholder="e.g. Senior Manager"
+                      placeholder={t.placeholders.newReferenceTitle}
                       readOnly={readOnly}
                     />
                     <Input
                       label={t.labels.refCompany}
                       value={ref.company || ""}
                       onChange={(e) => onUpdate(idx, "company", e.target.value)}
-                      placeholder="e.g. Acme Corp"
+                      placeholder={t.placeholders.newReferenceCompany}
                       readOnly={readOnly}
                     />
                     <Input
                       label={t.labels.refPhone}
                       value={ref.phone || ""}
                       onChange={(e) => onUpdate(idx, "phone", e.target.value)}
-                      placeholder="+1 234 567 890"
+                      placeholder={t.placeholders.refPhone}
                       readOnly={readOnly}
                     />
                     <Input
                       label={t.labels.refEmail}
                       value={ref.email || ""}
                       onChange={(e) => onUpdate(idx, "email", e.target.value)}
-                      placeholder="john.doe@example.com"
+                      placeholder={t.placeholders.refEmail}
                       readOnly={readOnly}
                     />
                   </div>

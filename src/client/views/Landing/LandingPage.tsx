@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
 import { 
@@ -12,8 +14,12 @@ import {
   CheckCircle,
   Sparkles
 } from 'lucide-react';
+import { useTranslations } from '@/client/hooks/useTranslations';
+import { LanguageSwitcher } from '@/client/components/ui/LanguageSwitcher';
 
 export default function LandingPage() {
+  const { t } = useTranslations('landing');
+
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900">
       
@@ -22,31 +28,40 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             {/* Logo */}
-            <div className="flex items-center gap-2 cursor-pointer">
+            <Link href="/" className="flex items-center gap-2 cursor-pointer">
               <div className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center text-white">
                 <FileText size={18} strokeWidth={2.5} />
               </div>
               <span className="font-bold text-xl tracking-tight text-slate-800">
                 Resume<span className="text-indigo-600">Builder</span>
               </span>
-            </div>
+            </Link>
 
             {/* Nav Links */}
-            <div className="hidden md:flex items-center space-x-8">
+            <div className="hidden md:flex items-center space-x-6">
               <Link href="#features" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
-                Features
+                {t.nav.features}
               </Link>
               <Link href="#templates" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
-                Templates
+                {t.nav.templates}
               </Link>
               <Link href="#pricing" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
-                Pricing
+                {t.nav.pricing}
               </Link>
               <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
-                Login
+                {t.nav.login}
               </Link>
+              <LanguageSwitcher variant="pill" />
               <Link href="/builder" className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md active:scale-95">
-                Build Resume
+                {t.nav.buildResume}
+              </Link>
+            </div>
+
+            {/* Mobile Actions */}
+            <div className="flex items-center gap-2 md:hidden">
+              <LanguageSwitcher variant="pill" />
+              <Link href="/builder" className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold">
+                {t.nav.buildResume}
               </Link>
             </div>
           </div>
@@ -61,15 +76,17 @@ export default function LandingPage() {
               
               {/* Hero Copy */}
               <div className="max-w-2xl">
-                <h1 className="text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.15] mb-6">
-                  Build a <span className="text-indigo-600">Professional<br />Resume</span> in Minutes<br />with AI
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.2] mb-6">
+                  {t.hero.titlePrefix}
+                  <span className="text-indigo-600">{t.hero.titleHighlight}</span>
+                  {t.hero.titleSuffix}
                 </h1>
                 <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-lg">
-                  Craft a standout resume with our intelligent tools, professional templates, and tailored suggestions.
+                  {t.hero.description}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Link href="/builder" className="px-8 py-3.5 bg-indigo-600 text-white rounded-xl text-base font-semibold hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-600/25 active:scale-95 text-center">
-                    Get Started for Free
+                    {t.hero.ctaButton}
                   </Link>
                 </div>
               </div>
@@ -110,7 +127,7 @@ export default function LandingPage() {
                   {/* AI Badge overlay */}
                   <div className="absolute -top-6 -right-6 w-24 h-24 bg-indigo-600 rounded-3xl shadow-xl flex flex-col items-center justify-center text-white transform rotate-12 animate-pulse-slow">
                     <Sparkles size={24} className="mb-1" />
-                    <span className="font-bold text-xl">AI</span>
+                    <span className="font-bold text-xl">{t.hero.aiBadge}</span>
                   </div>
 
                   {/* Checkmark overlay */}
@@ -132,15 +149,14 @@ export default function LandingPage() {
         <section id="templates" className="py-24 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Choose a Perfect Template</h2>
-              <p className="text-slate-500 max-w-2xl mx-auto">Stand out from the crowd with our professionally designed templates tailored for every industry.</p>
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">{t.templates.title}</h2>
+              <p className="text-slate-500 max-w-2xl mx-auto">{t.templates.subtitle}</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {/* Template Card 1 */}
               <div className="group flex flex-col items-center">
                 <div className="w-full aspect-[1/1.4] bg-slate-100 rounded-xl mb-4 overflow-hidden border border-slate-200 shadow-sm relative transition-all group-hover:shadow-xl group-hover:-translate-y-1">
-                  {/* Minimal template mock */}
                   <div className="w-full h-full bg-slate-50 flex flex-col">
                      <div className="h-1/4 bg-slate-600 w-full relative">
                         <div className="absolute bottom-2 left-4 w-10 h-10 rounded-full bg-slate-300"></div>
@@ -154,13 +170,12 @@ export default function LandingPage() {
                        </div>
                      </div>
                   </div>
-                  {/* Overlay */}
                   <div className="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 </div>
-                <h3 className="font-semibold text-slate-800 mb-3">Modern Professional</h3>
-                <button className="px-6 py-2 border-2 border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:border-indigo-600 hover:text-indigo-600 transition-colors">
-                  Preview
-                </button>
+                <h3 className="font-semibold text-slate-800 mb-3">{t.templates.modernProfessional}</h3>
+                <Link href="/builder" className="px-6 py-2 border-2 border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:border-indigo-600 hover:text-indigo-600 transition-colors">
+                  {t.templates.preview}
+                </Link>
               </div>
 
               {/* Template Card 2 */}
@@ -182,10 +197,10 @@ export default function LandingPage() {
                   </div>
                   <div className="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 </div>
-                <h3 className="font-semibold text-slate-800 mb-3">Creative Portfolio</h3>
-                <button className="px-6 py-2 border-2 border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:border-indigo-600 hover:text-indigo-600 transition-colors">
-                  Preview
-                </button>
+                <h3 className="font-semibold text-slate-800 mb-3">{t.templates.creativePortfolio}</h3>
+                <Link href="/builder" className="px-6 py-2 border-2 border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:border-indigo-600 hover:text-indigo-600 transition-colors">
+                  {t.templates.preview}
+                </Link>
               </div>
 
               {/* Template Card 3 */}
@@ -208,10 +223,10 @@ export default function LandingPage() {
                   </div>
                   <div className="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 </div>
-                <h3 className="font-semibold text-slate-800 mb-3">Classic Executive</h3>
-                <button className="px-6 py-2 border-2 border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:border-indigo-600 hover:text-indigo-600 transition-colors">
-                  Preview
-                </button>
+                <h3 className="font-semibold text-slate-800 mb-3">{t.templates.classicExecutive}</h3>
+                <Link href="/builder" className="px-6 py-2 border-2 border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:border-indigo-600 hover:text-indigo-600 transition-colors">
+                  {t.templates.preview}
+                </Link>
               </div>
 
               {/* Template Card 4 */}
@@ -235,21 +250,21 @@ export default function LandingPage() {
                   </div>
                   <div className="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 </div>
-                <h3 className="font-semibold text-slate-800 mb-3">Simple Clean</h3>
-                <button className="px-6 py-2 border-2 border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:border-indigo-600 hover:text-indigo-600 transition-colors">
-                  Preview
-                </button>
+                <h3 className="font-semibold text-slate-800 mb-3">{t.templates.simpleClean}</h3>
+                <Link href="/builder" className="px-6 py-2 border-2 border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:border-indigo-600 hover:text-indigo-600 transition-colors">
+                  {t.templates.preview}
+                </Link>
               </div>
             </div>
           </div>
         </section>
 
         {/* How it Works Section */}
-        <section className="py-24 bg-slate-50 border-y border-slate-100">
+        <section id="features" className="py-24 bg-slate-50 border-y border-slate-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">How It Works</h2>
-              <p className="text-slate-500 max-w-2xl mx-auto">Create a winning resume in three simple steps.</p>
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">{t.howItWorks.title}</h2>
+              <p className="text-slate-500 max-w-2xl mx-auto">{t.howItWorks.subtitle}</p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-12 text-center">
@@ -258,8 +273,8 @@ export default function LandingPage() {
                 <div className="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-3xl flex items-center justify-center mb-6 shadow-sm border border-indigo-200/50">
                   <CloudUpload size={32} strokeWidth={2} />
                 </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-3">1. Ingest</h3>
-                <p className="text-slate-500 leading-relaxed max-w-xs">Upload your existing resume or import data from LinkedIn.</p>
+                <h3 className="text-xl font-bold text-slate-800 mb-3">{t.howItWorks.step1Title}</h3>
+                <p className="text-slate-500 leading-relaxed max-w-xs">{t.howItWorks.step1Desc}</p>
               </div>
 
               {/* Step 2 */}
@@ -270,8 +285,8 @@ export default function LandingPage() {
                 <div className="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-3xl flex items-center justify-center mb-6 shadow-sm border border-indigo-200/50">
                   <Edit3 size={32} strokeWidth={2} />
                 </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-3">2. Customize</h3>
-                <p className="text-slate-500 leading-relaxed max-w-xs">Use AI to tailor content and choose your preferred design.</p>
+                <h3 className="text-xl font-bold text-slate-800 mb-3">{t.howItWorks.step2Title}</h3>
+                <p className="text-slate-500 leading-relaxed max-w-xs">{t.howItWorks.step2Desc}</p>
               </div>
 
               {/* Step 3 */}
@@ -282,25 +297,24 @@ export default function LandingPage() {
                 <div className="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-3xl flex items-center justify-center mb-6 shadow-sm border border-indigo-200/50">
                   <Download size={32} strokeWidth={2} />
                 </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-3">3. Export</h3>
-                <p className="text-slate-500 leading-relaxed max-w-xs">Download in PDF, Word format, or share your resume online.</p>
+                <h3 className="text-xl font-bold text-slate-800 mb-3">{t.howItWorks.step3Title}</h3>
+                <p className="text-slate-500 leading-relaxed max-w-xs">{t.howItWorks.step3Desc}</p>
               </div>
             </div>
           </div>
         </section>
 
         {/* CTA Section */}
-        <section className="py-24 bg-white relative">
+        <section id="pricing" className="py-24 bg-white relative">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-indigo-50 rounded-3xl p-12 text-center border border-indigo-100 shadow-sm relative overflow-hidden">
-              {/* Decorative background shapes */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-200/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
               <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-200/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
               
               <div className="relative z-10">
-                <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-8">Ready to land your dream job?</h2>
+                <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-8">{t.cta.title}</h2>
                 <Link href="/builder" className="inline-block px-8 py-4 bg-indigo-600 text-white rounded-xl text-lg font-semibold hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-600/25 active:scale-95">
-                  Get Started Now
+                  {t.cta.button}
                 </Link>
               </div>
             </div>
@@ -315,44 +329,44 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
             
             <div className="col-span-2 sm:col-span-1">
-              <h4 className="font-bold text-slate-900 mb-4">Resources</h4>
+              <h4 className="font-bold text-slate-900 mb-4">{t.footer.resources}</h4>
               <ul className="space-y-3">
-                <li><Link href="#" className="text-slate-500 hover:text-indigo-600 text-sm transition-colors">Blog</Link></li>
-                <li><Link href="#" className="text-slate-500 hover:text-indigo-600 text-sm transition-colors">Guides</Link></li>
-                <li><Link href="#" className="text-slate-500 hover:text-indigo-600 text-sm transition-colors">Examples</Link></li>
+                <li><Link href="#" className="text-slate-500 hover:text-indigo-600 text-sm transition-colors">{t.footer.blog}</Link></li>
+                <li><Link href="#" className="text-slate-500 hover:text-indigo-600 text-sm transition-colors">{t.footer.guides}</Link></li>
+                <li><Link href="#" className="text-slate-500 hover:text-indigo-600 text-sm transition-colors">{t.footer.examples}</Link></li>
               </ul>
             </div>
 
             <div className="col-span-2 sm:col-span-1">
-              <h4 className="font-bold text-slate-900 mb-4">Company</h4>
+              <h4 className="font-bold text-slate-900 mb-4">{t.footer.company}</h4>
               <ul className="space-y-3">
-                <li><Link href="#" className="text-slate-500 hover:text-indigo-600 text-sm transition-colors">About</Link></li>
-                <li><Link href="#" className="text-slate-500 hover:text-indigo-600 text-sm transition-colors">Careers</Link></li>
-                <li><Link href="#" className="text-slate-500 hover:text-indigo-600 text-sm transition-colors">Contact</Link></li>
+                <li><Link href="#" className="text-slate-500 hover:text-indigo-600 text-sm transition-colors">{t.footer.about}</Link></li>
+                <li><Link href="#" className="text-slate-500 hover:text-indigo-600 text-sm transition-colors">{t.footer.careers}</Link></li>
+                <li><Link href="#" className="text-slate-500 hover:text-indigo-600 text-sm transition-colors">{t.footer.contact}</Link></li>
               </ul>
             </div>
 
             <div className="col-span-2 sm:col-span-1">
-              <h4 className="font-bold text-slate-900 mb-4">Support</h4>
+              <h4 className="font-bold text-slate-900 mb-4">{t.footer.support}</h4>
               <ul className="space-y-3">
-                <li><Link href="#" className="text-slate-500 hover:text-indigo-600 text-sm transition-colors">Help Center</Link></li>
-                <li><Link href="#" className="text-slate-500 hover:text-indigo-600 text-sm transition-colors">FAQs</Link></li>
-                <li><Link href="#" className="text-slate-500 hover:text-indigo-600 text-sm transition-colors">Privacy Policy</Link></li>
+                <li><Link href="#" className="text-slate-500 hover:text-indigo-600 text-sm transition-colors">{t.footer.helpCenter}</Link></li>
+                <li><Link href="#" className="text-slate-500 hover:text-indigo-600 text-sm transition-colors">{t.footer.faqs}</Link></li>
+                <li><Link href="#" className="text-slate-500 hover:text-indigo-600 text-sm transition-colors">{t.footer.privacyPolicy}</Link></li>
               </ul>
             </div>
 
             <div className="col-span-2 sm:col-span-1">
-              <h4 className="font-bold text-slate-900 mb-4">Newsletter</h4>
-              <form className="flex">
+              <h4 className="font-bold text-slate-900 mb-4">{t.footer.newsletter}</h4>
+              <form className="flex" onSubmit={(e) => e.preventDefault()}>
                 <input 
                   type="email" 
-                  placeholder="Enter your email" 
+                  placeholder={t.footer.newsletterPlaceholder}
                   className="w-full px-4 py-2 border border-slate-200 rounded-l-lg 
                              focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent 
                              text-sm text-slate-900 placeholder:text-slate-400"
                 />
-                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-r-lg text-sm font-semibold hover:bg-indigo-700 transition-colors">
-                  Subscribe
+                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-r-lg text-sm font-semibold hover:bg-indigo-700 transition-colors whitespace-nowrap">
+                  {t.footer.subscribe}
                 </button>
               </form>
             </div>
@@ -361,22 +375,22 @@ export default function LandingPage() {
           {/* Footer Bottom */}
           <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-slate-100 gap-4">
             <div className="flex items-center gap-6">
-              <Link href="#" className="text-sm text-slate-500 hover:text-indigo-600 font-medium transition-colors">About Us</Link>
-              <Link href="#" className="text-sm text-slate-500 hover:text-indigo-600 font-medium transition-colors">Contact</Link>
-              <Link href="#" className="text-sm text-slate-500 hover:text-indigo-600 font-medium transition-colors">Privacy Policy</Link>
+              <Link href="#" className="text-sm text-slate-500 hover:text-indigo-600 font-medium transition-colors">{t.footer.aboutUs}</Link>
+              <Link href="#" className="text-sm text-slate-500 hover:text-indigo-600 font-medium transition-colors">{t.footer.contact}</Link>
+              <Link href="#" className="text-sm text-slate-500 hover:text-indigo-600 font-medium transition-colors">{t.footer.privacyPolicy}</Link>
             </div>
             
             <div className="flex items-center gap-4">
-              <a href="#" className="text-slate-400 hover:text-indigo-600 transition-colors">
+              <a href="#" className="text-slate-400 hover:text-indigo-600 transition-colors" aria-label="Twitter">
                 <Twitter size={18} />
               </a>
-              <a href="#" className="text-slate-400 hover:text-indigo-600 transition-colors">
+              <a href="#" className="text-slate-400 hover:text-indigo-600 transition-colors" aria-label="Facebook">
                 <Facebook size={18} />
               </a>
-              <a href="#" className="text-slate-400 hover:text-indigo-600 transition-colors">
+              <a href="#" className="text-slate-400 hover:text-indigo-600 transition-colors" aria-label="LinkedIn">
                 <Linkedin size={18} />
               </a>
-              <a href="#" className="text-slate-400 hover:text-indigo-600 transition-colors">
+              <a href="#" className="text-slate-400 hover:text-indigo-600 transition-colors" aria-label="Instagram">
                 <Instagram size={18} />
               </a>
             </div>

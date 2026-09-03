@@ -43,9 +43,8 @@ const SLATE_500 = '64748B';
 const SLATE_300 = 'CBD5E1';
 const WHITE = 'FFFFFF';
 
-// Word has no Geist, so fall back to the nearest widely-installed face.
 const FONT_MAP: Record<string, string> = {
-  'var(--font-sans)': 'Arial',
+  'var(--font-sans)': 'Khmer OS Content',
   'var(--font-serif)': 'Georgia',
   'var(--font-mono)': 'Courier New',
 };

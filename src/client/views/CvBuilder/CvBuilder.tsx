@@ -10,6 +10,7 @@ import { useResumeStore } from '@/client/store/resume-store';
 import { ViewMode } from '@/shared/types';
 import Link from 'next/link';
 import { IngestModal } from '@/client/components/ui/IngestModal';
+import { LanguageSwitcher } from '@/client/components/ui/LanguageSwitcher';
 
 export default function CvBuilder() {
   const { handleExportPDF, handleExportDocx, isExporting, isExportingDocx } = useCvBuilderLogic();
@@ -51,11 +52,12 @@ export default function CvBuilder() {
               <FileText size={18} />
             </div>
             <h1 className="text-lg font-semibold text-slate-800 tracking-tight">
-              Resume Editor
+              {tCommon.resumeEditor}
             </h1>
           </div>
           
           <div className="flex items-center gap-3">
+            <LanguageSwitcher variant="subtle" />
 
             <button
               onClick={() => setIsIngestModalOpen(true)}

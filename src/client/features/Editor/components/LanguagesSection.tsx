@@ -112,14 +112,14 @@ const LanguagesSectionComponent = ({
                     label={t.labels.langName}
                     value={lang.name}
                     onChange={(e) => onUpdate(idx, "name", e.target.value)}
-                    placeholder="e.g. English"
+                    placeholder={t.placeholders.langName}
                     readOnly={readOnly}
                   />
                   <Input
                     label={t.labels.langProficiency}
                     value={lang.proficiency}
                     onChange={(e) => onUpdate(idx, "proficiency", e.target.value)}
-                    placeholder="e.g. Native"
+                    placeholder={t.placeholders.langProficiency}
                     readOnly={readOnly}
                   />
                 </div>

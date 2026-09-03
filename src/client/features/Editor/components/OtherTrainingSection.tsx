@@ -116,7 +116,7 @@ const OtherTrainingSectionComponent = ({
                     onChange={(v: string) => onUpdate(idx, "name", v)}
                     onAiGenerate={readOnly ? undefined : onAiGenerateContent}
                     minHeight={EDITOR_CONFIG.MIN_HEIGHT_TRAINING}
-                    placeholder="e.g. AWS Certified Solutions Architect"
+                    placeholder={t.placeholders.trainingName}
                     readOnly={readOnly}
                   />
                 </div>

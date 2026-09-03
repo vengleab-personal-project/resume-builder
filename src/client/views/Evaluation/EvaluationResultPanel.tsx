@@ -3,6 +3,7 @@
 import { CheckCircle, AlertTriangle, XCircle, TrendingUp } from 'lucide-react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import type { EvaluationResult } from './useEvaluationLogic';
+import { useTranslations } from '@/client/hooks/useTranslations';
 
 interface EvaluationResultPanelProps {
   result: EvaluationResult;
@@ -42,7 +43,7 @@ const VERDICT_BADGE_STYLES = {
   missing: 'bg-red-50 text-red-700',
 } as const;
 
-function ScoreRing({ score }: { score: number }) {
+function ScoreRing({ score, radarScoreLabel }: { score: number; radarScoreLabel: string }) {
   const radius = 42;
   const circ = 2 * Math.PI * radius;
   const offset = circ - (score / 100) * circ;
@@ -65,24 +66,41 @@ function ScoreRing({ score }: { score: number }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-2xl font-bold text-slate-900">{score}</span>
-        <span className="text-xs text-slate-500">/ 100</span>
+        <span className="text-xs text-slate-500">{radarScoreLabel} / 100</span>
       </div>
     </div>
   );
 }
 
 export function EvaluationResultPanel({ result, onReevaluate }: EvaluationResultPanelProps) {
+  const { t, locale } = useTranslations('evaluation');
+
+  const recommendationLabel = (() => {
+    switch (result.recommendation) {
+      case 'Highly Recommended':
+        return t.recommendations.highlyRecommended;
+      case 'Recommended':
+        return t.recommendations.recommended;
+      case 'Consider':
+        return t.recommendations.consider;
+      case 'Not Recommended':
+        return t.recommendations.notRecommended;
+      default:
+        return result.recommendation;
+    }
+  })();
+
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Header card */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
         <div className="flex items-start gap-5">
-          <ScoreRing score={result.overallScore} />
+          <ScoreRing score={result.overallScore} radarScoreLabel={t.radarScore} />
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${RECOMMENDATION_STYLES[result.recommendation]}`}>
-                {result.recommendation}
+                {recommendationLabel}
               </span>
             </div>
             <h3 className="text-lg font-bold text-slate-900 truncate">{result.candidateName}</h3>
@@ -90,8 +108,8 @@ export function EvaluationResultPanel({ result, onReevaluate }: EvaluationResult
             <div className="mt-3 flex items-center gap-2">
               <TrendingUp size={14} className="text-indigo-500" />
               <span className="text-sm font-medium text-slate-700">
-                Recommended action:{' '}
-                <span className="text-indigo-600">{result.action}</span>
+                {t.overallScore}:{' '}
+                <span className="text-indigo-600 font-semibold">{result.overallScore}% — {result.action}</span>
               </span>
             </div>
           </div>
@@ -104,7 +122,7 @@ export function EvaluationResultPanel({ result, onReevaluate }: EvaluationResult
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
           <h4 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-indigo-500 inline-block" />
-            Evaluation Breakdown
+            {t.competencyBreakdown}
           </h4>
           <div className="flex flex-col gap-5">
             {result.metrics.map(metric => {
@@ -125,7 +143,6 @@ export function EvaluationResultPanel({ result, onReevaluate }: EvaluationResult
                     />
                   </div>
                   <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
-                    <span className="font-medium text-slate-600">AI Analysis: </span>
                     {metric.analysis}
                   </p>
                 </div>
@@ -138,7 +155,7 @@ export function EvaluationResultPanel({ result, onReevaluate }: EvaluationResult
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col">
           <h4 className="text-sm font-semibold text-slate-700 mb-6 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-indigo-500 inline-block" />
-            Technical Proficiency
+            {t.overallScore}
           </h4>
           <div className="flex-1 w-full min-h-[350px] flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
@@ -147,7 +164,7 @@ export function EvaluationResultPanel({ result, onReevaluate }: EvaluationResult
                 <PolarAngleAxis dataKey="label" tick={{ fill: '#475569', fontSize: 10, fontWeight: 600 }} />
                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                 <Radar
-                  name="Proficiency"
+                  name={t.radarScore}
                   dataKey="scorePct"
                   stroke="#3b82f6"
                   strokeWidth={3}
@@ -164,17 +181,17 @@ export function EvaluationResultPanel({ result, onReevaluate }: EvaluationResult
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
         <h4 className="text-sm font-semibold text-slate-700 mb-1 flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-slate-400 inline-block" />
-          Detailed Evaluation Checks
+          {t.executiveSummary}
         </h4>
-        <p className="text-xs text-slate-400 mb-4">AI verification against job requirements</p>
+        <p className="text-xs text-slate-400 mb-4">{t.provideJdDesc}</p>
         <div className="flex flex-col divide-y divide-slate-100">
           {result.prompts.map((prompt, idx) => (
             <div key={idx} className="py-3 first:pt-0 last:pb-0">
               <div className="flex items-start gap-2 mb-1">
                 {VERDICT_ICONS[prompt.verdict]}
                 <p className="text-xs font-medium text-slate-700 leading-snug">{prompt.question}</p>
-                <span className={`ml-auto flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize ${VERDICT_BADGE_STYLES[prompt.verdict]}`}>
-                  {prompt.verdict}
+                <span className={`ml-auto flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold ${VERDICT_BADGE_STYLES[prompt.verdict]}`}>
+                  {t.verdicts[prompt.verdict] || prompt.verdict}
                 </span>
               </div>
               <p className="text-xs text-slate-500 ml-5 leading-relaxed">{prompt.result}</p>
@@ -190,19 +207,12 @@ export function EvaluationResultPanel({ result, onReevaluate }: EvaluationResult
           onClick={onReevaluate}
           className="flex-1 py-2.5 px-4 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all"
         >
-          Edit Job Description
-        </button>
-        <button
-          id="btn-copy-result"
-          onClick={() => navigator.clipboard?.writeText(JSON.stringify(result, null, 2))}
-          className="flex-1 py-2.5 px-4 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-all"
-        >
-          Copy Report
+          {t.reevaluateButton}
         </button>
       </div>
 
       <p className="text-center text-xs text-slate-400">
-        Evaluated {new Date(result.evaluatedAt).toLocaleString()}
+        {t.evaluatedAt.replace('{time}', new Date(result.evaluatedAt).toLocaleString(locale === 'km' ? 'km-KH' : 'en-US'))}
       </p>
     </div>
   );

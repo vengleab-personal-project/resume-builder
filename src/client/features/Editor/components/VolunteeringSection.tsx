@@ -127,7 +127,7 @@ const VolunteeringSectionComponent = ({
                       label={t.labels.volTopic}
                       value={vol.topic || ""}
                       onChange={(e) => onUpdate(idx, "topic", e.target.value)}
-                      placeholder="e.g. Community Outreach"
+                      placeholder={t.placeholders.newTopic}
                       readOnly={readOnly}
                     />
                   </div>

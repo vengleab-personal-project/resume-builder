@@ -134,14 +134,14 @@ const CertificationsSectionComponent = ({
                       label={t.labels.certExpire}
                       value={certObj.expireDate || ""}
                       onChange={(e) => onUpdate(idx, "expireDate", e.target.value)}
-                      placeholder="MM/DD/YYYY"
+                      placeholder={t.placeholders.certExpire}
                       readOnly={readOnly}
                     />
                     <Input
                       label={t.labels.certYear}
                       value={certObj.year || ""}
                       onChange={(e) => onUpdate(idx, "year", e.target.value)}
-                      placeholder="YYYY"
+                      placeholder={t.placeholders.certYear}
                       readOnly={readOnly}
                     />
                   </div>

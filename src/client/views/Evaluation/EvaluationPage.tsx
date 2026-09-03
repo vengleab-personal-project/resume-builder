@@ -4,9 +4,12 @@ import { Sparkles, ClipboardList } from 'lucide-react';
 import { useEvaluationLogic } from './useEvaluationLogic';
 import { EvaluationJobInput } from './EvaluationJobInput';
 import { EvaluationResultPanel } from './EvaluationResultPanel';
+import { useTranslations } from '@/client/hooks/useTranslations';
+import { LanguageSwitcher } from '@/client/components/ui/LanguageSwitcher';
 
 export function EvaluationPage() {
   const vm = useEvaluationLogic();
+  const { t } = useTranslations('evaluation');
 
   return (
     <div className="h-full w-full flex bg-slate-100">
@@ -19,8 +22,8 @@ export function EvaluationPage() {
               <Sparkles size={16} className="text-white" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-slate-900 leading-tight">AI Evaluation</h2>
-              <p className="text-[11px] text-slate-400">Candidate Intelligence</p>
+              <h2 className="text-sm font-bold text-slate-900 leading-tight">{t.title}</h2>
+              <p className="text-[11px] text-slate-400">{t.subtitle}</p>
             </div>
           </div>
         </div>
@@ -33,10 +36,10 @@ export function EvaluationPage() {
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-slate-900 truncate">
-                {vm.resumeData.personalInfo.name || 'Unknown Candidate'}
+                {vm.resumeData.personalInfo.name || t.unknownCandidate}
               </p>
               <p className="text-xs text-slate-500 truncate">
-                {vm.resumeData.personalInfo.title || 'No title provided'}
+                {vm.resumeData.personalInfo.title || t.noTitle}
               </p>
               {vm.resumeData.skills.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
@@ -58,20 +61,17 @@ export function EvaluationPage() {
 
         {/* Metrics legend */}
         <div className="px-6 py-4 border-b border-slate-100">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Evaluation Weights</p>
-          <div className="flex flex-col gap-1.5">
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">{t.metricsLegend}</p>
+          <div className="flex flex-col gap-2">
             {[
-              { label: 'Role Match', pct: '25%' },
-              { label: 'Skills Match', pct: '20%' },
-              { label: 'Experience Quality', pct: '15%' },
-              { label: 'Achievements & Impact', pct: '15%' },
-              { label: 'Career Stability', pct: '10%' },
-              { label: 'Communication Quality', pct: '10%' },
-              { label: 'Education & Certs', pct: '5%' },
+              { label: t.scoreRanges.strong, desc: t.scoreRanges.strongDesc, color: 'text-emerald-600 bg-emerald-50' },
+              { label: t.scoreRanges.good, desc: t.scoreRanges.goodDesc, color: 'text-indigo-600 bg-indigo-50' },
+              { label: t.scoreRanges.moderate, desc: t.scoreRanges.moderateDesc, color: 'text-amber-600 bg-amber-50' },
+              { label: t.scoreRanges.weak, desc: t.scoreRanges.weakDesc, color: 'text-red-600 bg-red-50' },
             ].map(item => (
-              <div key={item.label} className="flex items-center justify-between">
-                <span className="text-xs text-slate-600">{item.label}</span>
-                <span className="text-xs font-semibold text-indigo-600">{item.pct}</span>
+              <div key={item.label} className="flex flex-col gap-0.5">
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded w-fit ${item.color}`}>{item.label}</span>
+                <span className="text-[11px] text-slate-500">{item.desc}</span>
               </div>
             ))}
           </div>
@@ -82,7 +82,7 @@ export function EvaluationPage() {
         {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-100">
           <p className="text-[11px] text-slate-400 text-center leading-relaxed">
-            Evaluation uses your CV data from the resume builder. Results are based on heuristic analysis.
+            {t.subtitle}
           </p>
         </div>
       </aside>
@@ -94,7 +94,7 @@ export function EvaluationPage() {
           <div className="flex items-center gap-3">
             <ClipboardList size={18} className="text-indigo-500" />
             <h1 className="text-base font-semibold text-slate-900">
-              {vm.result ? 'Evaluation Intelligence' : 'Job Description Input'}
+              {vm.result ? t.title : t.provideJdTitle}
             </h1>
             {vm.result && (
               <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
@@ -103,18 +103,22 @@ export function EvaluationPage() {
                 vm.result.overallScore >= 45 ? 'bg-amber-100 text-amber-700' :
                 'bg-red-100 text-red-700'
               }`}>
-                Score: {vm.result.overallScore}/100
+                {t.radarScore}: {vm.result.overallScore}/100
               </span>
             )}
           </div>
-          {vm.result && (
-            <button
-              onClick={() => vm.setResult(null)}
-              className="text-xs text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
-            >
-              ← New Evaluation
-            </button>
-          )}
+          
+          <div className="flex items-center gap-4">
+            <LanguageSwitcher variant="subtle" />
+            {vm.result && (
+              <button
+                onClick={() => vm.setResult(null)}
+                className="text-xs text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
+              >
+                ← {t.reevaluateButton}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Content area */}
@@ -127,9 +131,9 @@ export function EvaluationPage() {
           ) : (
             <div className="flex flex-col gap-4">
               <div>
-                <h2 className="text-xl font-bold text-slate-900 mb-1">Provide Job Description</h2>
+                <h2 className="text-xl font-bold text-slate-900 mb-1">{t.provideJdTitle}</h2>
                 <p className="text-sm text-slate-500">
-                  Paste or upload the job description to evaluate your CV against it. Your input is saved locally for future sessions.
+                  {t.provideJdDesc}
                 </p>
               </div>
               <EvaluationJobInput

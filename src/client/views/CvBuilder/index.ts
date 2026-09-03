@@ -1,2 +1,2 @@
-export * from './HomePage';
-export * from './useHomeLogic';
+export { default as CvBuilder } from './CvBuilder';
+export * from './useCvBuilderLogic';

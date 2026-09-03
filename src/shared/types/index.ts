@@ -3,6 +3,8 @@ export enum ViewMode {
   PREVIEW = 'preview',
 }
 
+export type SupportedLocale = 'en' | 'km';
+
 export interface Education {
   id?: string;
   degree: string;

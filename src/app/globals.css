@@ -1,9 +1,26 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Khmer OS Content';
+  src: local('Khmer OS Content'), local('KhmerOScontent'), url('/fonts/KhmerOScontent.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Khmer OS Content';
+  src: local('Khmer OS Content Bold'), local('KhmerOScontent-Bold'), url('/fonts/KhmerOScontent.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-khmer: 'Khmer OS Content', 'KhmerOScontent', var(--font-khmer-google, 'Kantumruy Pro'), 'Noto Sans Khmer', sans-serif;
+  --font-sans: 'Khmer OS Content', var(--font-geist-sans), 'Kantumruy Pro', ui-sans-serif, system-ui, sans-serif;
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono: "Courier New", Courier, monospace;
 }
@@ -26,7 +43,13 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+html[lang="km"],
+html[lang="km"] body {
+  font-family: 'Khmer OS Content', var(--font-sans);
+  line-height: 1.6;
 }
 /* Print styles for pixel-perfect PDF export */
 @media print {
