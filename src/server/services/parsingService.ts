@@ -6,7 +6,7 @@ import { openaiClient, OPENAI_CONFIG } from '@/server/integrations/openai';
 import { getGeminiModel } from '@/server/integrations/gemini';
 import { validateTokenLimit, truncateToTokenLimit } from '@/shared/lib/tokenCounter';
 import { validatePromptSafety, sanitizePromptInput } from '@/shared/lib/promptGuard';
-import { ENV } from '@/shared/config/env';
+import { serverEnv } from '@/server/config/env.server';
 
 /**
  * Extract text from uploaded file based on file type
@@ -48,10 +48,10 @@ export const parseResumeWithOpenAI = async (
     throw new Error(`Security validation failed: ${safetyCheck.reason}`);
   }
 
-  const tokenValidation = validateTokenLimit(rawText, ENV.MAX_AI_TOKENS);
+  const tokenValidation = validateTokenLimit(rawText, serverEnv.MAX_AI_TOKENS);
   const processedText = tokenValidation.valid 
     ? rawText 
-    : truncateToTokenLimit(rawText, ENV.MAX_AI_TOKENS);
+    : truncateToTokenLimit(rawText, serverEnv.MAX_AI_TOKENS);
 
   const sanitizedText = sanitizePromptInput(processedText);
 
@@ -84,14 +84,14 @@ export const parseResumeWithGemini = async (
     throw new Error(`Security validation failed: ${safetyCheck.reason}`);
   }
 
-  const tokenValidation = validateTokenLimit(rawText, ENV.MAX_AI_TOKENS);
+  const tokenValidation = validateTokenLimit(rawText, serverEnv.MAX_AI_TOKENS);
   const processedText = tokenValidation.valid 
     ? rawText 
-    : truncateToTokenLimit(rawText, ENV.MAX_AI_TOKENS);
+    : truncateToTokenLimit(rawText, serverEnv.MAX_AI_TOKENS);
 
   const sanitizedText = sanitizePromptInput(processedText);
 
-  const geminiModel = getGeminiModel(model);
+  const geminiModel = await getGeminiModel(model);
   const prompt = `${SYSTEM_PROMPT}\n\nHere is the resume text:\n\n${sanitizedText}`;
 
   const result = await geminiModel.generateContent({

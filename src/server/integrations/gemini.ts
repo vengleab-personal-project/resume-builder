@@ -1,15 +1,17 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
-import { ENV } from '@/shared/config/env';
-import { AI_MODELS, AI_PROVIDERS, GEMINI_MODEL_IDS, AI_CONFIG } from '@/shared/config/constants';
+import { serverEnv } from '@/server/config/env.server';
+import { isChatModelAllowed } from '@/server/ai/registry';
+import { AI_CONFIG } from '@/shared/config/constants';
 
-const genAI = new GoogleGenerativeAI(ENV.GEMINI_API_KEY || "");
-
-// Allowed model IDs for validation
-const ALLOWED_GEMINI_MODELS = AI_MODELS[AI_PROVIDERS.GOOGLE].map(m => m.id);
+const genAI = new GoogleGenerativeAI(serverEnv.GEMINI_API_KEY || "");
 
 // Default configuration for JSON response
 const JSON_RESPONSE_CONFIG = {
   responseMimeType: "application/json",
+  maxOutputTokens: AI_CONFIG.MAX_OUTPUT_TOKENS,
+};
+
+const TEXT_RESPONSE_CONFIG = {
   maxOutputTokens: AI_CONFIG.MAX_OUTPUT_TOKENS,
 };
 
@@ -33,30 +35,17 @@ const SAFETY_SETTINGS = [
   },
 ];
 
-export const geminiModel = genAI.getGenerativeModel({ 
-  model: GEMINI_MODEL_IDS.FLASH_PREVIEW_3_8, 
-  generationConfig: JSON_RESPONSE_CONFIG,
-  safetySettings: SAFETY_SETTINGS,
-});
-
-// Helper for single text response (override config)
-export const geminiTextModel = genAI.getGenerativeModel({ 
-  model: GEMINI_MODEL_IDS.FLASH_PREVIEW_3_8,
-  safetySettings: SAFETY_SETTINGS,
-  generationConfig: {
-    maxOutputTokens: AI_CONFIG.MAX_OUTPUT_TOKENS,
-  },
-});
-
-// Get model by ID
-export const getGeminiModel = (modelId: string) => {
-  if (!(ALLOWED_GEMINI_MODELS as any).includes(modelId)) {
+// Async because the allow-list is the ChatModel table, not a compile-time
+// constant. The check is unconditional on purpose: AIModel is now `string`, so
+// this is the only thing standing between a request body and the Gemini SDK.
+export const getGeminiModel = async (modelId: string, options?: { json?: boolean }) => {
+  if (!(await isChatModelAllowed(modelId, 'GOOGLE'))) {
     throw new Error(`Model ${modelId} is not allowed`);
   }
 
-  return genAI.getGenerativeModel({ 
+  return genAI.getGenerativeModel({
     model: modelId,
-    generationConfig: JSON_RESPONSE_CONFIG,
+    generationConfig: options?.json === false ? TEXT_RESPONSE_CONFIG : JSON_RESPONSE_CONFIG,
     safetySettings: SAFETY_SETTINGS,
   });
 };

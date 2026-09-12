@@ -1,0 +1,62 @@
+model Resume {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title String @default("Untitled Resume")
+
+  // The editor's ResumeData / ThemeConfig shapes are stored verbatim as JSON.
+  // Normalising the 11 sections into tables would force a rewrite of the whole
+  // editor for no query benefit: a resume is only ever read and written whole.
+  data         Json
+  sectionOrder Json
+  theme        Json
+
+  isDefault Boolean @default(false)
+
+  // Optimistic concurrency token. Autosave PATCHes compare-and-swap on it, so
+  // two open tabs can never silently last-write-wins over each other.
+  version Int @default(1)
+
+  // Soft delete: evaluation history references resumes, and a hard delete would
+  // orphan the record a user is still looking at.
+  deletedAt DateTime?
+
+  evaluations EvaluationResult[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, deletedAt, updatedAt])
+}
+
+model EvaluationResult {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  resumeId String?
+  resume   Resume? @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+
+  jobDescription String
+
+  // The full EvaluationResponse the route returned, unchanged.
+  result Json
+
+  // The resume exactly as it was scored. Without it, editing the resume later
+  // would silently invalidate every historical evaluation.
+  resumeSnapshot Json?
+
+  modelId String?
+
+  // True when the score came from the heuristic path (no API key, or the model
+  // call threw) rather than from a real model run.
+  isFallback Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([resumeId, createdAt])
+}

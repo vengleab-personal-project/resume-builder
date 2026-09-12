@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useResumeStore } from "@/client/store/resume-store";
+import { handleInsufficientCoins, useCoinStore } from "@/client/store/coin-store";
 import { API_ENDPOINTS } from "@/shared/config/constants";
 
 type SectionKey =
@@ -53,6 +54,9 @@ export const useResumeEditorLogic = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ instruction, content: currentVal, config }),
         });
+        if (await handleInsufficientCoins(res)) return;
+        useCoinStore.getState().applyResponseHeaders(res);
+
         const data = await res.json();
         if (data.result) onDone(data.result);
       } catch (err) {
@@ -83,6 +87,9 @@ export const useResumeEditorLogic = () => {
             config,
           }),
         });
+        if (await handleInsufficientCoins(res)) return;
+        useCoinStore.getState().applyResponseHeaders(res);
+
         const data = await res.json();
         if (data.error) {
           throw new Error(data.error);

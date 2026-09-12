@@ -95,12 +95,31 @@ export interface ResumeData {
 }
 
 export type AIProvider = 'openai' | 'google';
-export type AIModel = 'gemini-3.8-flash' | 'gemini-3-flash-preview' | 'gemini-3-pro-preview' | 'gpt-4o' | 'gpt-3.5-turbo';
+
+// Deliberately a bare string, not a closed union: the set of offered models is
+// admin-editable data in the ChatModel table now, so any union here would be
+// stale the moment an admin adds a model. The DB allow-list check in
+// src/server/ai/registry is what keeps an arbitrary id out of a provider SDK.
+export type AIModel = string;
 
 export interface AIConfig {
   provider: AIProvider;
   model: AIModel;
 }
+
+// Wire shape of GET /api/chat-models. `provider` is the lowercase wire value,
+// not the uppercase DB enum.
+export interface ChatModelOption {
+  id: string;
+  provider: AIProvider;
+  modelId: string;
+  displayName: string;
+  isDefault: boolean;
+  sortOrder: number;
+}
+
+export type AiActionKey = 'PARSE_RESUME' | 'REFINE_RESUME' | 'EVALUATE_RESUME';
+export type AiProviderKey = 'GOOGLE' | 'OPENAI';
 
 export interface ThemeConfig {
   primaryColor: string; // Hex or Tailwind class

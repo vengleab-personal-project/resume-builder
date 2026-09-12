@@ -2,11 +2,14 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { FileText, Sparkles, Settings, FileCode2, Globe } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { FileText, Sparkles, Settings, FileCode2, Globe, UserRound, LogOut } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useTranslations } from '@/client/hooks/useTranslations';
+import { useSession } from '@/client/features/Auth/useSession';
+import { CoinBalanceBadge } from '@/client/features/Coins';
+import { AUTH_ROUTES } from '@/shared/config/auth';
 
 function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
@@ -14,7 +17,16 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 
 export function GlobalSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { t, locale, setLocale } = useTranslations('sidebar');
+  const { user, signOut } = useSession();
+  const isAdmin = user?.role === 'ADMIN';
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.replace(AUTH_ROUTES.LOGIN);
+    router.refresh();
+  };
 
   const navItems = [
     { name: t.resumeBuilder, href: '/builder', icon: FileText },
@@ -66,6 +78,8 @@ export function GlobalSidebar() {
 
       {/* Bottom Actions */}
       <div className="mt-auto w-full px-3 flex flex-col items-center gap-3">
+        <CoinBalanceBadge />
+
         {/* Language Switch Button */}
         <button
           type="button"
@@ -82,15 +96,55 @@ export function GlobalSidebar() {
           </div>
         </button>
 
-        <button
-          title={t.settings}
-          className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:bg-white/5 hover:text-slate-200 transition-all group relative"
+        {/* Hidden for non-admins. This is chrome only — requireAdmin() on every
+            /api/admin/* handler is what actually gates the capability. */}
+        {isAdmin && (
+          <Link
+            href="/admin"
+            title={t.admin}
+            className={cn(
+              "w-10 h-10 rounded-xl flex items-center justify-center transition-all group relative",
+              pathname.startsWith('/admin')
+                ? "bg-white/10 text-white"
+                : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+            )}
+          >
+            <Settings size={20} />
+            <div className="absolute left-14 px-2.5 py-1 bg-slate-800 text-slate-200 text-[11px] font-semibold rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 shadow-xl">
+              {t.admin}
+            </div>
+          </Link>
+        )}
+
+        <Link
+          href="/account"
+          title={t.account}
+          className={cn(
+            "w-10 h-10 rounded-xl flex items-center justify-center transition-all group relative",
+            pathname.startsWith('/account')
+              ? "bg-white/10 text-white"
+              : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+          )}
         >
-          <Settings size={20} />
+          <UserRound size={20} />
           <div className="absolute left-14 px-2.5 py-1 bg-slate-800 text-slate-200 text-[11px] font-semibold rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 shadow-xl">
-            {t.settings}
+            {user?.username ?? t.account}
           </div>
-        </button>
+        </Link>
+
+        {user && (
+          <button
+            type="button"
+            onClick={handleSignOut}
+            title={t.signOut}
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-all group relative"
+          >
+            <LogOut size={20} />
+            <div className="absolute left-14 px-2.5 py-1 bg-slate-800 text-slate-200 text-[11px] font-semibold rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 shadow-xl">
+              {t.signOut}
+            </div>
+          </button>
+        )}
       </div>
     </aside>
   );

@@ -313,12 +313,10 @@ const km: typeof en = {
         login: {
             title: "សូមស្វាគមន៍ការត្រឡប់មកវិញ",
             subtitle: "សូមបញ្ចូលព័ត៌មានរបស់អ្នកដើម្បីចូលប្រើប្រាស់",
-            email: "អាសយដ្ឋានអ៊ីមែល",
-            emailPlaceholder: "name@company.com",
+            username: "ឈ្មោះអ្នកប្រើ",
+            usernamePlaceholder: "yourname",
             password: "ពាក្យសម្ងាត់",
             passwordPlaceholder: "••••••••",
-            rememberMe: "ចងចាំខ្ញុំ",
-            forgotPassword: "ភ្លេចពាក្យសម្ងាត់?",
             signIn: "ចូលគណនី",
             signingIn: "កំពុងចូល...",
             noAccount: "មិនទាន់មានគណនី?",
@@ -327,10 +325,11 @@ const km: typeof en = {
         signup: {
             title: "បង្កើតគណនីថ្មី",
             subtitle: "ចាប់ផ្តើមបង្កើតប្រវត្តិរូបវិជ្ជាជីវៈរបស់អ្នកនៅថ្ងៃនេះ",
-            fullName: "ឈ្មោះពេញ",
-            fullNamePlaceholder: "ចាន់ សុខា",
-            email: "អាសយដ្ឋានអ៊ីមែល",
-            emailPlaceholder: "name@company.com",
+            displayName: "ឈ្មោះបង្ហាញ",
+            displayNamePlaceholder: "ចាន់ សុខា",
+            username: "ឈ្មោះអ្នកប្រើ",
+            usernamePlaceholder: "yourname",
+            usernameHint: "៣-២០ តួអក្សរ។ អក្សរតូច លេខ និងសញ្ញាគូសក្រោម ហើយត្រូវចាប់ផ្តើមដោយអក្សរ។",
             password: "ពាក្យសម្ងាត់",
             passwordPlaceholder: "••••••••",
             confirmPassword: "បញ្ជាក់ពាក្យសម្ងាត់",
@@ -341,7 +340,84 @@ const km: typeof en = {
             signIn: "ចូលគណនី",
             passwordMismatch: "ពាក្យសម្ងាត់ទាំងពីរមិនដូចគ្នាទេ"
         },
+        telegram: {
+            or: "ឬ",
+            continueWith: "បន្តដោយប្រើ Telegram",
+            signingIn: "កំពុងចូលដោយប្រើ Telegram...",
+            linking: "កំពុងភ្ជាប់គណនី Telegram របស់អ្នក...",
+            linked: "បានភ្ជាប់ Telegram",
+            notLinked: "មិនទាន់បានភ្ជាប់គណនី Telegram",
+            link: "ភ្ជាប់ Telegram",
+            unlink: "ផ្តាច់ Telegram",
+            unlinking: "កំពុងផ្តាច់...",
+            unlinkConfirm: "ផ្តាច់គណនី Telegram របស់អ្នក? អ្នកនឹងអាចចូលបានតែដោយឈ្មោះអ្នកប្រើ និងពាក្យសម្ងាត់ប៉ុណ្ណោះ។"
+        },
+        validation: {
+            usernameRequired: "សូមបញ្ចូលឈ្មោះអ្នកប្រើ។",
+            usernameTooShort: "ឈ្មោះអ្នកប្រើត្រូវមានយ៉ាងតិច ៣ តួអក្សរ។",
+            usernameTooLong: "ឈ្មោះអ្នកប្រើត្រូវមានមិនលើសពី ២០ តួអក្សរ។",
+            usernamePattern: "សូមប្រើអក្សរតូច លេខ និងសញ្ញាគូសក្រោម ដោយចាប់ផ្តើមដោយអក្សរ។",
+            usernameReserved: "ឈ្មោះអ្នកប្រើនេះត្រូវបានរក្សាទុក។ សូមជ្រើសរើសមួយផ្សេងទៀត។",
+            passwordTooShort: "ពាក្យសម្ងាត់ត្រូវមានយ៉ាងតិច ៨ តួអក្សរ។",
+            passwordTooLong: "ពាក្យសម្ងាត់ត្រូវមានមិនលើសពី ១២៨ តួអក្សរ។",
+            passwordNeedsLetterAndDigit: "ពាក្យសម្ងាត់ត្រូវមានយ៉ាងតិចអក្សរមួយ និងលេខមួយ។",
+            passwordSameAsUsername: "ពាក្យសម្ងាត់មិនត្រូវមានឈ្មោះអ្នកប្រើរបស់អ្នកទេ។",
+            displayNameTooLong: "ឈ្មោះបង្ហាញត្រូវមានមិនលើសពី ៨០ តួអក្សរ។"
+        },
+        errors: {
+            UNAUTHENTICATED: "សូមចូលគណនីដើម្បីបន្ត។",
+            FORBIDDEN: "អ្នកមិនមានសិទ្ធិចូលប្រើផ្នែកនេះទេ។",
+            INVALID_CREDENTIALS: "ឈ្មោះអ្នកប្រើ ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវ។",
+            INVALID_INPUT: "សូមពិនិត្យព័ត៌មានដែលអ្នកបានបញ្ចូល។",
+            USERNAME_TAKEN: "ឈ្មោះអ្នកប្រើនេះមានគេប្រើរួចហើយ។",
+            RATE_LIMITED: "ព្យាយាមច្រើនដងពេក។ សូមព្យាយាមម្តងទៀតក្នុងពេលបន្តិចទៀត។",
+            ACCOUNT_DISABLED: "គណនីនេះត្រូវបានផ្អាក។",
+            PASSWORD_ALREADY_SET: "គណនីនេះមានពាក្យសម្ងាត់រួចហើយ។",
+            TELEGRAM_NOT_CONFIGURED: "ការចូលដោយ Telegram មិនអាចប្រើបានឥឡូវនេះទេ។",
+            TELEGRAM_INVALID_SIGNATURE: "យើងមិនអាចផ្ទៀងផ្ទាត់ការចូល Telegram នោះបានទេ។ សូមព្យាយាមម្តងទៀត។",
+            TELEGRAM_EXPIRED: "ការចូល Telegram នោះបានផុតកំណត់។ សូមព្យាយាមម្តងទៀត។",
+            TELEGRAM_ALREADY_LINKED: "គណនី Telegram នោះត្រូវបានភ្ជាប់ជាមួយអ្នកប្រើផ្សេងរួចហើយ។",
+            TELEGRAM_NOT_LINKED: "មិនមានគណនី Telegram ត្រូវបានភ្ជាប់ទេ។",
+            LAST_CREDENTIAL: "សូមកំណត់ពាក្យសម្ងាត់មុននឹងផ្តាច់ Telegram បើមិនដូច្នេះទេអ្នកនឹងមិនអាចចូលបានទេ។",
+            CROSS_ORIGIN: "សំណើត្រូវបានបិទដោយហេតុផលសុវត្ថិភាព។ សូមផ្ទុកទំព័រឡើងវិញ។",
+            NOT_FOUND: "យើងរកមិនឃើញអ្វីដែលអ្នកកំពុងស្វែងរកទេ។",
+            INTERNAL_ERROR: "មានបញ្ហាបានកើតឡើង។ សូមព្យាយាមម្តងទៀត។",
+            NETWORK: "យើងមិនអាចភ្ជាប់ទៅម៉ាស៊ីនមេបានទេ។ សូមពិនិត្យការតភ្ជាប់របស់អ្នក។"
+        },
         backToHome: "← ត្រឡប់ទៅទំព័រដើម"
+    },
+    account: {
+        title: "គណនី",
+        subtitle: "គ្រប់គ្រងវិធីចូលគណនីរបស់អ្នក",
+        signedInAs: "បានចូលជា",
+        username: "ឈ្មោះអ្នកប្រើ",
+        role: "តួនាទី",
+        memberSince: "ជាសមាជិកតាំងពី",
+        signOut: "ចាកចេញ",
+        signOutEverywhere: "ចាកចេញពីគ្រប់ឧបករណ៍",
+        telegramSection: "Telegram",
+        passwordSection: "ពាក្យសម្ងាត់",
+        setPassword: "កំណត់ពាក្យសម្ងាត់",
+        changePassword: "ប្តូរពាក្យសម្ងាត់",
+        currentPassword: "ពាក្យសម្ងាត់បច្ចុប្បន្ន",
+        newPassword: "ពាក្យសម្ងាត់ថ្មី",
+        confirmNewPassword: "បញ្ជាក់ពាក្យសម្ងាត់ថ្មី",
+        savePassword: "រក្សាទុកពាក្យសម្ងាត់",
+        savingPassword: "កំពុងរក្សាទុក...",
+        passwordSaved: "បានធ្វើបច្ចុប្បន្នភាពពាក្យសម្ងាត់។ ឧបករណ៍ផ្សេងទៀតត្រូវបានចាកចេញ។",
+        noPasswordNotice: "គណនីនេះចូលបានតែដោយ Telegram ប៉ុណ្ណោះ។ កំណត់ពាក្យសម្ងាត់ដើម្បីបន្ថែមវិធីចូលមួយទៀត។",
+        backToApp: "← ត្រឡប់ទៅកម្មវិធីបង្កើតប្រវត្តិរូប"
+    },
+    sync: {
+        saved: "បានរក្សាទុក",
+        savedAt: "បានរក្សាទុក · {time}",
+        saving: "កំពុងរក្សាទុក...",
+        offline: "គ្មានអ៊ីនធឺណិត — ការផ្លាស់ប្តូរត្រូវបានរក្សាទុកក្នុងឧបករណ៍នេះ",
+        error: "មិនអាចរក្សាទុកបាន",
+        conflict: "មានការកែប្រែនៅផ្ទាំងផ្សេង",
+        justNow: "ទើបតែឥឡូវ",
+        minutesAgo: "{count} នាទីមុន",
+        hoursAgo: "{count} ម៉ោងមុន"
     },
     evaluation: {
         title: "ការវាយតម្លៃជាមួយ AI",
@@ -398,12 +474,164 @@ const km: typeof en = {
             recommended: "ណែនាំ",
             consider: "គួរពិចារណា",
             notRecommended: "មិនណែនាំទេ"
+        },
+        history: {
+            title: "ការវាយតម្លៃថ្មីៗ",
+            loading: "កំពុងផ្ទុកប្រវត្តិ...",
+            empty: "មិនទាន់មានការវាយតម្លៃទេ។ លទ្ធផលរបស់អ្នកនឹងត្រូវរក្សាទុកនៅទីនេះ។",
+            loadMore: "ផ្ទុកបន្ថែម",
+            open: "បើក",
+            delete: "លុប",
+            deleteConfirm: "លុបការវាយតម្លៃនេះចេញពីប្រវត្តិរបស់អ្នក?",
+            fallbackBadge: "ការប៉ាន់ស្មានក្រៅបណ្តាញ",
+            failed: "មិនអាចផ្ទុកប្រវត្តិការវាយតម្លៃរបស់អ្នកបានទេ។"
+        }
+    },
+    admin: {
+        title: "ការគ្រប់គ្រងប្រព័ន្ធ",
+        subtitle: "បញ្ជីម៉ូដែល AI និងការកំណត់តម្លៃកាក់",
+        backToApp: "ត្រឡប់ទៅកម្មវិធី",
+        loading: "កំពុងដំណើរការ...",
+        nav: {
+            chatModels: "ម៉ូដែល AI",
+            actionCosts: "កំណត់តម្លៃកាក់"
+        },
+        providers: {
+            GOOGLE: "Google",
+            OPENAI: "OpenAI"
+        },
+        actions: {
+            PARSE_RESUME: "ញែកប្រវត្តិរូប",
+            REFINE_RESUME: "កែលម្អខ្លឹមសារ",
+            EVALUATE_RESUME: "វាយតម្លៃប្រវត្តិរូប"
+        },
+        chatModels: {
+            title: "ម៉ូដែល AI",
+            description: "ម៉ូដែលដែលបង្ហាញក្នុងបញ្ជីជ្រើសរើស AI។ ការបិទម៉ូដែលណាមួយនឹងដកវាចេញពីបញ្ជីអ្នកប្រើទាំងអស់ក្នុងរយៈពេលមួយនាទី។",
+            addModel: "បន្ថែមម៉ូដែល",
+            empty: "មិនទាន់មានម៉ូដែល AI ត្រូវបានកំណត់ទេ។",
+            confirmDelete: "លុបម៉ូដែលនេះមែនទេ? តម្លៃកាក់ជាក់លាក់របស់វានឹងត្រូវលុបជាមួយផង។",
+            makeDefault: "កំណត់ជាលំនាំដើម",
+            defaultBadge: "លំនាំដើម",
+            columns: {
+                displayName: "ឈ្មោះ",
+                provider: "អ្នកផ្តល់សេវា",
+                modelId: "លេខសម្គាល់ម៉ូដែល",
+                sortOrder: "លំដាប់",
+                active: "ដំណើរការ",
+                default: "លំនាំដើម",
+                actions: ""
+            }
+        },
+        actionCosts: {
+            title: "កំណត់តម្លៃកាក់",
+            description: "ចំនួនកាក់ដែលកាត់ក្នុងមួយសកម្មភាព AI។ ប្រអប់ទទេនឹងប្រើតម្លៃពីជួរឈរលំនាំដើម។",
+            action: "សកម្មភាព",
+            defaultColumn: "លំនាំដើម",
+            inherited: "ប្រើតម្លៃលំនាំដើម",
+            clearOverride: "លុបតម្លៃជាក់លាក់",
+            noModels: "សូមបន្ថែមម៉ូដែលដែលកំពុងដំណើរការ ដើម្បីកំណត់តម្លៃជាក់លាក់តាមម៉ូដែល។"
+        },
+        form: {
+            provider: "អ្នកផ្តល់សេវា",
+            modelId: "លេខសម្គាល់ម៉ូដែល",
+            displayName: "ឈ្មោះបង្ហាញ",
+            sortOrder: "លំដាប់តម្រៀប",
+            active: "ដំណើរការ",
+            default: "លំនាំដើម",
+            save: "រក្សាទុក",
+            cancel: "បោះបង់",
+            edit: "កែសម្រួល",
+            delete: "លុប"
+        },
+        errors: {
+            loadFailed: "មិនអាចទាញយកការកំណត់បានទេ។",
+            saveFailed: "មិនអាចរក្សាទុកការផ្លាស់ប្តូរបានទេ។"
+        },
+        validation: {
+            modelIdRequired: "ត្រូវការលេខសម្គាល់ម៉ូដែល",
+            modelIdPattern: "ប្រើបានតែអក្សរ លេខ សញ្ញាចុច ដាច់ សញ្ញាចុចពីរ និងសញ្ញាគូសក្រោម",
+            displayNameRequired: "ត្រូវការឈ្មោះបង្ហាញ",
+            defaultMustBeActive: "ម៉ូដែលលំនាំដើមត្រូវតែនៅដំណើរការ",
+            coinCostInvalid: "សូមបញ្ចូលចំនួនកាក់ជាចំនួនគត់ ស្មើ ឬធំជាងសូន្យ"
+        }
+    },
+    coins: {
+        unit: "កាក់",
+        badgeTooltip: "កាក់ និងការទូទាត់",
+        insufficient: "កាក់របស់អ្នកមិនគ្រប់គ្រាន់សម្រាប់សកម្មភាពនេះទេ។ សូមបញ្ចូលកាក់បន្ថែម។",
+        signInRequired: "សូមចូលគណនីម្តងទៀតដើម្បីបន្ត។"
+    },
+    billing: {
+        title: "ទិញកាក់",
+        subtitle: "កាក់ត្រូវប្រើសម្រាប់ការញែក ការកែសម្រួល និងការវាយតម្លៃដោយ AI។",
+        closeLabel: "បិទ",
+        pageTitle: "ការទូទាត់",
+        pageSubtitle: "សមតុល្យកាក់ ការទិញ និងការប្រើប្រាស់របស់អ្នក។",
+        currentBalance: "សមតុល្យបច្ចុប្បន្ន",
+        coinsLabel: "កាក់",
+        topUp: "ទិញកាក់",
+        bonus: "+{count} ប្រាក់រង្វាន់",
+        requiredNotice: "សកម្មភាពនេះត្រូវការកាក់ចំនួន {count}។",
+        noPackages: "មិនមានកញ្ចប់កាក់សម្រាប់ពេលនេះទេ។",
+        scanToPay: "ស្កេនដោយកម្មវិធីធនាគារកម្ពុជាណាមួយ",
+        forCoins: "សម្រាប់កាក់ចំនួន {count}",
+        waitingForPayment: "កំពុងរង់ចាំការទូទាត់",
+        reference: "លេខយោង",
+        openInBankApp: "បើកក្នុងកម្មវិធីធនាគារ",
+        openCheckout: "បើកទំព័រទូទាត់",
+        cancelOrder: "បោះបង់",
+        simulatePayment: "សាកល្បងការទូទាត់",
+        successTitle: "បានទទួលការទូទាត់",
+        successBody: "កាក់ចំនួន {count} ត្រូវបានបញ្ចូលទៅក្នុងសមតុល្យរបស់អ្នក។",
+        done: "រួចរាល់",
+        errorTitle: "មានបញ្ហាកើតឡើង",
+        tryAgain: "ព្យាយាមម្តងទៀត",
+        ordersTitle: "ការបញ្ជាទិញថ្មីៗ",
+        noOrders: "អ្នកមិនទាន់បានទិញកាក់នៅឡើយទេ។",
+        historyTitle: "ប្រវត្តិកាក់",
+        noTransactions: "មិនទាន់មានសកម្មភាពកាក់នៅឡើយទេ។",
+        balanceAfter: "សមតុល្យ",
+        loadMore: "មើលបន្ថែម",
+        loadingMore: "កំពុងដំណើរការ...",
+        orderStatus: {
+            PENDING: "កំពុងរង់ចាំ",
+            PAID: "បានទូទាត់",
+            FAILED: "បរាជ័យ",
+            EXPIRED: "ផុតកំណត់",
+            CANCELED: "បានបោះបង់"
+        },
+        transactionType: {
+            PURCHASE: "ការទិញ",
+            DEDUCTION: "ការប្រើប្រាស់",
+            REFUND: "ការសងប្រាក់វិញ",
+            ADMIN_ADJUSTMENT: "ការកែតម្រូវ"
+        },
+        action: {
+            PARSE_RESUME: "ការញែកប្រវត្តិរូប",
+            REFINE_RESUME: "ការកែសម្រួលដោយ AI",
+            EVALUATE_RESUME: "ការវាយតម្លៃដោយ AI"
+        },
+        errors: {
+            loadFailed: "មិនអាចផ្ទុកព័ត៌មានទូទាត់បានទេ។ សូមព្យាយាមម្តងទៀត។",
+            createFailed: "មិនអាចចាប់ផ្តើមការទូទាត់បានទេ។ សូមព្យាយាមម្តងទៀត។",
+            noProvider: "មិនមានវិធីទូទាត់សម្រាប់ពេលនេះទេ។",
+            orderStatus: {
+                PENDING: "ការបញ្ជាទិញនេះកំពុងរង់ចាំ។",
+                PAID: "ការបញ្ជាទិញនេះត្រូវបានទូទាត់រួចហើយ។",
+                FAILED: "ការទូទាត់បានបរាជ័យ។ មិនមានការកាត់កាក់ទេ។",
+                EXPIRED: "សំណើទូទាត់នេះបានផុតកំណត់។ សូមបង្កើតថ្មី។",
+                CANCELED: "សំណើទូទាត់នេះត្រូវបានបោះបង់។"
+            }
         }
     },
     sidebar: {
         resumeBuilder: "បង្កើតប្រវត្តិរូប",
         aiEvaluation: "វាយតម្លៃជាមួយ AI",
         settings: "ការកំណត់",
+        admin: "ការគ្រប់គ្រងប្រព័ន្ធ",
+        account: "គណនី",
+        signOut: "ចាកចេញ",
         backToHome: "ត្រឡប់ទៅទំព័រដើម",
         language: "ភាសា"
     },

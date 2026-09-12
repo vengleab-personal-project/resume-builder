@@ -1,11 +1,13 @@
 "use client";
 
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { useResumeStore } from '@/client/store/resume-store';
+import { useChatModels } from '@/client/hooks/useChatModels';
 import { parseResume } from '@/server/services/resumeService';
 import { AIProvider, AIModel, ViewMode } from '@/shared/types';
 
 export const useUploadLogic = () => {
+  const { models, providers, modelsForProvider, isLoading: isLoadingModels } = useChatModels();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const { 
@@ -20,6 +22,22 @@ export const useUploadLogic = () => {
 
   const [isDragging, setIsDragging] = useState(false);
   const [pastedText, setPastedText] = useState('');
+
+  // A persisted localStorage aiConfig can point at a model an admin has since
+  // deactivated. The server would silently substitute its default; snap the
+  // selection back so the UI never claims a model that will not run.
+  useEffect(() => {
+    if (isLoadingModels || models.length === 0) return;
+    if (models.some((model) => model.modelId === aiConfig.model)) return;
+
+    const preferred =
+      models.find((model) => model.provider === aiConfig.provider && model.isDefault) ??
+      models.find((model) => model.provider === aiConfig.provider) ??
+      models.find((model) => model.isDefault) ??
+      models[0];
+
+    setAIConfig({ provider: preferred.provider, model: preferred.modelId });
+  }, [isLoadingModels, models, aiConfig.model, aiConfig.provider, setAIConfig]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -94,11 +112,9 @@ export const useUploadLogic = () => {
   };
 
   const handleProviderChange = (provider: AIProvider) => {
-    const defaultModels: Record<AIProvider, AIModel> = {
-      openai: 'gpt-4o',
-      google: 'gemini-3.8-flash'
-    };
-    setAIConfig({ provider, model: defaultModels[provider] });
+    const available = modelsForProvider(provider);
+    const next = available.find((model) => model.isDefault) ?? available[0];
+    setAIConfig(next ? { provider, model: next.modelId } : { provider });
   };
 
   const handleModelChange = (model: AIModel) => {
@@ -128,5 +144,9 @@ export const useUploadLogic = () => {
     setPastedText,
     handlePasteSubmit,
     cancelParsing,
+    models,
+    providers,
+    modelsForProvider,
+    isLoadingModels,
   };
 };

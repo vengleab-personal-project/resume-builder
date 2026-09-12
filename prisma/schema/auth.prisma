@@ -1,0 +1,71 @@
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id String @id @default(cuid())
+
+  username     String  @unique
+  passwordHash String?
+
+  // Telegram ids exceed 32-bit and BigInt breaks JSON.stringify in route responses,
+  // so the id is stored and transported as a decimal String.
+  telegramId       String? @unique
+  telegramUsername String?
+  telegramPhotoUrl String?
+
+  displayName String?
+  firstName   String?
+  lastName    String?
+
+  role Role @default(USER)
+
+  // Bumped on password change / "sign out everywhere"; getCurrentUser rejects
+  // any session whose `tv` claim no longer matches.
+  tokenVersion Int @default(0)
+
+  preferredAiProvider String?
+  preferredAiModel    String?
+  locale              String  @default("en")
+
+  lastLoginAt DateTime?
+  disabledAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  resumes     Resume[]
+  evaluations EvaluationResult[]
+
+  // --- Relation extension point -------------------------------------------
+  // Workstream B (chat model registry) and Workstream C (coins/payments) each
+  // add exactly one relation field below. One line per workstream, nothing else,
+  // so the three streams never conflict on this block.
+  // -------------------------------------------------------------------------
+
+  // Workstream C (coins/payments). Denormalised balance: the ledger in
+  // CoinTransaction is the source of truth, this column is the fast read and
+  // the target of the atomic conditional debit. A CHECK constraint in the
+  // migration keeps it >= 0 even if a code path ever forgets the guard.
+  coinBalance     Int               @default(0)
+  coinTransactions CoinTransaction[]
+  paymentOrders    PaymentOrder[]
+
+  @@index([createdAt])
+}
+
+// Backs the Redis-free login rate limiter: >= 5 failed attempts for a username
+// or an ip hash within 15 minutes returns 429.
+model AuthAttempt {
+  id String @id @default(cuid())
+
+  identifier String
+  ipHash     String?
+  successful Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([identifier, createdAt])
+  @@index([ipHash, createdAt])
+}

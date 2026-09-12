@@ -1,0 +1,18 @@
+// Multi-file schema: every `.prisma` file in this folder is loaded together.
+// `prismaSchemaFolder` is GA as of Prisma 6.7, so no preview feature flag is required.
+
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../../src/server/db/generated/prisma"
+  // Vercel's Node.js runtime is RHEL-based; without this target the query engine
+  // binary is missing in production only and the build succeeds locally.
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  // Pooled connection (pgbouncer) for serverless request handling.
+  url       = env("DATABASE_URL")
+  // Direct connection, required for migrations and introspection.
+  directUrl = env("DIRECT_URL")
+}

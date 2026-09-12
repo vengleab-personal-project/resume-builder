@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Printer, FileText, FileDown, ChevronDown, Eye, Loader2, Trash2, Upload as UploadIcon, Palette, Sparkles } from 'lucide-react';
 import { ResumeEditor, ThemeSwitcher } from '@/client/features/Editor';
-import { ResumePreview } from '@/client/features/Resume';
+import { ResumePreview, SyncStatusIndicator } from '@/client/features/Resume';
 import { useCvBuilderLogic } from './useCvBuilderLogic';
 import { useTranslations } from '@/client/hooks/useTranslations';
 import { useResumeStore } from '@/client/store/resume-store';
@@ -75,6 +75,7 @@ export default function CvBuilder() {
             <h1 className="text-lg font-semibold text-slate-800 tracking-tight">
               {tCommon.resumeEditor}
             </h1>
+            <SyncStatusIndicator className="ml-2" />
           </div>
           
           <div className="flex items-center gap-3">

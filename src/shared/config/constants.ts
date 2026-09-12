@@ -1,20 +1,53 @@
+import type { AiActionKey, AiProviderKey } from '@/shared/types';
 
 export const AI_PROVIDERS = {
   OPENAI: 'openai',
   GOOGLE: 'google',
 } as const;
 
-export const AI_MODELS = {
-  [AI_PROVIDERS.OPENAI]: [
-    // { id: 'gpt-4o', name: 'GPT-4o (Smartest)' },
-    // { id: 'gpt-3.5-turbo', name: 'GPT-3.5 (Fast)' },
-  ],
-  [AI_PROVIDERS.GOOGLE]: [
-    { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash (Fast & Smart)' },
-    { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash (Fast & Smart)' },
-    { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro (Advanced)' },
-  ],
-} as const;
+// Seed data and offline fallback — NOT the source of truth. The ChatModel table
+// is, and src/server/ai/registry reads it. These values are only used to seed an
+// empty database and to keep AI features working when Postgres is unreachable.
+export const FALLBACK_CHAT_MODELS: readonly {
+  provider: AiProviderKey;
+  modelId: string;
+  displayName: string;
+  isDefault: boolean;
+  sortOrder: number;
+}[] = [
+  {
+    provider: 'GOOGLE',
+    modelId: 'gemini-3.8-flash',
+    displayName: 'Gemini 3.8 Flash (Fast & Smart)',
+    isDefault: true,
+    sortOrder: 0,
+  },
+  {
+    provider: 'GOOGLE',
+    modelId: 'gemini-3-flash-preview',
+    displayName: 'Gemini 3 Flash (Fast & Smart)',
+    isDefault: false,
+    sortOrder: 1,
+  },
+  {
+    provider: 'GOOGLE',
+    modelId: 'gemini-3-pro-preview',
+    displayName: 'Gemini 3 Pro (Advanced)',
+    isDefault: false,
+    sortOrder: 2,
+  },
+];
+
+// Inherited (model-agnostic) coin cost per action, used to seed the ActionCost
+// rows whose chatModelId is NULL and as the last-resort value when the registry
+// cannot be read at all.
+export const FALLBACK_ACTION_COSTS: Readonly<Record<AiActionKey, number>> = {
+  PARSE_RESUME: 1,
+  REFINE_RESUME: 1,
+  EVALUATE_RESUME: 2,
+};
+
+export const DEFAULT_ACTION_COIN_COST = 1;
 
 export const GEMINI_MODEL_IDS = {
   FLASH_PREVIEW_3_8: 'gemini-3.8-flash',

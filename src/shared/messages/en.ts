@@ -311,12 +311,10 @@ const en = {
         login: {
             title: "Welcome back",
             subtitle: "Please enter your details to sign in",
-            email: "Email Address",
-            emailPlaceholder: "name@company.com",
+            username: "Username",
+            usernamePlaceholder: "yourname",
             password: "Password",
             passwordPlaceholder: "••••••••",
-            rememberMe: "Remember me",
-            forgotPassword: "Forgot password?",
             signIn: "Sign In",
             signingIn: "Signing in...",
             noAccount: "Don't have an account?",
@@ -325,10 +323,11 @@ const en = {
         signup: {
             title: "Create an account",
             subtitle: "Start building your professional resume today",
-            fullName: "Full Name",
-            fullNamePlaceholder: "John Doe",
-            email: "Email Address",
-            emailPlaceholder: "name@company.com",
+            displayName: "Display Name",
+            displayNamePlaceholder: "John Doe",
+            username: "Username",
+            usernamePlaceholder: "yourname",
+            usernameHint: "3-20 characters. Lowercase letters, digits and underscores; must start with a letter.",
             password: "Password",
             passwordPlaceholder: "••••••••",
             confirmPassword: "Confirm Password",
@@ -339,7 +338,84 @@ const en = {
             signIn: "Sign in",
             passwordMismatch: "Passwords do not match"
         },
+        telegram: {
+            or: "or",
+            continueWith: "Continue with Telegram",
+            signingIn: "Signing in with Telegram...",
+            linking: "Linking your Telegram account...",
+            linked: "Telegram linked",
+            notLinked: "No Telegram account linked",
+            link: "Link Telegram",
+            unlink: "Unlink Telegram",
+            unlinking: "Unlinking...",
+            unlinkConfirm: "Unlink your Telegram account? You will only be able to sign in with your username and password."
+        },
+        validation: {
+            usernameRequired: "Please enter a username.",
+            usernameTooShort: "Username must be at least 3 characters.",
+            usernameTooLong: "Username must be 20 characters or fewer.",
+            usernamePattern: "Use lowercase letters, digits and underscores, starting with a letter.",
+            usernameReserved: "That username is reserved. Please choose another.",
+            passwordTooShort: "Password must be at least 8 characters.",
+            passwordTooLong: "Password must be 128 characters or fewer.",
+            passwordNeedsLetterAndDigit: "Password must contain at least one letter and one digit.",
+            passwordSameAsUsername: "Password must not contain your username.",
+            displayNameTooLong: "Display name must be 80 characters or fewer."
+        },
+        errors: {
+            UNAUTHENTICATED: "Please sign in to continue.",
+            FORBIDDEN: "You do not have access to this.",
+            INVALID_CREDENTIALS: "Incorrect username or password.",
+            INVALID_INPUT: "Please check the details you entered.",
+            USERNAME_TAKEN: "That username is already taken.",
+            RATE_LIMITED: "Too many attempts. Please try again in a few minutes.",
+            ACCOUNT_DISABLED: "This account has been disabled.",
+            PASSWORD_ALREADY_SET: "A password is already set for this account.",
+            TELEGRAM_NOT_CONFIGURED: "Telegram sign-in is not available right now.",
+            TELEGRAM_INVALID_SIGNATURE: "We could not verify that Telegram login. Please try again.",
+            TELEGRAM_EXPIRED: "That Telegram login expired. Please try again.",
+            TELEGRAM_ALREADY_LINKED: "That Telegram account is already linked to another user.",
+            TELEGRAM_NOT_LINKED: "No Telegram account is linked.",
+            LAST_CREDENTIAL: "Set a password before unlinking Telegram, or you will not be able to sign in.",
+            CROSS_ORIGIN: "Request blocked for security reasons. Please reload the page.",
+            NOT_FOUND: "We could not find what you were looking for.",
+            INTERNAL_ERROR: "Something went wrong. Please try again.",
+            NETWORK: "We could not reach the server. Check your connection and try again."
+        },
         backToHome: "← Back to home"
+    },
+    account: {
+        title: "Account",
+        subtitle: "Manage how you sign in",
+        signedInAs: "Signed in as",
+        username: "Username",
+        role: "Role",
+        memberSince: "Member since",
+        signOut: "Sign out",
+        signOutEverywhere: "Sign out on all devices",
+        telegramSection: "Telegram",
+        passwordSection: "Password",
+        setPassword: "Set a password",
+        changePassword: "Change password",
+        currentPassword: "Current password",
+        newPassword: "New password",
+        confirmNewPassword: "Confirm new password",
+        savePassword: "Save password",
+        savingPassword: "Saving...",
+        passwordSaved: "Password updated. Other devices have been signed out.",
+        noPasswordNotice: "This account signs in with Telegram only. Set a password to add a second way in.",
+        backToApp: "← Back to the builder"
+    },
+    sync: {
+        saved: "Saved",
+        savedAt: "Saved · {time}",
+        saving: "Saving...",
+        offline: "Offline — changes are kept on this device",
+        error: "Could not save",
+        conflict: "Updated in another tab",
+        justNow: "just now",
+        minutesAgo: "{count} min ago",
+        hoursAgo: "{count} h ago"
     },
     evaluation: {
         title: "AI Evaluation",
@@ -396,12 +472,164 @@ const en = {
             recommended: "Recommended",
             consider: "Consider",
             notRecommended: "Not Recommended"
+        },
+        history: {
+            title: "Recent evaluations",
+            loading: "Loading history...",
+            empty: "No evaluations yet. Your results will be saved here.",
+            loadMore: "Load more",
+            open: "Open",
+            delete: "Delete",
+            deleteConfirm: "Delete this evaluation from your history?",
+            fallbackBadge: "Offline estimate",
+            failed: "Could not load your evaluation history."
+        }
+    },
+    admin: {
+        title: "Administration",
+        subtitle: "Chat model registry and coin pricing",
+        backToApp: "Back to app",
+        loading: "Loading...",
+        nav: {
+            chatModels: "Chat Models",
+            actionCosts: "Coin Config"
+        },
+        providers: {
+            GOOGLE: "Google",
+            OPENAI: "OpenAI"
+        },
+        actions: {
+            PARSE_RESUME: "Parse resume",
+            REFINE_RESUME: "Refine content",
+            EVALUATE_RESUME: "Evaluate resume"
+        },
+        chatModels: {
+            title: "Chat Models",
+            description: "Models offered in the AI selector. Deactivating one removes it from every user's list within a minute.",
+            addModel: "Add model",
+            empty: "No chat models configured yet.",
+            confirmDelete: "Delete this model? Its coin overrides are deleted with it.",
+            makeDefault: "Make default",
+            defaultBadge: "Default",
+            columns: {
+                displayName: "Name",
+                provider: "Provider",
+                modelId: "Model ID",
+                sortOrder: "Order",
+                active: "Active",
+                default: "Default",
+                actions: ""
+            }
+        },
+        actionCosts: {
+            title: "Coin Config",
+            description: "Coins deducted per AI action. A blank cell inherits the Default column.",
+            action: "Action",
+            defaultColumn: "Default",
+            inherited: "Inherited",
+            clearOverride: "Clear override",
+            noModels: "Add an active chat model to configure per-model overrides."
+        },
+        form: {
+            provider: "Provider",
+            modelId: "Model ID",
+            displayName: "Display name",
+            sortOrder: "Sort order",
+            active: "Active",
+            default: "Default",
+            save: "Save",
+            cancel: "Cancel",
+            edit: "Edit",
+            delete: "Delete"
+        },
+        errors: {
+            loadFailed: "Could not load configuration.",
+            saveFailed: "Could not save changes."
+        },
+        validation: {
+            modelIdRequired: "A model ID is required",
+            modelIdPattern: "Use only letters, digits, dots, dashes, colons and underscores",
+            displayNameRequired: "A display name is required",
+            defaultMustBeActive: "The default model must stay active",
+            coinCostInvalid: "Enter a whole number of coins, zero or more"
+        }
+    },
+    coins: {
+        unit: "coins",
+        badgeTooltip: "Coins and billing",
+        insufficient: "You don't have enough coins for this action. Top up to continue.",
+        signInRequired: "Please sign in again to continue."
+    },
+    billing: {
+        title: "Buy coins",
+        subtitle: "Coins pay for AI parsing, refinement and evaluation.",
+        closeLabel: "Close",
+        pageTitle: "Billing",
+        pageSubtitle: "Your coin balance, purchases and usage.",
+        currentBalance: "Current balance",
+        coinsLabel: "coins",
+        topUp: "Buy coins",
+        bonus: "+{count} bonus",
+        requiredNotice: "This action needs {count} coins.",
+        noPackages: "No coin packages are available right now.",
+        scanToPay: "Scan with any Cambodian banking app",
+        forCoins: "for {count} coins",
+        waitingForPayment: "Waiting for payment",
+        reference: "Reference",
+        openInBankApp: "Open in banking app",
+        openCheckout: "Open checkout",
+        cancelOrder: "Cancel",
+        simulatePayment: "Simulate payment",
+        successTitle: "Payment received",
+        successBody: "{count} coins have been added to your balance.",
+        done: "Done",
+        errorTitle: "Something went wrong",
+        tryAgain: "Try again",
+        ordersTitle: "Recent orders",
+        noOrders: "You haven't bought any coins yet.",
+        historyTitle: "Coin history",
+        noTransactions: "No coin activity yet.",
+        balanceAfter: "Balance",
+        loadMore: "Load more",
+        loadingMore: "Loading...",
+        orderStatus: {
+            PENDING: "Pending",
+            PAID: "Paid",
+            FAILED: "Failed",
+            EXPIRED: "Expired",
+            CANCELED: "Canceled"
+        },
+        transactionType: {
+            PURCHASE: "Purchase",
+            DEDUCTION: "Usage",
+            REFUND: "Refund",
+            ADMIN_ADJUSTMENT: "Adjustment"
+        },
+        action: {
+            PARSE_RESUME: "Resume parsing",
+            REFINE_RESUME: "AI refinement",
+            EVALUATE_RESUME: "AI evaluation"
+        },
+        errors: {
+            loadFailed: "Could not load billing information. Please try again.",
+            createFailed: "Could not start the payment. Please try again.",
+            noProvider: "No payment method is available right now.",
+            orderStatus: {
+                PENDING: "This order is still pending.",
+                PAID: "This order has already been paid.",
+                FAILED: "The payment failed. No coins were charged.",
+                EXPIRED: "This payment request expired. Please start a new one.",
+                CANCELED: "This payment request was canceled."
+            }
         }
     },
     sidebar: {
         resumeBuilder: "Resume Builder",
         aiEvaluation: "AI Evaluation",
         settings: "Settings",
+        admin: "Administration",
+        account: "Account",
+        signOut: "Sign out",
         backToHome: "Back to Home",
         language: "Language"
     },

@@ -4,7 +4,7 @@ import React from 'react';
 import { Upload as UploadIcon, Loader2, AlertCircle, Cpu, Sparkles, X } from 'lucide-react';
 import { AIProvider } from '@/shared/types';
 import { useUploadLogic } from './useUploadLogic';
-import { AI_PROVIDERS, AI_MODELS, FILE_LIMITS } from '@/shared/config/constants';
+import { AI_PROVIDERS, FILE_LIMITS } from '@/shared/config/constants';
 import { useTranslations } from '@/client/hooks/useTranslations';
 
 export const Upload: React.FC = () => {
@@ -25,6 +25,9 @@ export const Upload: React.FC = () => {
     setPastedText,
     handlePasteSubmit,
     cancelParsing,
+    providers,
+    modelsForProvider,
+    isLoadingModels,
   } = useUploadLogic();
 
   const { t } = useTranslations('upload');
@@ -41,10 +44,7 @@ export const Upload: React.FC = () => {
           {t.aiProvider}
         </label>
         <div className="grid grid-cols-2 gap-2">
-          {Object.values(AI_PROVIDERS).map((providerId) => {
-            if (AI_MODELS[providerId as keyof typeof AI_MODELS].length === 0) {
-              return null;
-            }
+          {providers.map((providerId) => {
             const Icon = providerIcons[providerId];
             const isSelected = aiConfig.provider === providerId;
             return (
@@ -72,12 +72,13 @@ export const Upload: React.FC = () => {
         </label>
         <select
           value={aiConfig.model}
-          onChange={(e) => handleModelChange(e.target.value as any)}
-          className="w-full p-2 rounded-md border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+          onChange={(e) => handleModelChange(e.target.value)}
+          disabled={isLoadingModels}
+          className="w-full p-2 rounded-md border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 disabled:bg-slate-50 disabled:text-slate-400"
         >
-          {AI_MODELS[aiConfig.provider as keyof typeof AI_MODELS].map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
+          {modelsForProvider(aiConfig.provider).map((m) => (
+            <option key={m.id} value={m.modelId}>
+              {m.displayName}
             </option>
           ))}
         </select>

@@ -1,5 +1,6 @@
 import { AIConfig, ResumeData } from '@/shared/types';
 import { REQUEST_TIMEOUTS, API_ENDPOINTS } from '@/shared/config/constants';
+import { handleInsufficientCoins, useCoinStore } from '@/client/store/coin-store';
 
 export const parseResume = async (
   input: File | string, 
@@ -32,10 +33,18 @@ export const parseResume = async (
       signal: controller.signal,
     });
 
+    // A 402 opens the top-up modal; the thrown error still stops the caller,
+    // but the user gets a way to act on it rather than a dead end.
+    if (await handleInsufficientCoins(res)) {
+      throw new Error('INSUFFICIENT_COINS');
+    }
+
     if (!res.ok) {
       const errorText = await res.text();
       throw new Error(errorText || 'Failed to parse resume');
     }
+
+    useCoinStore.getState().applyResponseHeaders(res);
 
     return res.json();
   } catch (error) {

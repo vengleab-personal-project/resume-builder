@@ -1,0 +1,55 @@
+// Workstream C — coin ledger.
+//
+// Invariant the whole design protects: SUM(CoinTransaction.amount) per user
+// == User.coinBalance. `amount` is signed (+ credit, - debit) so the invariant
+// is a single SUM rather than a sign-by-type case expression, and so
+// ADMIN_ADJUSTMENT — which is inherently bidirectional — needs no special case.
+// The sign/type agreement is enforced by a hand-written CHECK constraint in the
+// migration, because Prisma's schema language cannot express it.
+
+enum CoinTransactionType {
+  PURCHASE
+  DEDUCTION
+  REFUND
+  ADMIN_ADJUSTMENT
+}
+
+// `AiAction` is defined once, in Workstream B's prisma/schema/config.prisma,
+// and referenced here — the multi-file schema shares a single namespace.
+
+model CoinTransaction {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type   CoinTransactionType
+  amount Int
+
+  // Snapshot of the balance immediately after this row was written. Lets the
+  // history UI render a running balance without re-summing the whole ledger.
+  balanceAfter Int
+
+  // Deduction provenance: which AI action ran, on which model, for which request.
+  relatedAction AiAction?
+  modelId       String?
+  requestId     String?
+
+  // Guard 2 of the three independent double-credit guards in settlePaidOrder:
+  // an order can back at most one PURCHASE row, enforced by the database.
+  paymentOrderId String?       @unique
+  paymentOrder   PaymentOrder? @relation(fields: [paymentOrderId], references: [id], onDelete: SetNull)
+
+  // A refund points at the deduction it reverses. Unique, so a retried refund
+  // collides on the index instead of double-crediting.
+  reversesId String?          @unique
+  reverses   CoinTransaction? @relation("CoinTransactionReversal", fields: [reversesId], references: [id], onDelete: SetNull)
+  reversedBy CoinTransaction? @relation("CoinTransactionReversal")
+
+  note String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId, type, createdAt])
+}

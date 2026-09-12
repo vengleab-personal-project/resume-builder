@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractTextFromFile } from '@/server/services/parsingService';
 import { getGeminiModel } from '@/server/integrations/gemini';
-import { ENV } from '@/shared/config/env';
+import { serverEnv } from '@/server/config/env.server';
 import { HTTP_STATUS } from '@/shared/config/constants';
+import { errorResponse, requireUser } from '@/server/auth/guards';
+import { resolveAiRequest } from '@/server/ai/registry';
+import { recordEvaluation } from '@/server/services/evaluationPersistenceService';
+import { withCoinDeduction, type BillableOutcome } from '@/server/services/coinService';
+import { tryBillingErrorResponse, withCoinBalanceHeader } from '@/server/services/billingHttp';
+import type { Prisma } from '@/server/db/generated/prisma';
 import type { ResumeData } from '@/shared/types';
+import type { PublicUser } from '@/shared/types/auth';
 
 interface EvaluationMetric {
   label: string;
@@ -251,12 +258,26 @@ function buildHeuristicEvaluation(
   };
 }
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
+  let user: PublicUser;
+  try {
+    user = await requireUser();
+  } catch (error) {
+    return errorResponse(error);
+  }
+
   try {
     let resumeData: ResumeData | null = null;
     let jobDescription = '';
     let locale = 'en';
-    let modelId = 'gemini-3.8-flash';
+    // Deliberately not defaulted here: the default model is registry data, and a
+    // literal in this file was a fourth place for the model list to drift.
+    let requestedProvider: string | null = null;
+    let requestedModelId: string | null = null;
+    let resumeId: string | null = null;
 
     const contentType = req.headers.get('content-type') || '';
 
@@ -273,7 +294,9 @@ export async function POST(req: NextRequest) {
 
       jobDescription = (formData.get('jobDescription') as string) || '';
       locale = (formData.get('locale') as string) || 'en';
-      modelId = (formData.get('model') as string) || 'gemini-3.8-flash';
+      requestedProvider = (formData.get('provider') as string) || null;
+      requestedModelId = (formData.get('model') as string) || null;
+      resumeId = (formData.get('resumeId') as string) || null;
 
       const file = formData.get('file') as File | null;
       if (file && file.size > 0) {
@@ -288,7 +311,9 @@ export async function POST(req: NextRequest) {
       resumeData = body.resumeData;
       jobDescription = body.jobDescription || '';
       locale = body.locale || 'en';
-      modelId = body.model || 'gemini-3.8-flash';
+      requestedProvider = body.provider || null;
+      requestedModelId = body.model || null;
+      resumeId = body.resumeId || null;
     }
 
     if (!resumeData) {
@@ -300,11 +325,42 @@ export async function POST(req: NextRequest) {
     }
 
     const isKhmer = locale === 'km';
+    const evaluatedResume = resumeData;
 
-    // If Gemini key is available, run real Gemini 3.8 Flash evaluation
-    if (ENV.GEMINI_API_KEY) {
+    const { chatModel } = await resolveAiRequest({
+      action: 'EVALUATE_RESUME',
+      provider: requestedProvider,
+      modelId: requestedModelId,
+    });
+    const modelId = chatModel.modelId;
+
+    // Every success path funnels through here so evaluation history is written
+    // exactly once, without a second round trip from the client.
+    const respond = async (
+      evaluation: EvaluationResponse,
+      isFallback: boolean
+    ): Promise<BillableOutcome<EvaluationResponse>> => {
+      await recordEvaluation({
+        userId: user.id,
+        resumeId,
+        jobDescription,
+        result: evaluation as unknown as Prisma.InputJsonValue,
+        resumeSnapshot: evaluatedResume as unknown as Prisma.InputJsonValue,
+        modelId,
+        isFallback,
+      });
+      // The heuristic evaluation is arithmetic over the resume, not an AI call.
+      // Reporting it as non-billable refunds the pre-charge.
+      return { data: evaluation, billable: !isFallback };
+    };
+
+    const { data: evaluation, balance } = await withCoinDeduction(
+      { userId: user.id, action: 'EVALUATE_RESUME', modelId },
+      async () => {
+    // If a Gemini key is available, run the resolved Gemini model
+    if (serverEnv.GEMINI_API_KEY && chatModel.wireProvider === 'google') {
       try {
-        const gemini = getGeminiModel(modelId);
+        const gemini = await getGeminiModel(modelId);
 
         const prompt = `You are a Senior Talent Acquisition Executive & Technical Hiring Evaluator.
 Analyze the candidate's Resume against the Target Job Description with high accuracy, objectivity, and actionable hiring intelligence.
@@ -316,13 +372,13 @@ ${jobDescription.slice(0, 8000)}
 
 CANDIDATE RESUME:
 """
-Name: ${resumeData.personalInfo?.name || 'N/A'}
-Title: ${resumeData.personalInfo?.title || 'N/A'}
-Summary: ${resumeData.summary || 'N/A'}
-Skills: ${(resumeData.skills || []).join(', ')}
-Experience: ${JSON.stringify(resumeData.experience || [])}
-Education: ${JSON.stringify(resumeData.education || [])}
-Certifications: ${JSON.stringify(resumeData.certifications || [])}
+Name: ${evaluatedResume.personalInfo?.name || 'N/A'}
+Title: ${evaluatedResume.personalInfo?.title || 'N/A'}
+Summary: ${evaluatedResume.summary || 'N/A'}
+Skills: ${(evaluatedResume.skills || []).join(', ')}
+Experience: ${JSON.stringify(evaluatedResume.experience || [])}
+Education: ${JSON.stringify(evaluatedResume.education || [])}
+Certifications: ${JSON.stringify(evaluatedResume.certifications || [])}
 """
 
 LANGUAGE REQUIREMENT:
@@ -330,8 +386,8 @@ ${isKhmer ? 'CRITICAL: Output all metric labels, analysis, action, prompt questi
 
 Provide a comprehensive evaluation in strictly valid JSON matching this schema:
 {
-  "candidateName": "${resumeData.personalInfo?.name || 'Candidate'}",
-  "candidateTitle": "${resumeData.personalInfo?.title || 'Professional'}",
+  "candidateName": "${evaluatedResume.personalInfo?.name || 'Candidate'}",
+  "candidateTitle": "${evaluatedResume.personalInfo?.title || 'Professional'}",
   "overallScore": <integer 0-100>,
   "recommendation": <"Highly Recommended" | "Recommended" | "Consider" | "Not Recommended">,
   "action": <string describing recommended next step>,
@@ -416,22 +472,29 @@ Provide a comprehensive evaluation in strictly valid JSON matching this schema:
         const responseText = result.response.text();
         const parsed = JSON.parse(responseText);
 
-        return NextResponse.json({
-          ...parsed,
-          evaluatedAt: new Date().toISOString(),
-        });
+        return await respond(
+          { ...parsed, evaluatedAt: new Date().toISOString() } as EvaluationResponse,
+          false
+        );
       } catch (geminiError) {
         console.error('Gemini Evaluation failed, falling back to heuristic:', geminiError);
         // Fallback to heuristic evaluation on AI error
-        const fallback = buildHeuristicEvaluation(resumeData, jobDescription, isKhmer);
-        return NextResponse.json(fallback);
+        const fallback = buildHeuristicEvaluation(evaluatedResume, jobDescription, isKhmer);
+        return await respond(fallback, true);
       }
     }
 
     // Heuristic fallback if no API key
-    const fallbackResult = buildHeuristicEvaluation(resumeData, jobDescription, isKhmer);
-    return NextResponse.json(fallbackResult);
+    const fallbackResult = buildHeuristicEvaluation(evaluatedResume, jobDescription, isKhmer);
+    return await respond(fallbackResult, true);
+      }
+    );
+
+    return withCoinBalanceHeader(NextResponse.json(evaluation), balance);
   } catch (err: unknown) {
+    const billingResponse = tryBillingErrorResponse(err);
+    if (billingResponse) return billingResponse;
+
     console.error('Evaluate API Error:', err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Internal server error during evaluation' },

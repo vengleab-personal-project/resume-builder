@@ -1,10 +1,10 @@
 import { REFINEMENT_PROMPT } from '@/shared/lib/ai-config';
 import { AI_CONFIG } from '@/shared/config/constants';
 import { openaiClient, OPENAI_CONFIG } from '@/server/integrations/openai';
-import { geminiModel, geminiTextModel } from '@/server/integrations/gemini';
+import { getGeminiModel } from '@/server/integrations/gemini';
 import { validateTokenLimit, truncateToTokenLimit } from '@/shared/lib/tokenCounter';
 import { validatePromptSafety, sanitizePromptInput } from '@/shared/lib/promptGuard';
-import { ENV } from '@/shared/config/env';
+import { serverEnv } from '@/server/config/env.server';
 
 interface RefinementRequest {
   instruction: string;
@@ -16,6 +16,12 @@ interface RefinementResponse {
   result?: string;
   [key: string]: any;
 }
+
+// Deliberately under vercel.json's 60s maxDuration for this route. At 60s there
+// was no headroom: a timing-out AI call would be killed by the platform before
+// withCoinDeduction's compensating refund could be written, silently keeping the
+// user's coins.
+const AI_TIMEOUT_MS = 50_000;
 
 const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, providerName: string): Promise<T> => {
   const timeoutPromise = new Promise<never>((_, reject) => {
@@ -30,22 +36,23 @@ const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, providerNa
 export const refineWithGemini = async (
   systemPrompt: string,
   isJson: boolean,
-  schema?: unknown
+  schema: unknown,
+  modelId: string
 ): Promise<RefinementResponse> => {
   const safetyCheck = validatePromptSafety(systemPrompt);
   if (!safetyCheck.safe) {
     throw new Error(`Security validation failed: ${safetyCheck.reason}`);
   }
 
-  const tokenValidation = validateTokenLimit(systemPrompt, ENV.MAX_AI_TOKENS);
+  const tokenValidation = validateTokenLimit(systemPrompt, serverEnv.MAX_AI_TOKENS);
   const processedPrompt = tokenValidation.valid 
     ? systemPrompt 
-    : truncateToTokenLimit(systemPrompt, ENV.MAX_AI_TOKENS);
+    : truncateToTokenLimit(systemPrompt, serverEnv.MAX_AI_TOKENS);
 
   const sanitizedPrompt = sanitizePromptInput(processedPrompt);
 
-  console.log(`Gemini Request: isJson=${isJson}`);
-  const model = isJson ? geminiModel : geminiTextModel;
+  console.log(`Gemini Request: model=${modelId} isJson=${isJson}`);
+  const model = await getGeminiModel(modelId, { json: isJson });
   const prompt = `${sanitizedPrompt}\n\n${
     isJson 
       ? `Refine/Generate and return as JSON matching this schema: ${JSON.stringify(schema)}` 
@@ -53,7 +60,7 @@ export const refineWithGemini = async (
   }`;
 
   const startTime = Date.now();
-  const result = await withTimeout(model.generateContent(prompt), 60000, "Gemini");
+  const result = await withTimeout(model.generateContent(prompt), AI_TIMEOUT_MS, "Gemini");
   const response = await result.response;
   const text = response.text();
   console.log(`Gemini Response received in ${Date.now() - startTime}ms`);
@@ -80,24 +87,25 @@ export const refineWithGemini = async (
 export const refineWithOpenAI = async (
   systemPrompt: string,
   isJson: boolean,
-  schema?: unknown
+  schema: unknown,
+  modelId: string
 ): Promise<RefinementResponse> => {
   const safetyCheck = validatePromptSafety(systemPrompt);
   if (!safetyCheck.safe) {
     throw new Error(`Security validation failed: ${safetyCheck.reason}`);
   }
 
-  const tokenValidation = validateTokenLimit(systemPrompt, ENV.MAX_AI_TOKENS);
+  const tokenValidation = validateTokenLimit(systemPrompt, serverEnv.MAX_AI_TOKENS);
   const processedPrompt = tokenValidation.valid 
     ? systemPrompt 
-    : truncateToTokenLimit(systemPrompt, ENV.MAX_AI_TOKENS);
+    : truncateToTokenLimit(systemPrompt, serverEnv.MAX_AI_TOKENS);
 
   const sanitizedPrompt = sanitizePromptInput(processedPrompt);
 
-  console.log(`OpenAI Request: isJson=${isJson}`);
+  console.log(`OpenAI Request: model=${modelId} isJson=${isJson}`);
   const startTime = Date.now();
   const completion = await withTimeout(openaiClient.chat.completions.create({
-    model: "gpt-4o",
+    model: modelId,
     messages: [
       { role: "system", content: sanitizedPrompt },
       { 
