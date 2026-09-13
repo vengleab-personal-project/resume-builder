@@ -38,6 +38,16 @@ import {
 } from '../src/server/payments/providers/bakong/client';
 import { formatMinor, toMinor } from '../src/server/payments/currency';
 
+// This script TRUNCATEs tables. `.env` may well hold real credentials, and
+// PrismaClient falls back to it, so refuse anything that is not obviously a
+// local throwaway before a single statement runs.
+const target = process.env.DATABASE_URL ?? '';
+if (!/@(localhost|127\.0\.0\.1|host\.docker\.internal)[:/]/.test(target)) {
+  throw new Error(
+    `Refusing to run: DATABASE_URL must point at a local throwaway database, got "${target.replace(/:[^:@]*@/, ':***@')}"`
+  );
+}
+
 const prisma = new PrismaClient();
 
 let failures = 0;
