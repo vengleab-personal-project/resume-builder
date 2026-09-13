@@ -22,13 +22,14 @@ export async function applyResumePatch(
     throw new HttpError(400, 'INVALID_INPUT', 'Invalid resume patch');
   }
 
-  const { version, title, data, sectionOrder, theme } = parsed.data;
+  const { version, title, data, sectionOrder, theme, isDefault } = parsed.data;
 
   const patch: ResumePatch = {};
   if (title !== undefined) patch.title = title;
   if (data !== undefined) patch.data = data as Prisma.InputJsonValue;
   if (sectionOrder !== undefined) patch.sectionOrder = sectionOrder as Prisma.InputJsonValue;
   if (theme !== undefined) patch.theme = theme as Prisma.InputJsonValue;
+  if (isDefault !== undefined) patch.isDefault = isDefault;
 
   const outcome = await updateResumeWithVersionCheck(userId, id, version, patch);
 

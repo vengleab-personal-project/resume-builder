@@ -624,6 +624,7 @@ const en = {
         }
     },
     sidebar: {
+        myResumes: "My Resumes",
         resumeBuilder: "Resume Builder",
         aiEvaluation: "AI Evaluation",
         settings: "Settings",
@@ -632,6 +633,23 @@ const en = {
         signOut: "Sign out",
         backToHome: "Back to Home",
         language: "Language"
+    },
+    resumeList: {
+        title: "My Resumes",
+        newResume: "New Resume",
+        loading: "Loading your resumes...",
+        loadFailed: "Couldn't load your resumes. Please refresh the page.",
+        emptyTitle: "No resumes yet",
+        emptyDesc: "Create your first resume to get started.",
+        updated: "Updated",
+        open: "Open in Builder",
+        rename: "Rename",
+        duplicate: "Duplicate",
+        setDefault: "Set as default",
+        defaultBadge: "Default",
+        delete: "Delete",
+        renamePrompt: "Rename resume",
+        deleteConfirm: "Delete this resume? This action cannot be undone."
     },
     language: {
         en: "English",

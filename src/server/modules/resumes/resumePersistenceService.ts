@@ -56,6 +56,7 @@ export interface ResumePatch {
   data?: Prisma.InputJsonValue;
   sectionOrder?: Prisma.InputJsonValue;
   theme?: Prisma.InputJsonValue;
+  isDefault?: boolean;
 }
 
 export type ResumeUpdateOutcome =
@@ -73,9 +74,24 @@ export async function updateResumeWithVersionCheck(
   expectedVersion: number,
   patch: ResumePatch
 ): Promise<ResumeUpdateOutcome> {
-  const { count } = await prisma.resume.updateMany({
-    where: { id, userId, deletedAt: null, version: expectedVersion },
-    data: { ...patch, version: { increment: 1 } },
+  const { isDefault, ...rest } = patch;
+
+  const count = await prisma.$transaction(async (tx) => {
+    // Promoting to default has to demote the previous one in the same
+    // transaction as the version-checked update, same as resume creation --
+    // otherwise two defaults could briefly (or, on a race, permanently) exist.
+    if (isDefault) {
+      await tx.resume.updateMany({
+        where: { userId, deletedAt: null, isDefault: true, id: { not: id } },
+        data: { isDefault: false },
+      });
+    }
+
+    const result = await tx.resume.updateMany({
+      where: { id, userId, deletedAt: null, version: expectedVersion },
+      data: { ...rest, ...(isDefault !== undefined ? { isDefault } : {}), version: { increment: 1 } },
+    });
+    return result.count;
   });
 
   const current = await findOwnedResume(userId, id);
