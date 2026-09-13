@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FileText, Sparkles, Settings, FileCode2, Globe, UserRound, LogOut } from 'lucide-react';
+import { FileText, Files, Sparkles, Settings, FileCode2, Globe, UserRound, LogOut } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useTranslations } from '@/client/hooks/useTranslations';
@@ -29,6 +29,7 @@ export function GlobalSidebar() {
   };
 
   const navItems = [
+    { name: t.myResumes, href: '/resumes', icon: Files },
     { name: t.resumeBuilder, href: '/builder', icon: FileText },
     { name: t.aiEvaluation, href: '/evaluation', icon: Sparkles },
   ];

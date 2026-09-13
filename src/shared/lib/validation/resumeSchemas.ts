@@ -26,13 +26,15 @@ export const updateResumeSchema = z
     data: jsonObject.optional(),
     sectionOrder: z.array(z.string()).optional(),
     theme: jsonObject.optional(),
+    isDefault: z.boolean().optional(),
   })
   .refine(
     (value) =>
       value.title !== undefined ||
       value.data !== undefined ||
       value.sectionOrder !== undefined ||
-      value.theme !== undefined,
+      value.theme !== undefined ||
+      value.isDefault !== undefined,
     { error: 'NOTHING_TO_UPDATE' }
   );
 
