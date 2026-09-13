@@ -3,6 +3,7 @@
 import React from 'react';
 import { FilePlus2, FileText, Star, Pencil, Copy, Trash2, Loader2 } from 'lucide-react';
 import { useResumeListLogic } from './useResumeListLogic';
+import { ResumeThumbnail } from './ResumeThumbnail';
 import { useTranslations } from '@/client/hooks/useTranslations';
 import { LanguageSwitcher } from '@/client/components/ui/LanguageSwitcher';
 import type { ResumeSummary } from '@/shared/types/persistence';
@@ -144,12 +145,13 @@ function ResumeCard({
         )}
       </div>
 
-      <button
-        type="button"
-        onClick={onOpen}
-        className="w-full text-left px-3 py-2 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg text-sm font-medium text-slate-700 transition-colors"
-      >
-        {labels.open}
+      <button type="button" onClick={onOpen} className="relative block w-full group/thumb" title={labels.open}>
+        <ResumeThumbnail resumeId={resume.id} />
+        <span className="absolute inset-0 flex items-center justify-center bg-slate-900/0 group-hover/thumb:bg-slate-900/40 rounded-lg transition-colors">
+          <span className="px-3 py-1.5 bg-white text-slate-800 rounded-md text-xs font-semibold opacity-0 group-hover/thumb:opacity-100 transition-opacity shadow-sm">
+            {labels.open}
+          </span>
+        </span>
       </button>
 
       <div className="flex items-center justify-between pt-1 border-t border-slate-100">

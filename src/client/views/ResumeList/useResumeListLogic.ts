@@ -15,6 +15,7 @@ function snapshotFromDTO(resume: ResumeDTO): ServerResumeSnapshot {
   return {
     id: resume.id,
     version: resume.version,
+    title: resume.title,
     data: resume.data,
     sectionOrder: resume.sectionOrder,
     theme: resume.theme,
@@ -162,7 +163,7 @@ export function useResumeListLogic() {
         // it will (correctly, but confusingly) hit a conflict on a rename it
         // never saw.
         if (useResumeStore.getState().remoteResumeId === resume.id) {
-          useResumeStore.getState().setSyncMeta({ remoteVersion: resume.version });
+          useResumeStore.getState().setSyncMeta({ remoteVersion: resume.version, title: resume.title });
         }
       } finally {
         setPendingId(null);

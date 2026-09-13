@@ -643,6 +643,7 @@ const en = {
         emptyDesc: "Create your first resume to get started.",
         updated: "Updated",
         open: "Open in Builder",
+        previewUnavailable: "Preview unavailable",
         rename: "Rename",
         duplicate: "Duplicate",
         setDefault: "Set as default",
