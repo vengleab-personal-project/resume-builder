@@ -1,14 +1,15 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { issueSessionCookie } from '@/server/auth/cookies';
-import { HttpError, assertSameOrigin, withAuthErrors } from '@/server/auth/guards';
-import { verifyTelegramAuth } from '@/server/auth/telegram';
-import { loginOrCreateTelegramUser } from '@/server/auth/telegramAccount';
+import { issueSessionCookie } from '@/server/modules/auth/cookies';
+import { assertSameOrigin } from '@/server/modules/auth/guards';
+import { HttpError, withErrorHandling } from '@/server/errors';
+import { verifyTelegramAuth } from '@/server/modules/auth/telegram';
+import { loginOrCreateTelegramUser } from '@/server/modules/auth/telegramAccount';
 import { telegramAuthPayloadSchema } from '@/shared/lib/validation/authSchemas';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export const POST = withAuthErrors(async (req: NextRequest) => {
+export const POST = withErrorHandling(async (req: NextRequest) => {
   assertSameOrigin(req);
 
   const body = await req.json().catch(() => null);

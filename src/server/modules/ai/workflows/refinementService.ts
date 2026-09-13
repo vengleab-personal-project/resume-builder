@@ -1,7 +1,7 @@
 import { REFINEMENT_PROMPT } from '@/shared/lib/ai-config';
 import { AI_CONFIG } from '@/shared/config/constants';
-import { openaiClient, OPENAI_CONFIG } from '@/server/integrations/openai';
-import { getGeminiModel } from '@/server/integrations/gemini';
+import { openaiClient, OPENAI_CONFIG } from '@/server/modules/ai/clients/openai';
+import { getGeminiModel } from '@/server/modules/ai/clients/gemini';
 import { validateTokenLimit, truncateToTokenLimit } from '@/shared/lib/tokenCounter';
 import { validatePromptSafety, sanitizePromptInput } from '@/shared/lib/promptGuard';
 import { serverEnv } from '@/server/config/env.server';

@@ -1,17 +1,18 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { prisma } from '@/server/db/prisma';
-import { issueSessionCookie } from '@/server/auth/cookies';
-import { PUBLIC_USER_SELECT, toPublicUser } from '@/server/auth/getCurrentUser';
-import { HttpError, assertSameOrigin, withAuthErrors } from '@/server/auth/guards';
-import { hashPassword } from '@/server/auth/password';
-import { isUniqueViolation } from '@/server/auth/telegramAccount';
+import { issueSessionCookie } from '@/server/modules/auth/cookies';
+import { PUBLIC_USER_SELECT, toPublicUser } from '@/server/modules/auth/getCurrentUser';
+import { assertSameOrigin } from '@/server/modules/auth/guards';
+import { HttpError, withErrorHandling } from '@/server/errors';
+import { hashPassword } from '@/server/modules/auth/password';
+import { isUniqueViolation } from '@/server/modules/auth/telegramAccount';
 import { signupSchema } from '@/shared/lib/validation/authSchemas';
-import { grantSignupBonus } from '@/server/services/coinService';
+import { grantSignupBonus } from '@/server/modules/billing/coinService';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export const POST = withAuthErrors(async (req: NextRequest) => {
+export const POST = withErrorHandling(async (req: NextRequest) => {
   assertSameOrigin(req);
 
   const body = await req.json().catch(() => null);

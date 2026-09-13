@@ -1,7 +1,7 @@
-import { HttpError } from '@/server/auth/guards';
-import { isPaymentProviderKey } from '@/server/payments/registry';
-import { handleProviderWebhook } from '@/server/services/paymentService';
-import { jsonNoStore, withBillingErrors } from '@/server/services/billingHttp';
+import { HttpError } from '@/server/errors';
+import { isPaymentProviderKey } from '@/server/modules/billing/payments/registry';
+import { handleProviderWebhook } from '@/server/modules/billing/paymentService';
+import { jsonNoStore, withBillingErrors } from '@/server/modules/billing/http';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';

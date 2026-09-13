@@ -1,14 +1,15 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { prisma } from '@/server/db/prisma';
-import { clearSessionCookie } from '@/server/auth/cookies';
-import { getCurrentUser } from '@/server/auth/getCurrentUser';
-import { assertSameOrigin, withAuthErrors } from '@/server/auth/guards';
+import { clearSessionCookie } from '@/server/modules/auth/cookies';
+import { getCurrentUser } from '@/server/modules/auth/getCurrentUser';
+import { assertSameOrigin } from '@/server/modules/auth/guards';
+import { withErrorHandling } from '@/server/errors';
 import { logoutSchema } from '@/shared/lib/validation/authSchemas';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export const POST = withAuthErrors(async (req: NextRequest) => {
+export const POST = withErrorHandling(async (req: NextRequest) => {
   assertSameOrigin(req);
 
   const body = await req.json().catch(() => ({}));

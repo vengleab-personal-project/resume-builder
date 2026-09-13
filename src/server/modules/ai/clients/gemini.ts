@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 import { serverEnv } from '@/server/config/env.server';
-import { isChatModelAllowed } from '@/server/ai/registry';
+import { isChatModelAllowed } from '@/server/modules/ai/registry';
 import { AI_CONFIG } from '@/shared/config/constants';
 
 const genAI = new GoogleGenerativeAI(serverEnv.GEMINI_API_KEY || "");

@@ -1,13 +1,14 @@
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { HttpError, assertSameOrigin, requireUser } from '@/server/auth/guards';
-import { isPaymentProviderKey, listAvailableProviders } from '@/server/payments/registry';
+import { assertSameOrigin, requireUser } from '@/server/modules/auth/guards';
+import { HttpError } from '@/server/errors';
+import { isPaymentProviderKey, listAvailableProviders } from '@/server/modules/billing/payments/registry';
 import {
   createPaymentOrder,
   listUserOrders,
   toPaymentOrderDTO,
-} from '@/server/services/paymentService';
-import { jsonNoStore, withBillingErrors } from '@/server/services/billingHttp';
+} from '@/server/modules/billing/paymentService';
+import { jsonNoStore, withBillingErrors } from '@/server/modules/billing/http';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';

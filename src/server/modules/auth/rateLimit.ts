@@ -6,7 +6,7 @@ import {
   LOGIN_RATE_LIMIT_MAX_FAILURES,
   LOGIN_RATE_LIMIT_WINDOW_MS,
 } from '@/shared/config/auth';
-import { HttpError } from './guards';
+import { HttpError } from '@/server/errors';
 
 // Raw IPs are personal data and this table is long-lived, so only a salted
 // digest is stored. The salt makes the hashes useless outside this deployment.

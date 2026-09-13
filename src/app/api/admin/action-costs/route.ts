@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { invalidateAiConfig } from '@/server/ai/registry';
-import { requireAdmin, assertSameOrigin, withAuthErrors, HttpError } from '@/server/auth/guards';
+import { invalidateAiConfig } from '@/server/modules/ai/registry';
+import { requireAdmin, assertSameOrigin } from '@/server/modules/auth/guards';
+import { withErrorHandling, HttpError } from '@/server/errors';
 import { prisma } from '@/server/db/prisma';
 import {
   deleteActionCostSchema,
@@ -10,7 +11,7 @@ import {
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export const GET = withAuthErrors(async () => {
+export const GET = withErrorHandling(async () => {
   await requireAdmin();
 
   const costs = await prisma.actionCost.findMany({ orderBy: [{ action: 'asc' }] });
@@ -20,7 +21,7 @@ export const GET = withAuthErrors(async () => {
 
 // One idempotent upsert endpoint instead of separate create/update: the matrix
 // UI only ever knows (action, model) and a number, never a row id.
-export const PUT = withAuthErrors(async (req: NextRequest) => {
+export const PUT = withErrorHandling(async (req: NextRequest) => {
   await requireAdmin();
   assertSameOrigin(req);
 
@@ -55,7 +56,7 @@ export const PUT = withAuthErrors(async (req: NextRequest) => {
 // Deleting an override makes the action inherit the default row again. The
 // default row itself (chatModelId null) is not deletable — every action must
 // always price.
-export const DELETE = withAuthErrors(async (req: NextRequest) => {
+export const DELETE = withErrorHandling(async (req: NextRequest) => {
   await requireAdmin();
   assertSameOrigin(req);
 

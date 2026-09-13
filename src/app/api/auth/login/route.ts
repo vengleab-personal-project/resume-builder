@@ -1,16 +1,17 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { prisma } from '@/server/db/prisma';
-import { issueSessionCookie } from '@/server/auth/cookies';
-import { PUBLIC_USER_SELECT, toPublicUser } from '@/server/auth/getCurrentUser';
-import { HttpError, assertSameOrigin, withAuthErrors } from '@/server/auth/guards';
-import { fakeVerify, verifyPassword } from '@/server/auth/password';
+import { issueSessionCookie } from '@/server/modules/auth/cookies';
+import { PUBLIC_USER_SELECT, toPublicUser } from '@/server/modules/auth/getCurrentUser';
+import { assertSameOrigin } from '@/server/modules/auth/guards';
+import { HttpError, withErrorHandling } from '@/server/errors';
+import { fakeVerify, verifyPassword } from '@/server/modules/auth/password';
 import {
   assertLoginAllowed,
   clearFailedAttempts,
   getClientIp,
   hashIp,
   recordAuthAttempt,
-} from '@/server/auth/rateLimit';
+} from '@/server/modules/auth/rateLimit';
 import { loginSchema } from '@/shared/lib/validation/authSchemas';
 
 export const runtime = 'nodejs';
@@ -19,7 +20,7 @@ export const dynamic = 'force-dynamic';
 const INVALID_CREDENTIALS = () =>
   new HttpError(401, 'INVALID_CREDENTIALS', 'Invalid username or password');
 
-export const POST = withAuthErrors(async (req: NextRequest) => {
+export const POST = withErrorHandling(async (req: NextRequest) => {
   assertSameOrigin(req);
 
   const body = await req.json().catch(() => null);

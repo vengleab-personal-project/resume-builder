@@ -1,14 +1,15 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { prisma } from '@/server/db/prisma';
-import { issueSessionCookie } from '@/server/auth/cookies';
-import { HttpError, assertSameOrigin, requireUser, withAuthErrors } from '@/server/auth/guards';
-import { hashPassword, verifyPassword } from '@/server/auth/password';
+import { issueSessionCookie } from '@/server/modules/auth/cookies';
+import { assertSameOrigin, requireUser } from '@/server/modules/auth/guards';
+import { HttpError, withErrorHandling } from '@/server/errors';
+import { hashPassword, verifyPassword } from '@/server/modules/auth/password';
 import { setPasswordSchema } from '@/shared/lib/validation/authSchemas';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export const POST = withAuthErrors(async (req: NextRequest) => {
+export const POST = withErrorHandling(async (req: NextRequest) => {
   assertSameOrigin(req);
 
   const user = await requireUser();

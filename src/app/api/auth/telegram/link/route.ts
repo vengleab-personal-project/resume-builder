@@ -1,15 +1,16 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { prisma } from '@/server/db/prisma';
-import { PUBLIC_USER_SELECT, toPublicUser } from '@/server/auth/getCurrentUser';
-import { HttpError, assertSameOrigin, requireUser, withAuthErrors } from '@/server/auth/guards';
-import { verifyTelegramAuth } from '@/server/auth/telegram';
-import { isUniqueViolation } from '@/server/auth/telegramAccount';
+import { PUBLIC_USER_SELECT, toPublicUser } from '@/server/modules/auth/getCurrentUser';
+import { assertSameOrigin, requireUser } from '@/server/modules/auth/guards';
+import { HttpError, withErrorHandling } from '@/server/errors';
+import { verifyTelegramAuth } from '@/server/modules/auth/telegram';
+import { isUniqueViolation } from '@/server/modules/auth/telegramAccount';
 import { telegramAuthPayloadSchema } from '@/shared/lib/validation/authSchemas';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export const POST = withAuthErrors(async (req: NextRequest) => {
+export const POST = withErrorHandling(async (req: NextRequest) => {
   assertSameOrigin(req);
 
   const user = await requireUser();
@@ -62,7 +63,7 @@ export const POST = withAuthErrors(async (req: NextRequest) => {
   }
 });
 
-export const DELETE = withAuthErrors(async (req: NextRequest) => {
+export const DELETE = withErrorHandling(async (req: NextRequest) => {
   assertSameOrigin(req);
 
   const user = await requireUser();

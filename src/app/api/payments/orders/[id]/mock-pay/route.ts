@@ -1,10 +1,11 @@
 import type { NextRequest } from 'next/server';
 import { prisma } from '@/server/db/prisma';
 import { serverEnv } from '@/server/config/env.server';
-import { HttpError, assertSameOrigin, requireUser } from '@/server/auth/guards';
-import { getBalance } from '@/server/services/coinService';
-import { syncPaymentOrder, toPaymentOrderDTO } from '@/server/services/paymentService';
-import { jsonNoStore, withBillingErrors } from '@/server/services/billingHttp';
+import { assertSameOrigin, requireUser } from '@/server/modules/auth/guards';
+import { HttpError } from '@/server/errors';
+import { getBalance } from '@/server/modules/billing/coinService';
+import { syncPaymentOrder, toPaymentOrderDTO } from '@/server/modules/billing/paymentService';
+import { jsonNoStore, withBillingErrors } from '@/server/modules/billing/http';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -30,7 +31,7 @@ export const POST = withBillingErrors(
       throw new HttpError(404, 'NOT_FOUND', 'Mock order not found');
     }
 
-    const { markMockOrderPaid } = await import('@/server/payments/providers/mock');
+    const { markMockOrderPaid } = await import('@/server/modules/billing/payments/providers/mock');
     markMockOrderPaid(order.billNumber);
 
     const synced = await syncPaymentOrder({ orderId: id, userId: user.id, force: true });

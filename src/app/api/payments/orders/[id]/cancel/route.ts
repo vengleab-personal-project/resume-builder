@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
-import { assertSameOrigin, requireUser } from '@/server/auth/guards';
-import { cancelPaymentOrder, toPaymentOrderDTO } from '@/server/services/paymentService';
-import { jsonNoStore, withBillingErrors } from '@/server/services/billingHttp';
+import { assertSameOrigin, requireUser } from '@/server/modules/auth/guards';
+import { cancelPaymentOrder, toPaymentOrderDTO } from '@/server/modules/billing/paymentService';
+import { jsonNoStore, withBillingErrors } from '@/server/modules/billing/http';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';

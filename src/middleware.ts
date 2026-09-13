@@ -11,7 +11,7 @@ import {
   shouldRefreshSession,
   signSession,
   verifySession,
-} from '@/server/auth/session';
+} from '@/server/modules/auth/session';
 
 // EDGE RUNTIME: this file and everything it imports run on the Edge runtime.
 // Only `next/server`, plain constants and the jose-only session module are

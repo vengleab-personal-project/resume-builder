@@ -1,6 +1,6 @@
 import 'server-only';
 import type { AiAction } from '@/server/db/generated/prisma';
-import { HttpError } from '@/server/auth/guards';
+import { HttpError } from '@/server/errors';
 import { FALLBACK_CHAT_MODELS } from '@/shared/config/constants';
 import { getActionCost } from './actionCostService';
 import { findActiveChatModel, getDefaultChatModel, toDbProvider, toWireProvider } from './chatModelService';

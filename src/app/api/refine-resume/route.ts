@@ -6,11 +6,12 @@ import {
   refineWithOpenAI,
   buildRefinementPrompt,
   generateMockRefinement,
-} from "@/server/services/refinementService";
-import { errorResponse, requireUser } from "@/server/auth/guards";
-import { resolveAiRequest } from "@/server/ai/registry";
-import { withCoinDeduction } from "@/server/services/coinService";
-import { tryBillingErrorResponse, withCoinBalanceHeader } from "@/server/services/billingHttp";
+} from "@/server/modules/ai/workflows/refinementService";
+import { requireUser } from "@/server/modules/auth/guards";
+import { errorResponse } from "@/server/errors";
+import { resolveAiRequest } from "@/server/modules/ai/registry";
+import { withCoinDeduction } from "@/server/modules/billing/coinService";
+import { tryBillingErrorResponse, withCoinBalanceHeader } from "@/server/modules/billing/http";
 import type { PublicUser } from "@/shared/types/auth";
 
 export const runtime = "nodejs";

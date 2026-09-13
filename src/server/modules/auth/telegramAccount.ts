@@ -7,7 +7,7 @@ import {
 } from '@/shared/config/auth';
 import type { PublicUser } from '@/shared/types/auth';
 import { PUBLIC_USER_SELECT, toPublicUser } from './getCurrentUser';
-import { HttpError } from './guards';
+import { HttpError } from '@/server/errors';
 import type { VerifiedTelegramUser } from './telegram';
 
 // Telegram usernames allow characters our username rule forbids, so the handle

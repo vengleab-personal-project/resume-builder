@@ -1,8 +1,8 @@
 import type { NextRequest } from 'next/server';
-import { requireUser } from '@/server/auth/guards';
+import { requireUser } from '@/server/modules/auth/guards';
 import { DEFAULT_AI_CONFIG } from '@/shared/config/constants';
-import { getActionCosts } from '@/server/services/coinService';
-import { jsonNoStore, withBillingErrors } from '@/server/services/billingHttp';
+import { getActionCosts } from '@/server/modules/billing/coinService';
+import { jsonNoStore, withBillingErrors } from '@/server/modules/billing/http';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';

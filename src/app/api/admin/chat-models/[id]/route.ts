@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { invalidateAiConfig } from '@/server/ai/registry';
-import { requireAdmin, assertSameOrigin, withAuthErrors, HttpError } from '@/server/auth/guards';
-import { isUniqueViolation } from '@/server/auth/telegramAccount';
+import { invalidateAiConfig } from '@/server/modules/ai/registry';
+import { requireAdmin, assertSameOrigin } from '@/server/modules/auth/guards';
+import { withErrorHandling, HttpError } from '@/server/errors';
+import { isUniqueViolation } from '@/server/modules/auth/telegramAccount';
 import { prisma } from '@/server/db/prisma';
 import { updateChatModelSchema } from '@/shared/lib/validation/configSchemas';
 
@@ -10,7 +11,7 @@ export const dynamic = 'force-dynamic';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export const PATCH = withAuthErrors(async (req: NextRequest, context: RouteContext) => {
+export const PATCH = withErrorHandling(async (req: NextRequest, context: RouteContext) => {
   await requireAdmin();
   assertSameOrigin(req);
 
@@ -60,7 +61,7 @@ export const PATCH = withAuthErrors(async (req: NextRequest, context: RouteConte
   }
 });
 
-export const DELETE = withAuthErrors(async (req: NextRequest, context: RouteContext) => {
+export const DELETE = withErrorHandling(async (req: NextRequest, context: RouteContext) => {
   await requireAdmin();
   assertSameOrigin(req);
 

@@ -1,10 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { serverEnv } from '@/server/config/env.server';
-import { issueSessionCookie } from '@/server/auth/cookies';
-import { assertSameOrigin, withAuthErrors } from '@/server/auth/guards';
-import { loginOrCreateTelegramUser } from '@/server/auth/telegramAccount';
-import type { VerifiedTelegramUser } from '@/server/auth/telegram';
+import { issueSessionCookie } from '@/server/modules/auth/cookies';
+import { assertSameOrigin } from '@/server/modules/auth/guards';
+import { withErrorHandling } from '@/server/errors';
+import { loginOrCreateTelegramUser } from '@/server/modules/auth/telegramAccount';
+import type { VerifiedTelegramUser } from '@/server/modules/auth/telegram';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -25,7 +26,7 @@ const devLoginSchema = z.object({
 
 const DEFAULT_DEV_TELEGRAM_ID = '900000000001';
 
-export const POST = withAuthErrors(async (req: NextRequest) => {
+export const POST = withErrorHandling(async (req: NextRequest) => {
   if (serverEnv.isProduction) {
     return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
   }

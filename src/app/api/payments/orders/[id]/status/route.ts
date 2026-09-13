@@ -1,7 +1,7 @@
-import { requireUser } from '@/server/auth/guards';
-import { getBalance } from '@/server/services/coinService';
-import { syncPaymentOrder, toPaymentOrderDTO } from '@/server/services/paymentService';
-import { jsonNoStore, withBillingErrors } from '@/server/services/billingHttp';
+import { requireUser } from '@/server/modules/auth/guards';
+import { getBalance } from '@/server/modules/billing/coinService';
+import { syncPaymentOrder, toPaymentOrderDTO } from '@/server/modules/billing/paymentService';
+import { jsonNoStore, withBillingErrors } from '@/server/modules/billing/http';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';

@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
-import { issueSessionCookie, readSessionToken } from '@/server/auth/cookies';
-import { getCurrentUser } from '@/server/auth/getCurrentUser';
-import { withAuthErrors } from '@/server/auth/guards';
-import { shouldRefreshSession, verifySession } from '@/server/auth/session';
+import { issueSessionCookie, readSessionToken } from '@/server/modules/auth/cookies';
+import { getCurrentUser } from '@/server/modules/auth/getCurrentUser';
+import { withErrorHandling } from '@/server/errors';
+import { shouldRefreshSession, verifySession } from '@/server/modules/auth/session';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export const GET = withAuthErrors(async () => {
+export const GET = withErrorHandling(async () => {
   const user = await getCurrentUser();
 
   if (!user) {

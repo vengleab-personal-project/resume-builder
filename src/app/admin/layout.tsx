@@ -1,7 +1,7 @@
 import React from 'react';
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/client/views/Admin/AdminShell';
-import { getCurrentUser } from '@/server/auth/getCurrentUser';
+import { getCurrentUser } from '@/server/modules/auth/getCurrentUser';
 import { ADMIN_PATH_PREFIX, AUTH_ROUTES } from '@/shared/config/auth';
 
 // Never prerender: the role check has to run per request, and there is no

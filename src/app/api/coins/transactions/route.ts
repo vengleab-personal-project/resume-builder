@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
-import { requireUser } from '@/server/auth/guards';
-import { getBalance, listTransactions } from '@/server/services/coinService';
-import { jsonNoStore, withBillingErrors } from '@/server/services/billingHttp';
+import { requireUser } from '@/server/modules/auth/guards';
+import { getBalance, listTransactions } from '@/server/modules/billing/coinService';
+import { jsonNoStore, withBillingErrors } from '@/server/modules/billing/http';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';

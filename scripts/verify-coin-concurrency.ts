@@ -18,25 +18,25 @@
  * `server-only`, which throws under the default Node resolution conditions.
  */
 import { PrismaClient } from '../src/server/db/generated/prisma';
-import { getActionCost } from '../src/server/ai/registry/actionCostService';
+import { getActionCost } from '../src/server/modules/ai/registry/actionCostService';
 import {
   InsufficientCoinsError,
   debitCoins,
   refundDeduction,
   withCoinDeduction,
-} from '../src/server/services/coinService';
+} from '../src/server/modules/billing/coinService';
 import {
   createPaymentOrder,
   settlePaidOrder,
   syncPaymentOrder,
-} from '../src/server/services/paymentService';
-import { markMockOrderPaid } from '../src/server/payments/providers/mock';
+} from '../src/server/modules/billing/paymentService';
+import { markMockOrderPaid } from '../src/server/modules/billing/payments/providers/mock';
 import {
   isSettled,
   isTransactionNotFound,
   type BakongCheckResponse,
-} from '../src/server/payments/providers/bakong/client';
-import { formatMinor, toMinor } from '../src/server/payments/currency';
+} from '../src/server/modules/billing/payments/providers/bakong/client';
+import { formatMinor, toMinor } from '../src/server/modules/billing/payments/currency';
 
 // This script TRUNCATEs tables. `.env` may well hold real credentials, and
 // PrismaClient falls back to it, so refuse anything that is not obviously a

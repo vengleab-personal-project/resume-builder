@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { HTTP_STATUS, API_ERROR_MESSAGES } from '@/shared/config/constants';
-import { orchestrateResumeParsing } from '@/server/services/parseResumeOrchestrator';
-import { errorResponse, requireUser } from '@/server/auth/guards';
-import { resolveAiRequest } from '@/server/ai/registry';
+import { orchestrateResumeParsing } from '@/server/modules/ai/workflows/parseResumeOrchestrator';
+import { requireUser } from '@/server/modules/auth/guards';
+import { errorResponse } from '@/server/errors';
+import { resolveAiRequest } from '@/server/modules/ai/registry';
 import { serverEnv } from '@/server/config/env.server';
-import { withCoinDeduction } from '@/server/services/coinService';
-import { tryBillingErrorResponse, withCoinBalanceHeader } from '@/server/services/billingHttp';
+import { withCoinDeduction } from '@/server/modules/billing/coinService';
+import { tryBillingErrorResponse, withCoinBalanceHeader } from '@/server/modules/billing/http';
 import type { PublicUser } from '@/shared/types/auth';
 
 export const runtime = 'nodejs';

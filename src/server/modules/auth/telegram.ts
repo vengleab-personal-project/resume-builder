@@ -2,7 +2,7 @@ import 'server-only';
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import { serverEnv } from '@/server/config/env.server';
 import { TELEGRAM_AUTH_MAX_AGE_SECONDS } from '@/shared/config/auth';
-import { HttpError } from '@/server/auth/guards';
+import { HttpError } from '@/server/errors';
 import type { TelegramAuthPayload } from '@/shared/types/auth';
 
 export interface VerifiedTelegramUser {

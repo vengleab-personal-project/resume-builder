@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { HttpError, assertSameOrigin, requireUser, withAuthErrors } from '@/server/auth/guards';
-import { findOwnedResume, softDeleteResume } from '@/server/services/resumePersistenceService';
+import { assertSameOrigin, requireUser } from '@/server/modules/auth/guards';
+import { HttpError, withErrorHandling } from '@/server/errors';
+import { findOwnedResume, softDeleteResume } from '@/server/modules/resumes/resumePersistenceService';
 import { applyResumePatch } from './applyResumePatch';
 
 export const runtime = 'nodejs';
@@ -8,7 +9,7 @@ export const dynamic = 'force-dynamic';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export const GET = withAuthErrors(async (_req: NextRequest, context: RouteContext) => {
+export const GET = withErrorHandling(async (_req: NextRequest, context: RouteContext) => {
   const user = await requireUser();
   const { id } = await context.params;
 
@@ -20,7 +21,7 @@ export const GET = withAuthErrors(async (_req: NextRequest, context: RouteContex
   return NextResponse.json({ resume }, { headers: { 'Cache-Control': 'no-store' } });
 });
 
-export const PATCH = withAuthErrors(async (req: NextRequest, context: RouteContext) => {
+export const PATCH = withErrorHandling(async (req: NextRequest, context: RouteContext) => {
   assertSameOrigin(req);
 
   const user = await requireUser();
@@ -29,7 +30,7 @@ export const PATCH = withAuthErrors(async (req: NextRequest, context: RouteConte
   return applyResumePatch(user.id, id, await req.json().catch(() => null));
 });
 
-export const DELETE = withAuthErrors(async (req: NextRequest, context: RouteContext) => {
+export const DELETE = withErrorHandling(async (req: NextRequest, context: RouteContext) => {
   assertSameOrigin(req);
 
   const user = await requireUser();

@@ -9,7 +9,7 @@ import {
   parseResumeWithOpenAI, 
   parseResumeWithGemini,
   generateMockResponse 
-} from '@/server/services/parsingService';
+} from '@/server/modules/ai/workflows/parsingService';
 import { ResumeData } from '@/shared/types';
 
 interface ParseResumeRequest {

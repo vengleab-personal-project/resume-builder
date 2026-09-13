@@ -1,8 +1,8 @@
 import type { NextRequest } from 'next/server';
 import { serverEnv } from '@/server/config/env.server';
-import { HttpError } from '@/server/auth/guards';
-import { reconcilePendingOrders } from '@/server/services/paymentService';
-import { jsonNoStore, withBillingErrors } from '@/server/services/billingHttp';
+import { HttpError } from '@/server/errors';
+import { reconcilePendingOrders } from '@/server/modules/billing/paymentService';
+import { jsonNoStore, withBillingErrors } from '@/server/modules/billing/http';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';

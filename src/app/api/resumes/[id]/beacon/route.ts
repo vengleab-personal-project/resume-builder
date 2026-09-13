@@ -1,5 +1,6 @@
 import { type NextRequest } from 'next/server';
-import { assertSameOrigin, requireUser, withAuthErrors } from '@/server/auth/guards';
+import { assertSameOrigin, requireUser } from '@/server/modules/auth/guards';
+import { withErrorHandling } from '@/server/errors';
 import { applyResumePatch } from '../applyResumePatch';
 
 export const runtime = 'nodejs';
@@ -11,7 +12,7 @@ type RouteContext = { params: Promise<{ id: string }> };
 // being closed, and it can only issue a POST -- hence this endpoint instead of
 // reusing PATCH. The body arrives as a Blob whose type the browser may rewrite,
 // so it is read as text and parsed rather than trusting req.json().
-export const POST = withAuthErrors(async (req: NextRequest, context: RouteContext) => {
+export const POST = withErrorHandling(async (req: NextRequest, context: RouteContext) => {
   assertSameOrigin(req);
 
   const user = await requireUser();

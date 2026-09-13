@@ -4,9 +4,9 @@ import QRCode from 'qrcode';
 import type { CoinPackage, PaymentOrder, Prisma } from '@/server/db/generated/prisma';
 import { prisma } from '@/server/db/prisma';
 import { serverEnv } from '@/server/config/env.server';
-import { formatMinor } from '@/server/payments/currency';
-import { getConfiguredProvider, getPaymentProvider } from '@/server/payments/registry';
-import { PaymentProviderError, type CheckStatusResult } from '@/server/payments/types';
+import { formatMinor } from '@/server/modules/billing/payments/currency';
+import { getConfiguredProvider, getPaymentProvider } from '@/server/modules/billing/payments/registry';
+import { PaymentProviderError, type CheckStatusResult } from '@/server/modules/billing/payments/types';
 import type {
   CoinPackageDTO,
   CurrencyKey,

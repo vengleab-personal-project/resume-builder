@@ -12,7 +12,7 @@
 // plain tsx, which is how this script runs).
 
 import { PrismaClient } from '../src/server/db/generated/prisma';
-import { hashPassword } from '../src/server/auth/password';
+import { hashPassword } from '../src/server/modules/auth/password';
 import { FALLBACK_ACTION_COSTS, FALLBACK_CHAT_MODELS } from '../src/shared/config/constants';
 
 const prisma = new PrismaClient();

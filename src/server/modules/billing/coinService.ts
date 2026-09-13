@@ -1,7 +1,7 @@
 import 'server-only';
 import type { AiAction, CoinTransaction, Prisma } from '@/server/db/generated/prisma';
 import { prisma } from '@/server/db/prisma';
-import { getActionCost } from '@/server/ai/registry/actionCostService';
+import { getActionCost } from '@/server/modules/ai/registry/actionCostService';
 import type { CoinTransactionDTO } from '@/shared/types/coins';
 
 type DbClient = Prisma.TransactionClient | typeof prisma;

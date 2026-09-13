@@ -1,7 +1,7 @@
-import { requireUser } from '@/server/auth/guards';
-import { listAvailableProviders } from '@/server/payments/registry';
-import { listCoinPackages } from '@/server/services/paymentService';
-import { jsonNoStore, withBillingErrors } from '@/server/services/billingHttp';
+import { requireUser } from '@/server/modules/auth/guards';
+import { listAvailableProviders } from '@/server/modules/billing/payments/registry';
+import { listCoinPackages } from '@/server/modules/billing/paymentService';
+import { jsonNoStore, withBillingErrors } from '@/server/modules/billing/http';
 import type { PaymentProviderOptionDTO } from '@/shared/types/coins';
 
 export const runtime = 'nodejs';

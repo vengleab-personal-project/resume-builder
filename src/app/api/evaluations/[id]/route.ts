@@ -1,17 +1,18 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { prisma } from '@/server/db/prisma';
-import { HttpError, assertSameOrigin, requireUser, withAuthErrors } from '@/server/auth/guards';
+import { assertSameOrigin, requireUser } from '@/server/modules/auth/guards';
+import { HttpError, withErrorHandling } from '@/server/errors';
 import {
   EVALUATION_SUMMARY_SELECT,
   toEvaluationDTO,
-} from '@/server/services/evaluationPersistenceService';
+} from '@/server/modules/resumes/evaluationPersistenceService';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export const GET = withAuthErrors(async (_req: NextRequest, context: RouteContext) => {
+export const GET = withErrorHandling(async (_req: NextRequest, context: RouteContext) => {
   const user = await requireUser();
   const { id } = await context.params;
 
@@ -30,7 +31,7 @@ export const GET = withAuthErrors(async (_req: NextRequest, context: RouteContex
   );
 });
 
-export const DELETE = withAuthErrors(async (req: NextRequest, context: RouteContext) => {
+export const DELETE = withErrorHandling(async (req: NextRequest, context: RouteContext) => {
   assertSameOrigin(req);
 
   const user = await requireUser();

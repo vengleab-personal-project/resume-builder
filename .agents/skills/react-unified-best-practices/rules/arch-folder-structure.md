@@ -20,8 +20,22 @@ src/
 │   └── styles/               # Global styles
 │
 ├── server/                   # BACKEND ONLY (Never shipped to browser)
-│   ├── services/             # Core backend logic & business orchestration
-│   └── integrations/         # External API clients (OpenAI, Gemini, etc.)
+│   ├── db/                   # Prisma client singleton + generated client (gitignored)
+│   ├── config/               # Server-only env vars (import "server-only")
+│   ├── errors/                # Cross-cutting HttpError / errorResponse / withErrorHandling.
+│   │                           # Used by every module below — nothing domain-specific here.
+│   └── modules/               # Domain-driven slices, imported directly file-to-file
+│       │                       # (no barrel index.ts requirement — import the specific
+│       │                       # file, e.g. "@/server/modules/auth/guards")
+│       ├── auth/                # session, guards, password, telegram(Account), cookies, rateLimit
+│       ├── ai/
+│       │   ├── clients/         # Raw external SDK clients (gemini.ts, openai.ts)
+│       │   ├── registry/        # Chat-model + coin-cost registry (admin-configurable)
+│       │   └── workflows/       # Multi-step orchestration (parsing, refinement)
+│       ├── resumes/             # Resume & evaluation persistence services
+│       └── billing/             # coinService, paymentService, http.ts, plus:
+│           └── payments/         # the provider abstraction — types/currency/registry
+│               └── providers/     # + providers/{bakong,mock}
 │
 └── shared/                   # SHARED (Safe for both Client & Server)
     ├── types/                # Shared TypeScript interfaces

@@ -1,16 +1,17 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { prisma } from '@/server/db/prisma';
-import { HttpError, requireUser, withAuthErrors } from '@/server/auth/guards';
+import { requireUser } from '@/server/modules/auth/guards';
+import { HttpError, withErrorHandling } from '@/server/errors';
 import {
   EVALUATION_SUMMARY_SELECT,
   toEvaluationSummary,
-} from '@/server/services/evaluationPersistenceService';
+} from '@/server/modules/resumes/evaluationPersistenceService';
 import { evaluationListQuerySchema } from '@/shared/lib/validation/resumeSchemas';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export const GET = withAuthErrors(async (req: NextRequest) => {
+export const GET = withErrorHandling(async (req: NextRequest) => {
   const user = await requireUser();
 
   const parsed = evaluationListQuerySchema.safeParse({

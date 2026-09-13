@@ -1,19 +1,20 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import type { Prisma } from '@/server/db/generated/prisma';
 import { prisma } from '@/server/db/prisma';
-import { HttpError, assertSameOrigin, requireUser, withAuthErrors } from '@/server/auth/guards';
+import { assertSameOrigin, requireUser } from '@/server/modules/auth/guards';
+import { HttpError, withErrorHandling } from '@/server/errors';
 import {
   RESUME_FULL_SELECT,
   RESUME_SUMMARY_SELECT,
   toResumeDTO,
   toResumeSummary,
-} from '@/server/services/resumePersistenceService';
+} from '@/server/modules/resumes/resumePersistenceService';
 import { createResumeSchema } from '@/shared/lib/validation/resumeSchemas';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export const GET = withAuthErrors(async () => {
+export const GET = withErrorHandling(async () => {
   const user = await requireUser();
 
   const rows = await prisma.resume.findMany({
@@ -28,7 +29,7 @@ export const GET = withAuthErrors(async () => {
   );
 });
 
-export const POST = withAuthErrors(async (req: NextRequest) => {
+export const POST = withErrorHandling(async (req: NextRequest) => {
   assertSameOrigin(req);
 
   const user = await requireUser();

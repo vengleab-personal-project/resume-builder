@@ -1,7 +1,7 @@
 import 'server-only';
 import { NextResponse } from 'next/server';
-import { errorResponse } from '@/server/auth/guards';
-import { PaymentProviderError } from '@/server/payments/types';
+import { errorResponse } from '@/server/errors';
+import { PaymentProviderError } from '@/server/modules/billing/payments/types';
 import { COIN_BALANCE_HEADER } from '@/shared/types/coins';
 import { InsufficientCoinsError } from './coinService';
 import { PaymentError } from './paymentService';

@@ -1,11 +1,11 @@
 import 'server-only';
 import { NextResponse } from 'next/server';
 import type { Prisma } from '@/server/db/generated/prisma';
-import { HttpError } from '@/server/auth/guards';
+import { HttpError } from '@/server/errors';
 import {
   updateResumeWithVersionCheck,
   type ResumePatch,
-} from '@/server/services/resumePersistenceService';
+} from '@/server/modules/resumes/resumePersistenceService';
 import { updateResumeSchema } from '@/shared/lib/validation/resumeSchemas';
 
 // Shared by PATCH /api/resumes/[id] and its sendBeacon twin. The two differ

@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { invalidateAiConfig } from '@/server/ai/registry';
-import { requireAdmin, assertSameOrigin, withAuthErrors, HttpError } from '@/server/auth/guards';
-import { isUniqueViolation } from '@/server/auth/telegramAccount';
+import { invalidateAiConfig } from '@/server/modules/ai/registry';
+import { requireAdmin, assertSameOrigin } from '@/server/modules/auth/guards';
+import { withErrorHandling, HttpError } from '@/server/errors';
+import { isUniqueViolation } from '@/server/modules/auth/telegramAccount';
 import { prisma } from '@/server/db/prisma';
 import { createChatModelSchema } from '@/shared/lib/validation/configSchemas';
 
@@ -10,7 +11,7 @@ export const runtime = 'nodejs';
 // no DATABASE_URL, and a cached response would show stale config.
 export const dynamic = 'force-dynamic';
 
-export const GET = withAuthErrors(async () => {
+export const GET = withErrorHandling(async () => {
   await requireAdmin();
 
   const models = await prisma.chatModel.findMany({
@@ -20,7 +21,7 @@ export const GET = withAuthErrors(async () => {
   return NextResponse.json({ models }, { headers: { 'Cache-Control': 'no-store' } });
 });
 
-export const POST = withAuthErrors(async (req: NextRequest) => {
+export const POST = withErrorHandling(async (req: NextRequest) => {
   await requireAdmin();
   assertSameOrigin(req);
 
