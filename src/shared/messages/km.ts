@@ -630,6 +630,7 @@ const km: typeof en = {
     sidebar: {
         myResumes: "ប្រវត្តិរូបរបស់ខ្ញុំ",
         resumeBuilder: "បង្កើតប្រវត្តិរូប",
+        basicResume: "ប្រវត្តិរូបសង្ខេប",
         aiEvaluation: "វាយតម្លៃជាមួយ AI",
         settings: "ការកំណត់",
         admin: "ការគ្រប់គ្រងប្រព័ន្ធ",
@@ -677,6 +678,39 @@ const km: typeof en = {
             placeOfBirth: "ទីកន្លែងកំណើត",
             maritalStatus: "ស្ថានភាពគ្រួសារ",
             health: "សុខភាព"
+        },
+        editor: {
+            loading: "កំពុងបើកប្រវត្តិរូបសង្ខេបរបស់អ្នក...",
+            voiceComingSoon: "សូមវាយបញ្ចូលចម្លើយនៅទីនេះសិន។ ការឆ្លើយដោយសំឡេងនឹងមកដល់ឆាប់ៗ ហើយការវាយបញ្ចូលនឹងនៅតែប្រើបានជានិច្ច។",
+            identity: "អំពីអ្នក",
+            fullName: "ឈ្មោះពេញ",
+            positionSought: "មុខតំណែង",
+            address: "អាសយដ្ឋាន",
+            phone: "លេខទូរស័ព្ទ",
+            email: "អ៊ីមែល (ស្រេចចិត្ត)",
+            year: "ឆ្នាំ",
+            detail: "ព័ត៌មានលម្អិត",
+            languageName: "ភាសា",
+            languageSkills: "អ្វីដែលអ្នកអាចធ្វើបាន",
+            interestsHint: "បំបែកដោយសញ្ញាក្បៀស",
+            statementHint: "តើអ្នកនឹងពណ៌នាខ្លួនឯងជាបុគ្គលិកម្នាក់យ៉ាងដូចម្តេច?",
+            add: "បន្ថែម",
+            remove: "លុប",
+            toolbar: {
+                heading: "ប្រវត្តិរូបសង្ខេប",
+                titlePlaceholder: "ឈ្មោះឯកសារ",
+                newCv: "ថ្មី",
+                exportPdf: "បោះពុម្ព / PDF",
+                exportDocx: "ទាញយក DOCX",
+                exporting: "កំពុងទាញយក...",
+                status: {
+                    idle: "",
+                    saving: "កំពុងរក្សាទុក...",
+                    saved: "បានរក្សាទុក",
+                    error: "រក្សាទុកមិនបាន",
+                    conflict: "បានធ្វើបច្ចុប្បន្នភាពពីផ្ទាំងផ្សេង"
+                }
+            }
         }
     },
     basicInterview: {
