@@ -141,11 +141,16 @@ Each kind has its own default resume (the partial unique index is scoped by
 `(userId, kind)`), its own template, and its own editor. Never route one kind into the other's
 editor, and never convert between them.
 
-The whole basic-CV line ships behind `BASIC_RESUME_ENABLED` (server-side, default off). Landed
-so far: the data model, the fixed 15-question interview script
-(`shared/lib/basic-interview-script.ts`, EN + KM), and the template
-(`client/features/BasicResume/`, preview + DOCX). Still to come: the Gemini voice pipeline,
-the interview session API, the voice UI, and the entry/export wiring.
+The basic CV lives at **`/basic-resume`** (`views/BasicResume`, MVVM), backed by
+`/api/basic-resume` and `/api/basic-resume/[id]`. It is a typed editor with a live preview and
+PDF/DOCX export, autosaving against the same version check the full builder uses. There is no
+feature flag: the screen is shipped and reachable from the sidebar.
+
+Answers are typed today; the Gemini voice interview (STT -> extraction -> TTS) fills the same
+fields through the same paths once it lands. Typing is not a stopgap that the voice flow
+replaces — it stays as the accessibility path for deaf and hard-of-hearing users, the recovery
+path when a microphone is unavailable, and the correction path when speech recognition
+mishears a name.
 
 Two conventions worth keeping when extending it:
 - The interview script's `targetPath` and `promptKey` are **checked types**, not strings — a

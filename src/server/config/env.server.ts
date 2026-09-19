@@ -76,17 +76,6 @@ export const serverEnv = {
     return integer('MAX_AI_TOKENS', 5000);
   },
 
-  // --- Basic Resume ---------------------------------------------------------
-
-  // Default off. Every module of the basic-CV product line ships behind this,
-  // so a half-built flow can land on main without being reachable. Server-side
-  // rather than NEXT_PUBLIC_ deliberately: the flag has to gate the API routes,
-  // not just hide a button, and a client-readable copy would invite the reverse.
-  // The entry points read it through a server component, not from the bundle.
-  get BASIC_RESUME_ENABLED(): boolean {
-    return process.env.BASIC_RESUME_ENABLED === 'true';
-  },
-
   // --- Payments -------------------------------------------------------------
 
   // Guards /api/cron/payments-reconcile. Unset means the route refuses to run

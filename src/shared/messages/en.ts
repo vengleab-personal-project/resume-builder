@@ -628,6 +628,7 @@ const en = {
     sidebar: {
         myResumes: "My Resumes",
         resumeBuilder: "Resume Builder",
+        basicResume: "Basic CV",
         aiEvaluation: "AI Evaluation",
         settings: "Settings",
         admin: "Administration",
@@ -678,6 +679,40 @@ const en = {
             placeOfBirth: "Place of birth",
             maritalStatus: "Marital status",
             health: "Health"
+        },
+        // App chrome for the basic CV screen — never printed on the document.
+        editor: {
+            loading: "Loading your basic CV...",
+            voiceComingSoon: "Type your answers here for now. Answering out loud is coming soon — typing will always stay available.",
+            identity: "About you",
+            fullName: "Full name",
+            positionSought: "Position applied for",
+            address: "Address",
+            phone: "Phone number",
+            email: "Email (optional)",
+            year: "Year",
+            detail: "Detail",
+            languageName: "Language",
+            languageSkills: "What you can do",
+            interestsHint: "Separate with commas",
+            statementHint: "How would you describe yourself as a worker?",
+            add: "Add",
+            remove: "Remove",
+            toolbar: {
+                heading: "Basic CV",
+                titlePlaceholder: "CV name",
+                newCv: "New",
+                exportPdf: "Print / PDF",
+                exportDocx: "Export DOCX",
+                exporting: "Exporting...",
+                status: {
+                    idle: "",
+                    saving: "Saving...",
+                    saved: "Saved",
+                    error: "Couldn't save",
+                    conflict: "Updated from another tab"
+                }
+            }
         }
     },
     // Spoken aloud, not read. Every prompt is written to be said in one breath
