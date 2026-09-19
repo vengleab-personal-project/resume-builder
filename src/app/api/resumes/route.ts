@@ -1,34 +1,39 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import type { Prisma } from '@/server/db/generated/prisma';
-import { prisma } from '@/server/db/prisma';
 import { assertSameOrigin, requireUser } from '@/server/modules/auth/guards';
 import { HttpError, withErrorHandling } from '@/server/errors';
 import {
-  RESUME_FULL_SELECT,
-  RESUME_SUMMARY_SELECT,
+  createResume,
+  listOwnedResumes,
   toResumeDTO,
-  toResumeSummary,
 } from '@/server/modules/resumes/resumePersistenceService';
-import { createResumeSchema } from '@/shared/lib/validation/resumeSchemas';
+import { createResumeSchema, resumeKindQuerySchema } from '@/shared/lib/validation/resumeSchemas';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export const GET = withErrorHandling(async () => {
+export const GET = withErrorHandling(async (req: NextRequest) => {
   const user = await requireUser();
 
-  const rows = await prisma.resume.findMany({
-    where: { userId: user.id, deletedAt: null },
-    select: RESUME_SUMMARY_SELECT,
-    orderBy: [{ isDefault: 'desc' }, { updatedAt: 'desc' }],
+  // Absent `kind` means FULL, so every caller written before the basic CV
+  // existed -- useResumeSync's hydration above all -- keeps returning exactly
+  // the rows it returned before, and can never be handed a shape it cannot
+  // render.
+  const parsed = resumeKindQuerySchema.safeParse({
+    kind: req.nextUrl.searchParams.get('kind') ?? undefined,
   });
+  if (!parsed.success) {
+    throw new HttpError(400, 'INVALID_INPUT', 'Unknown resume kind');
+  }
 
-  return NextResponse.json(
-    { resumes: rows.map(toResumeSummary) },
-    { headers: { 'Cache-Control': 'no-store' } }
-  );
+  const resumes = await listOwnedResumes(user.id, parsed.data.kind);
+
+  return NextResponse.json({ resumes }, { headers: { 'Cache-Control': 'no-store' } });
 });
 
+// Creates a FULL resume only. A basic CV is created by starting a voice
+// interview (POST /api/basic-resume/session), which is the only path that can
+// produce a valid BasicResumeData, so there is nothing for this route to accept.
 export const POST = withErrorHandling(async (req: NextRequest) => {
   assertSameOrigin(req);
 
@@ -43,34 +48,13 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
 
   const { title, data, sectionOrder, theme, isDefault } = parsed.data;
 
-  // The first resume a user ever creates is their default, so the sync hook
-  // always has something to hydrate from without a separate "set default" call.
-  const existingCount = await prisma.resume.count({
-    where: { userId: user.id, deletedAt: null },
-  });
-  const shouldBeDefault = isDefault ?? existingCount === 0;
-
-  const row = await prisma.$transaction(async (tx) => {
-    // A partial unique index enforces one default per user, so the previous
-    // default has to be demoted in the same transaction as the promotion.
-    if (shouldBeDefault && existingCount > 0) {
-      await tx.resume.updateMany({
-        where: { userId: user.id, deletedAt: null, isDefault: true },
-        data: { isDefault: false },
-      });
-    }
-
-    return tx.resume.create({
-      data: {
-        userId: user.id,
-        title: title ?? 'Untitled Resume',
-        data: data as Prisma.InputJsonValue,
-        sectionOrder: sectionOrder as Prisma.InputJsonValue,
-        theme: theme as Prisma.InputJsonValue,
-        isDefault: shouldBeDefault,
-      },
-      select: RESUME_FULL_SELECT,
-    });
+  const row = await createResume(user.id, {
+    title: title ?? 'Untitled Resume',
+    kind: 'FULL',
+    data: data as Prisma.InputJsonValue,
+    sectionOrder: sectionOrder as Prisma.InputJsonValue,
+    theme: theme as Prisma.InputJsonValue,
+    isDefault,
   });
 
   return NextResponse.json({ resume: toResumeDTO(row) }, { status: 201 });

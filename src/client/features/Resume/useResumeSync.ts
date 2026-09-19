@@ -174,7 +174,12 @@ export function useResumeSync(): void {
       useResumeStore.getState().setSyncMeta({ syncStatus: 'syncing' });
 
       try {
-        const listRes = await fetch('/api/resumes', { credentials: 'same-origin' });
+        // `kind=full` is explicit rather than relying on the route's default:
+        // this hook hydrates `useResumeStore`, whose shape is ResumeData, and a
+        // basic CV arriving here would be a foreign shape in the store rather
+        // than a caught error. Stating the kind means a future change to the
+        // route's default cannot reach this line.
+        const listRes = await fetch('/api/resumes?kind=full', { credentials: 'same-origin' });
         if (!listRes.ok) {
           if (!cancelled) useResumeStore.getState().setSyncMeta({ syncStatus: 'error' });
           return;

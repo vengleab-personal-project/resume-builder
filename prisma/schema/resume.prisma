@@ -1,3 +1,13 @@
+// Which product line a row belongs to. The two kinds share this table because a
+// resume is one JSON blob either way, but they are different documents with
+// different fields, different templates and different editors -- so every query
+// has to say which kind it wants. FULL is the default so pre-existing rows, and
+// any caller written before BASIC existed, keep their current meaning.
+enum ResumeKind {
+  FULL
+  BASIC
+}
+
 model Resume {
   id String @id @default(cuid())
 
@@ -6,9 +16,13 @@ model Resume {
 
   title String @default("Untitled Resume")
 
+  kind ResumeKind @default(FULL)
+
   // The editor's ResumeData / ThemeConfig shapes are stored verbatim as JSON.
   // Normalising the 11 sections into tables would force a rewrite of the whole
   // editor for no query benefit: a resume is only ever read and written whole.
+  // For kind = BASIC this holds BasicResumeData instead, which is why nothing
+  // may read `data` without having first established the row's kind.
   data         Json
   sectionOrder Json
   theme        Json
@@ -29,6 +43,7 @@ model Resume {
   updatedAt DateTime @updatedAt
 
   @@index([userId, deletedAt, updatedAt])
+  @@index([userId, kind, deletedAt, updatedAt])
 }
 
 model EvaluationResult {

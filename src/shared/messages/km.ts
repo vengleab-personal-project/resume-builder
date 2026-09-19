@@ -503,7 +503,8 @@ const km: typeof en = {
         actions: {
             PARSE_RESUME: "ញែកប្រវត្តិរូប",
             REFINE_RESUME: "កែលម្អខ្លឹមសារ",
-            EVALUATE_RESUME: "វាយតម្លៃប្រវត្តិរូប"
+            EVALUATE_RESUME: "វាយតម្លៃប្រវត្តិរូប",
+            VOICE_INTERVIEW: "សម្ភាសន៍ដោយសំឡេង"
         },
         chatModels: {
             title: "ម៉ូដែល AI",
@@ -610,7 +611,8 @@ const km: typeof en = {
         action: {
             PARSE_RESUME: "ការញែកប្រវត្តិរូប",
             REFINE_RESUME: "ការកែសម្រួលដោយ AI",
-            EVALUATE_RESUME: "ការវាយតម្លៃដោយ AI"
+            EVALUATE_RESUME: "ការវាយតម្លៃដោយ AI",
+            VOICE_INTERVIEW: "សម្ភាសន៍ដោយសំឡេង"
         },
         errors: {
             loadFailed: "មិនអាចផ្ទុកព័ត៌មានទូទាត់បានទេ។ សូមព្យាយាមម្តងទៀត។",

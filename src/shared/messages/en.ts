@@ -501,7 +501,8 @@ const en = {
         actions: {
             PARSE_RESUME: "Parse resume",
             REFINE_RESUME: "Refine content",
-            EVALUATE_RESUME: "Evaluate resume"
+            EVALUATE_RESUME: "Evaluate resume",
+            VOICE_INTERVIEW: "Voice interview"
         },
         chatModels: {
             title: "Chat Models",
@@ -608,7 +609,8 @@ const en = {
         action: {
             PARSE_RESUME: "Resume parsing",
             REFINE_RESUME: "AI refinement",
-            EVALUATE_RESUME: "AI evaluation"
+            EVALUATE_RESUME: "AI evaluation",
+            VOICE_INTERVIEW: "Voice interview"
         },
         errors: {
             loadFailed: "Could not load billing information. Please try again.",

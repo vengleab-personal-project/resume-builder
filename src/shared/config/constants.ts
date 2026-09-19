@@ -45,6 +45,11 @@ export const FALLBACK_ACTION_COSTS: Readonly<Record<AiActionKey, number>> = {
   PARSE_RESUME: 1,
   REFINE_RESUME: 1,
   EVALUATE_RESUME: 2,
+  // One whole interview: up to 30 turns of speech-to-text, extraction and
+  // spoken output, charged once at session start. Materially more expensive to
+  // serve than the single-shot actions above, priced to stay affordable to the
+  // entry-level job seeker the basic CV exists for.
+  VOICE_INTERVIEW: 5,
 };
 
 export const DEFAULT_ACTION_COIN_COST = 1;

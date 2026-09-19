@@ -13,6 +13,10 @@ enum AiAction {
   PARSE_RESUME
   REFINE_RESUME
   EVALUATE_RESUME
+  // One voice interview session, charged once at session start. The session is
+  // bounded server-side (turn/duration/size caps) so a single debit can cover a
+  // variable number of model calls without the price moving under the user.
+  VOICE_INTERVIEW
 }
 
 model ChatModel {

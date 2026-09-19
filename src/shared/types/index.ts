@@ -118,7 +118,11 @@ export interface ChatModelOption {
   sortOrder: number;
 }
 
-export type AiActionKey = 'PARSE_RESUME' | 'REFINE_RESUME' | 'EVALUATE_RESUME';
+export type AiActionKey =
+  | 'PARSE_RESUME'
+  | 'REFINE_RESUME'
+  | 'EVALUATE_RESUME'
+  | 'VOICE_INTERVIEW';
 export type AiProviderKey = 'GOOGLE' | 'OPENAI';
 
 export interface ThemeConfig {
