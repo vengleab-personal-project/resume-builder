@@ -4,9 +4,12 @@ import { ResumeData, ThemeConfig, AIConfig, ViewMode } from '@/shared/types';
 import type { SyncStatus } from '@/shared/types/persistence';
 import { INITIAL_RESUME_DATA, INITIAL_THEME, INITIAL_AI_CONFIG, INITIAL_SECTION_ORDER } from '@/shared/config/constants';
 
+export const DEFAULT_RESUME_TITLE = 'Untitled Resume';
+
 export interface ServerResumeSnapshot {
   id: string;
   version: number;
+  title: string;
   data: ResumeData;
   sectionOrder: string[];
   theme: ThemeConfig;
@@ -22,6 +25,7 @@ export interface SyncMeta {
 }
 
 interface ResumeState extends SyncMeta {
+  title: string;
   resumeData: ResumeData;
   sectionOrder: string[];
   theme: ThemeConfig;
@@ -41,7 +45,7 @@ interface ResumeState extends SyncMeta {
   setViewMode: (mode: ViewMode) => void;
   resetData: () => void;
   applyServerSnapshot: (snapshot: ServerResumeSnapshot) => void;
-  setSyncMeta: (meta: Partial<SyncMeta & { isApplyingRemote: boolean }>) => void;
+  setSyncMeta: (meta: Partial<SyncMeta & { isApplyingRemote: boolean; title: string }>) => void;
   resetForUser: (userId: string | null) => void;
 }
 
@@ -56,6 +60,7 @@ const INITIAL_SYNC_META: SyncMeta = {
 export const useResumeStore = create<ResumeState>()(
   persist(
     (set) => ({
+      title: DEFAULT_RESUME_TITLE,
       resumeData: INITIAL_RESUME_DATA as unknown as ResumeData,
       sectionOrder: INITIAL_SECTION_ORDER as unknown as string[],
       theme: INITIAL_THEME as unknown as ThemeConfig,
@@ -85,6 +90,7 @@ export const useResumeStore = create<ResumeState>()(
         aiConfig: INITIAL_AI_CONFIG as unknown as AIConfig,
       }),
       applyServerSnapshot: (snapshot) => set({
+        title: snapshot.title,
         resumeData: snapshot.data,
         sectionOrder: snapshot.sectionOrder,
         theme: snapshot.theme,
@@ -98,6 +104,7 @@ export const useResumeStore = create<ResumeState>()(
       // A shared browser must never let user B inherit user A's cached resume:
       // a different owner wipes the local document back to a blank one.
       resetForUser: (userId) => set({
+        title: DEFAULT_RESUME_TITLE,
         resumeData: INITIAL_RESUME_DATA as unknown as ResumeData,
         sectionOrder: INITIAL_SECTION_ORDER as unknown as string[],
         theme: INITIAL_THEME as unknown as ThemeConfig,
@@ -108,19 +115,19 @@ export const useResumeStore = create<ResumeState>()(
     {
       name: 'resume-storage',
       storage: createJSONStorage(() => localStorage),
-      version: 2,
-      // v1 had no sync metadata at all. Everything it did persist is still
-      // valid, so the migration only needs to seed the new fields -- leaving
-      // remoteResumeId null makes the sync hook treat it as a fresh local
-      // document and upload it on first login.
+      version: 3,
+      // v1 had no sync metadata at all, v2 had no title. Everything else
+      // persisted is still valid, so each step only needs to seed the fields
+      // that version introduced -- leaving remoteResumeId null makes the sync
+      // hook treat it as a fresh local document and upload it on first login.
       migrate: (persisted, version) => {
-        if (version >= 2) return persisted as Partial<ResumeState>;
-        return {
-          ...(persisted as Partial<ResumeState>),
-          ...INITIAL_SYNC_META,
-        };
+        let next = persisted as Partial<ResumeState>;
+        if (version < 2) next = { ...next, ...INITIAL_SYNC_META };
+        if (version < 3) next = { ...next, title: DEFAULT_RESUME_TITLE };
+        return next;
       },
       partialize: (state) => ({
+        title: state.title,
         resumeData: state.resumeData,
         sectionOrder: state.sectionOrder,
         theme: state.theme,

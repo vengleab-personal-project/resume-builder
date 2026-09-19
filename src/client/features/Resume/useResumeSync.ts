@@ -27,6 +27,7 @@ function snapshotFromDTO(resume: ResumeDTO) {
   return {
     id: resume.id,
     version: resume.version,
+    title: resume.title,
     data: resume.data,
     sectionOrder: resume.sectionOrder,
     theme: resume.theme,
@@ -80,6 +81,7 @@ export function useResumeSync(): void {
           }
           const { resume } = (await res.json()) as { resume: ResumeDTO };
           store.setSyncMeta({
+            title: resume.title,
             remoteResumeId: resume.id,
             remoteVersion: resume.version,
             lastSyncedAt: resume.updatedAt,
@@ -222,6 +224,7 @@ export function useResumeSync(): void {
         const { resume } = (await createRes.json()) as { resume: ResumeDTO };
         if (cancelled) return;
         useResumeStore.getState().setSyncMeta({
+          title: resume.title,
           remoteResumeId: resume.id,
           remoteVersion: resume.version,
           lastSyncedAt: resume.updatedAt,

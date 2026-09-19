@@ -626,6 +626,7 @@ const km: typeof en = {
         }
     },
     sidebar: {
+        myResumes: "ប្រវត្តិរូបរបស់ខ្ញុំ",
         resumeBuilder: "បង្កើតប្រវត្តិរូប",
         aiEvaluation: "វាយតម្លៃជាមួយ AI",
         settings: "ការកំណត់",
@@ -634,6 +635,24 @@ const km: typeof en = {
         signOut: "ចាកចេញ",
         backToHome: "ត្រឡប់ទៅទំព័រដើម",
         language: "ភាសា"
+    },
+    resumeList: {
+        title: "ប្រវត្តិរូបរបស់ខ្ញុំ",
+        newResume: "ប្រវត្តិរូបថ្មី",
+        loading: "កំពុងផ្ទុកប្រវត្តិរូបរបស់អ្នក...",
+        loadFailed: "មិនអាចផ្ទុកប្រវត្តិរូបរបស់អ្នកបានទេ។ សូមផ្ទុកទំព័រឡើងវិញ។",
+        emptyTitle: "មិនទាន់មានប្រវត្តិរូបនៅឡើយទេ",
+        emptyDesc: "បង្កើតប្រវត្តិរូបដំបូងរបស់អ្នកដើម្បីចាប់ផ្តើម។",
+        updated: "កែប្រែចុងក្រោយ",
+        open: "បើកក្នុងកម្មវិធីបង្កើត",
+        previewUnavailable: "មិនអាចមើលឧទាហរណ៍បានទេ",
+        rename: "ប្តូរឈ្មោះ",
+        duplicate: "ថតចម្លង",
+        setDefault: "កំណត់ជាលំនាំដើម",
+        defaultBadge: "លំនាំដើម",
+        delete: "លុប",
+        renamePrompt: "ប្តូរឈ្មោះប្រវត្តិរូប",
+        deleteConfirm: "លុបប្រវត្តិរូបនេះមែនទេ? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។"
     },
     language: {
         en: "English",
