@@ -5,7 +5,7 @@ import { assertSameOrigin, requireUser } from '@/server/modules/auth/guards';
 import { HttpError, withErrorHandling } from '@/server/errors';
 import { withCoinDeduction } from '@/server/modules/billing/coinService';
 import { resolveAiRequest } from '@/server/modules/ai/registry';
-import { isVoiceAvailable, synthesizeSpeech } from '@/server/modules/ai/clients/gemini-voice';
+import { synthesizeSpeech } from '@/server/modules/ai/clients/gemini-voice';
 import {
   createResume,
   findOwnedBasicResume,
@@ -59,6 +59,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     const question = currentQuestion(existing) ?? nextInterviewQuestion(null);
     const resume = await findOwnedBasicResume(user.id, existing.resumeId);
     const text = question ? promptFor(question.id, existing.locale as 'en' | 'km', false) : '';
+    const spoken = text ? await synthesizeSpeech(text) : null;
     return NextResponse.json({
       sessionId: existing.id,
       resumeId: existing.resumeId,
@@ -68,7 +69,8 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       position: question ? BASIC_INTERVIEW_SCRIPT.findIndex((q) => q.id === question.id) + 1 : 0,
       total: BASIC_INTERVIEW_SCRIPT.length,
       resume,
-      audio: question ? await spokenPrompt(text) : null,
+      voice: spoken !== null,
+      audio: spoken ? spoken.wav.toString('base64') : null,
     });
   }
 
@@ -104,19 +106,24 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
         locale,
         questionId: first.id,
       });
-      return {
-        data: session,
-        // Without an API key there is no speech to pay for: the interview still
-        // runs, typed only, and must not be charged for a path that never called
-        // a model.
-        billable: isVoiceAvailable(),
-      };
+
+      // Speaking the first question is the one model call this route makes, so
+      // it doubles as the liveness check that decides whether to charge.
+      // Checking only that a key is *present* is not enough: a key that is
+      // expired, revoked or out of credit charges the user five coins for an
+      // interview that then cannot understand a word they say. If this fails the
+      // interview still runs -- typed, with the questions on screen -- and is
+      // free, which is the same rule every other fallback path in this app
+      // follows.
+      const spoken = await synthesizeSpeech(text);
+
+      return { data: { session, spoken }, billable: spoken !== null };
     }
   );
 
   return NextResponse.json(
     {
-      sessionId: charged.data.id,
+      sessionId: charged.data.session.id,
       resumeId: target.id,
       resumed: false,
       locale,
@@ -126,15 +133,11 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       resume: target,
       charged: charged.charged,
       balance: charged.balance,
-      voice: isVoiceAvailable(),
-      audio: await spokenPrompt(text),
+      // False whenever speech did not actually work, whatever the reason, so the
+      // UI shows the typed-only notice rather than a microphone that cannot help.
+      voice: charged.data.spoken !== null,
+      audio: charged.data.spoken ? charged.data.spoken.wav.toString('base64') : null,
     },
     { status: 201 }
   );
 });
-
-/** Base64 rather than a second round trip: a prompt is a couple of seconds of audio. */
-async function spokenPrompt(text: string): Promise<string | null> {
-  const spoken = await synthesizeSpeech(text);
-  return spoken ? spoken.wav.toString('base64') : null;
-}

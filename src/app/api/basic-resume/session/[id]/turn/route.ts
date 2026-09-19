@@ -9,7 +9,10 @@ import {
   synthesizeSpeech,
   transcribeAudio,
 } from '@/server/modules/ai/clients/gemini-voice';
-import { extractAnswer } from '@/server/modules/ai/workflows/interviewExtraction';
+import {
+  extractAnswer,
+  fallbackExtraction,
+} from '@/server/modules/ai/workflows/interviewExtraction';
 import {
   findOwnedBasicResume,
   updateBasicResumeWithVersionCheck,
@@ -71,9 +74,15 @@ export const POST = withErrorHandling(async (req: NextRequest, context: RouteCon
   // Extraction is the one call that consumes a real, admin-tunable model choice,
   // so it is the one that goes through the registry seam as normal.
   const { chatModel } = await resolveAiRequest({ action: 'VOICE_INTERVIEW' });
-  const extracted = transcript
-    ? await extractAnswer(chatModel, question, transcript, locale).catch(() => null)
-    : null;
+  const result = transcript
+    ? await extractAnswer(chatModel, question, transcript, locale)
+    : ({ ok: true, value: null } as const);
+
+  // A model outage must not cost the user their answer. When extraction is
+  // unreachable the transcript is recorded as spoken, deterministically parsed
+  // and never embellished -- a degraded CV, not an empty one.
+  const degraded = !result.ok;
+  const extracted = result.ok ? result.value : fallbackExtraction(question, transcript);
 
   const outcome = decideTurn({
     question,
@@ -112,6 +121,9 @@ export const POST = withErrorHandling(async (req: NextRequest, context: RouteCon
     total: BASIC_INTERVIEW_SCRIPT.length,
     finished: outcome.finished,
     exhausted: outcome.exhausted,
+    // Told, not hidden: the user should know their answer was saved as spoken
+    // rather than understood, so they know to check it.
+    degraded,
     resume: saved.resume,
     // A lost race is reported rather than hidden: the winning row is in `resume`.
     conflict: saved.status === 'conflict',

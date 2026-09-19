@@ -63,32 +63,86 @@ function parseEnvelope(raw: string): unknown {
   }
 }
 
+/**
+ * `ok: false` means the model could not be reached at all -- no key, an outage,
+ * a depleted quota. It is reported rather than collapsed into "no answer",
+ * because the two need opposite handling: no answer means move on, unreachable
+ * means fall back to the user's own words. Silently treating an outage as a
+ * non-answer would charge a user for an interview and hand them an empty CV.
+ */
+export type ExtractionResult = { ok: true; value: unknown } | { ok: false };
+
 export async function extractAnswer(
   chatModel: ResolvedChatModel,
   question: InterviewQuestion,
   transcript: string,
   locale: 'en' | 'km'
-): Promise<unknown> {
-  if (!transcript.trim()) return null;
+): Promise<ExtractionResult> {
+  if (!transcript.trim()) return { ok: true, value: null };
 
   // A transcript is user speech reaching a model, so it goes through the same
   // injection guard as pasted resume text.
   const safety = validatePromptSafety(transcript);
-  if (!safety.safe) return null;
+  if (!safety.safe) return { ok: true, value: null };
 
   const prompt = buildPrompt(question, transcript, locale);
 
-  if (chatModel.provider === 'OPENAI') {
-    const completion = await openaiClient.chat.completions.create({
-      model: chatModel.modelId,
-      messages: [{ role: 'user', content: prompt }],
-      response_format: { type: 'json_object' },
-      max_tokens: OPENAI_CONFIG.MAX_TOKENS,
-    });
-    return parseEnvelope(completion.choices[0]?.message?.content ?? '');
-  }
+  try {
+    if (chatModel.provider === 'OPENAI') {
+      const completion = await openaiClient.chat.completions.create({
+        model: chatModel.modelId,
+        messages: [{ role: 'user', content: prompt }],
+        response_format: { type: 'json_object' },
+        max_tokens: OPENAI_CONFIG.MAX_TOKENS,
+      });
+      return { ok: true, value: parseEnvelope(completion.choices[0]?.message?.content ?? '') };
+    }
 
-  const model = await getGeminiModel(chatModel.modelId, { json: true });
-  const result = await model.generateContent(prompt);
-  return parseEnvelope(result.response.text());
+    const model = await getGeminiModel(chatModel.modelId, { json: true });
+    const result = await model.generateContent(prompt);
+    return { ok: true, value: parseEnvelope(result.response.text()) };
+  } catch (error) {
+    // The message only, never the prompt: the prompt carries the transcript.
+    console.error(
+      'Interview extraction unavailable:',
+      error instanceof Error ? error.message : 'unknown'
+    );
+    return { ok: false };
+  }
+}
+
+/**
+ * What to record when the model is unreachable.
+ *
+ * Deterministic parsing of what the user actually said -- never a guess, never
+ * an addition. A CV is a real job application, so the rule is that an outage may
+ * cost structure but must never cost the user their answer, and must never put
+ * words in their mouth.
+ */
+export function fallbackExtraction(question: InterviewQuestion, transcript: string): unknown {
+  const text = transcript.trim();
+  if (!text) return null;
+
+  if (question.kind === 'scalar') return text;
+
+  switch (question.answerSchema) {
+    case 'education':
+    case 'experience': {
+      // A four-digit year, if one was said, becomes the year column; everything
+      // else stays as the line. Splitting on a literal year is parsing, not
+      // interpretation.
+      const year = /\b(19|20)\d{2}\b/.exec(text)?.[0] ?? '';
+      const detail = year ? text.replace(year, '').replace(/^[\s,:.-]+/, '').trim() : text;
+      return [{ year, detail: detail || text }];
+    }
+    case 'interests':
+      return text
+        .split(/[,;]|\band\b/i)
+        .map((item) => item.trim())
+        .filter(Boolean);
+    case 'languages':
+      return [{ name: text, skills: '' }];
+    default:
+      return null;
+  }
 }
