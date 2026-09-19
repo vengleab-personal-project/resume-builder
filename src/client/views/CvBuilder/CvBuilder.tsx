@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Printer, FileText, FileDown, ChevronDown, Eye, Loader2, Trash2, Upload as UploadIcon, Palette, Sparkles } from 'lucide-react';
 import { ResumeEditor, ThemeSwitcher } from '@/client/features/Editor';
-import { ResumePreview } from '@/client/features/Resume';
+import { ResumePreview, SyncStatusIndicator } from '@/client/features/Resume';
 import { useCvBuilderLogic } from './useCvBuilderLogic';
 import { useTranslations } from '@/client/hooks/useTranslations';
 import { useResumeStore } from '@/client/store/resume-store';
@@ -17,7 +17,7 @@ export default function CvBuilder() {
   const { t: tHome } = useTranslations('home');
   const { t: tCommon } = useTranslations('common');
   const { t: tViewMode } = useTranslations('viewMode');
-  const { viewMode, setViewMode, resetData, resumeData } = useResumeStore();
+  const { viewMode, setViewMode, resetData, resumeData, title } = useResumeStore();
   const [isIngestModalOpen, setIsIngestModalOpen] = useState(false);
   const [showCustomize, setShowCustomize] = useState(false);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
@@ -72,9 +72,10 @@ export default function CvBuilder() {
             <div className="flex items-center justify-center w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg">
               <FileText size={18} />
             </div>
-            <h1 className="text-lg font-semibold text-slate-800 tracking-tight">
-              {tCommon.resumeEditor}
+            <h1 className="text-lg font-semibold text-slate-800 tracking-tight truncate max-w-xs" title={title}>
+              {title || tCommon.resumeEditor}
             </h1>
+            <SyncStatusIndicator className="ml-2" />
           </div>
           
           <div className="flex items-center gap-3">

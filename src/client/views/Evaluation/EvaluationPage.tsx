@@ -4,6 +4,7 @@ import { Sparkles, ClipboardList } from 'lucide-react';
 import { useEvaluationLogic } from './useEvaluationLogic';
 import { EvaluationJobInput } from './EvaluationJobInput';
 import { EvaluationResultPanel } from './EvaluationResultPanel';
+import { EvaluationHistoryList } from './EvaluationHistoryList';
 import { useTranslations } from '@/client/hooks/useTranslations';
 import { LanguageSwitcher } from '@/client/components/ui/LanguageSwitcher';
 
@@ -77,7 +78,17 @@ export function EvaluationPage() {
           </div>
         </div>
 
-        <div className="flex-1" />
+        <div className="flex-1 overflow-y-auto">
+          <EvaluationHistoryList
+            entries={vm.history.entries}
+            isLoading={vm.history.isLoading}
+            failed={vm.history.failed}
+            hasMore={vm.history.hasMore}
+            onOpen={vm.openHistoryEntry}
+            onDelete={vm.history.deleteEntry}
+            onLoadMore={vm.history.loadMore}
+          />
+        </div>
 
         {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-100">

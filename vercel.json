@@ -9,6 +9,28 @@
     "src/app/api/refine-resume/route.ts": {
       "maxDuration": 60,
       "memory": 512
+    },
+    "src/app/api/evaluate-resume/route.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    },
+    "src/app/api/payments/orders/route.ts": {
+      "maxDuration": 30,
+      "memory": 512
+    },
+    "src/app/api/payments/orders/[id]/status/route.ts": {
+      "maxDuration": 20,
+      "memory": 512
+    },
+    "src/app/api/cron/payments-reconcile/route.ts": {
+      "maxDuration": 60,
+      "memory": 512
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/payments-reconcile",
+      "schedule": "*/10 * * * *"
+    }
+  ]
 }

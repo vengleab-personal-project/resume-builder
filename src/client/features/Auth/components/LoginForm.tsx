@@ -2,15 +2,18 @@
 
 import React from "react";
 import Link from "next/link";
+import { AlertCircle } from "lucide-react";
 import { Input } from "@/client/components/ui/FormElements";
 import { cn } from "@/shared/lib/utils";
 import { useTranslations } from "@/client/hooks/useTranslations";
 import { AuthState } from "../useAuthLogic";
+import { useTelegramAuth } from "../useTelegramAuth";
+import { TelegramAuthPanel } from "./TelegramAuthPanel";
 
 interface LoginFormProps {
   state: AuthState;
   actions: {
-    setEmail: (val: string) => void;
+    setUsername: (val: string) => void;
     setPassword: (val: string) => void;
     handleLogin: (e: React.FormEvent) => Promise<void>;
   };
@@ -18,51 +21,48 @@ interface LoginFormProps {
 
 export const LoginForm = ({ state, actions }: LoginFormProps) => {
   const { t } = useTranslations("auth");
+  const telegram = useTelegramAuth({ mode: "login" });
+
+  const error = state.error ?? telegram.error;
 
   return (
     <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-8">
       <form onSubmit={actions.handleLogin} className="space-y-5">
-        <Input 
-          label={t.login.email} 
-          type="email" 
-          placeholder={t.login.emailPlaceholder} 
-          value={state.email}
-          onChange={(e) => actions.setEmail(e.target.value)}
+        <Input
+          label={t.login.username}
+          type="text"
+          autoComplete="username"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          placeholder={t.login.usernamePlaceholder}
+          value={state.username}
+          onChange={(e) => actions.setUsername(e.target.value)}
           required
         />
-        <div className="relative">
-          <Input 
-            label={t.login.password} 
-            type="password" 
-            placeholder={t.login.passwordPlaceholder} 
-            value={state.password}
-            onChange={(e) => actions.setPassword(e.target.value)}
-            required
-          />
-        </div>
+        <Input
+          label={t.login.password}
+          type="password"
+          autoComplete="current-password"
+          placeholder={t.login.passwordPlaceholder}
+          value={state.password}
+          onChange={(e) => actions.setPassword(e.target.value)}
+          required
+        />
 
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <input 
-              type="checkbox" 
-              id="remember" 
-              className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-            />
-            <label htmlFor="remember" className="text-xs font-medium text-slate-600 cursor-pointer">
-              {t.login.rememberMe}
-            </label>
-          </div>
-          <Link 
-            href="/forgot-password" 
-            className="text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors"
+        {error && (
+          <div
+            role="alert"
+            className="flex items-start gap-2 px-3 py-2.5 bg-red-50 border border-red-200 rounded-md text-xs font-medium text-red-700"
           >
-            {t.login.forgotPassword}
-          </Link>
-        </div>
+            <AlertCircle size={14} className="mt-px flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
 
         <button
           type="submit"
-          disabled={state.isLoading}
+          disabled={state.isLoading || telegram.isLoading}
           className={cn(
             "w-full py-2.5 px-4 rounded-md text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2",
             state.isLoading && "opacity-70"
@@ -79,11 +79,13 @@ export const LoginForm = ({ state, actions }: LoginFormProps) => {
         </button>
       </form>
 
+      <TelegramAuthPanel onAuth={telegram.handleAuth} isLoading={telegram.isLoading} />
+
       <div className="mt-8 pt-6 border-t border-slate-100 text-center">
         <p className="text-sm text-slate-500">
           {t.login.noAccount}{" "}
-          <Link 
-            href="/signup" 
+          <Link
+            href="/signup"
             className="font-bold text-indigo-600 hover:text-indigo-700 transition-colors"
           >
             {t.login.signUp}
