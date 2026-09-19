@@ -38,12 +38,70 @@ model Resume {
   deletedAt DateTime?
 
   evaluations EvaluationResult[]
+  voiceSessions VoiceInterviewSession[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId, deletedAt, updatedAt])
   @@index([userId, kind, deletedAt, updatedAt])
+}
+
+enum VoiceSessionStatus {
+  ACTIVE
+  COMPLETED
+  // Ran out of turns. The CV is finalised with whatever was collected, which is
+  // a worse outcome than COMPLETED but is never a lost interview.
+  EXHAUSTED
+  EXPIRED
+}
+
+// One spoken interview. Exists as a row rather than as fields on the resume
+// because the caps in it are the cost control: a single VOICE_INTERVIEW coin
+// debit covers the whole session, so the server has to be able to count turns
+// and expire the session without trusting anything the client sends.
+//
+// Deliberately holds no audio and no transcripts. Extracted answers live in the
+// resume, where the user can see and correct them; the recordings are biometric
+// data this app has no consent flow or retention policy for, so they are
+// processed in memory and dropped.
+model VoiceInterviewSession {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  // 'en' | 'km'. Chosen at session start, not inferred from the UI locale -- a
+  // user may read the English UI and prefer to speak Khmer.
+  locale String
+
+  // Cursor into BASIC_INTERVIEW_SCRIPT. NULL means "not started"; a value the
+  // current script does not contain restarts rather than dead-ends.
+  questionId   String?
+  // At most one clarifying re-ask per question (§5.3), so the interview always
+  // terminates.
+  followUpUsed Boolean @default(false)
+  turnCount    Int     @default(0)
+
+  status VoiceSessionStatus @default(ACTIVE)
+
+  // The CoinTransaction this session was charged on, so a session that dies
+  // before delivering its first question can be refunded rather than silently
+  // keeping the coins.
+  deductionTxId String?
+
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // "One active session per user" is a partial unique index, which Prisma
+  // cannot express; it is hand-appended to the migration instead.
+  @@index([userId, status])
+  @@index([resumeId])
 }
 
 model EvaluationResult {

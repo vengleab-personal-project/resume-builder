@@ -1,4 +1,5 @@
 import 'server-only';
+import { VOICE_MODEL_IDS } from '@/shared/config/constants';
 
 // Every accessor is a lazy getter rather than a value read at module load.
 // Module-load validation would break `next build`, which imports route modules
@@ -74,6 +75,16 @@ export const serverEnv = {
   },
   get MAX_AI_TOKENS(): number {
     return integer('MAX_AI_TOKENS', 5000);
+  },
+
+  // Overrides for the two voice models. Both are preview-line models that may be
+  // renamed or withdrawn upstream; keeping them as env-overridable constants is
+  // what makes that a config change rather than a code change.
+  get GEMINI_VOICE_STT_MODEL(): string {
+    return process.env.GEMINI_VOICE_STT_MODEL || VOICE_MODEL_IDS.STT;
+  },
+  get GEMINI_VOICE_TTS_MODEL(): string {
+    return process.env.GEMINI_VOICE_TTS_MODEL || VOICE_MODEL_IDS.TTS;
   },
 
   // --- Payments -------------------------------------------------------------
