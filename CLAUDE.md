@@ -13,10 +13,10 @@ system (Bakong KHQR payments) that gates AI actions.
 
 A second product line sits alongside it: **Basic Resume**, the Cambodian short-form
 CV (ប្រវត្តិរូបសង្ខេប), at `/basic-resume`. It is aimed at job seekers with no resume to
-upload, for whom an 11-section English editor is the wrong document entirely. Answers
-are typed today and will also be spoken once the voice interview lands. It is a separate
-document with its own shape, template and editor — see "Two resume kinds" below. It does
-not replace or change the two-column builder.
+upload, for whom an 11-section English editor is the wrong document entirely. It is built
+by answering ~15 spoken questions — or typing the same answers — in English or Khmer. It
+is a separate document with its own shape, template and editor — see "Two resume kinds"
+below. It does not replace or change the two-column builder.
 
 ## Commands
 
@@ -142,18 +142,40 @@ Each kind has its own default resume (the partial unique index is scoped by
 `(userId, kind)`), its own template, and its own editor. Never route one kind into the other's
 editor, and never convert between them.
 
-The basic CV lives at **`/basic-resume`** (`views/BasicResume`, MVVM), backed by
-`/api/basic-resume` and `/api/basic-resume/[id]`. It is a typed editor with a live preview and
-PDF/DOCX export, autosaving against the same version check the full builder uses. There is no
-feature flag: the screen is shipped and reachable from the sidebar.
+The basic CV lives at **`/basic-resume`** (`views/BasicResume`, MVVM), with a live preview
+and PDF/DOCX export. Two ways in, both writing the same fields:
 
-Answers are typed today; the Gemini voice interview (STT -> extraction -> TTS) fills the same
-fields through the same paths once it lands. Typing is not a stopgap that the voice flow
-replaces — it stays as the accessibility path for deaf and hard-of-hearing users, the recovery
-path when a microphone is unavailable, and the correction path when speech recognition
-mishears a name.
+- **Voice interview** — `POST /api/basic-resume/session` then
+  `POST /api/basic-resume/session/[id]/turn`. Gemini STT → extraction → TTS.
+- **Typing** — `/api/basic-resume/[id]`, autosaved against the same version check the full
+  builder uses.
 
-Two conventions worth keeping when extending it:
+Typing is never a stopgap the voice flow replaces. It is the accessibility path for deaf and
+hard-of-hearing users, the recovery path when a microphone is unavailable, and the correction
+path when speech recognition mishears a name — so every question accepts a typed answer,
+through the same route.
+
+**The voice pipeline's non-obvious parts, all of which will bite if changed casually:**
+
+- `ai/clients/gemini-voice.ts` uses `@google/genai`, a *second* Gemini SDK, because the legacy
+  one cannot request an AUDIO response modality at all. It must NOT route through
+  `getGeminiModel` — that gates on the `ChatModel` table and the two voice models are
+  deliberately constants (`VOICE_MODEL_IDS`), so it would reject every voice call.
+- Gemini TTS returns **headerless PCM**. Unwrapped, browsers play silence with no error.
+  `pcmToWav` is the fix and is byte-exact.
+- **A model outage must never cost a user their answer.** `extractAnswer` reports
+  "unreachable" distinctly from "no answer"; unreachable falls back to recording what was
+  actually said, parsed deterministically. Never invent CV content — a fabricated detail on a
+  real job application is a serious harm.
+- **Never charge for a pipeline that isn't working.** Speaking the first question is the
+  liveness check that decides whether to debit. A key being merely *present* is not enough.
+- **No audio or transcripts are ever stored or logged**, anywhere. Recordings are biometric
+  data with no consent flow, retention policy or deletion path here.
+- The caps in `VOICE_INTERVIEW_LIMITS` are the cost control for a single per-session debit, so
+  they are enforced server-side before any model call. Raising them changes what one charge
+  buys.
+
+Two more conventions worth keeping:
 - The interview script's `targetPath` and `promptKey` are **checked types**, not strings — a
   typo'd path or a missing translation is a compile error. This repo has no test framework, so
   that type-level proof is deliberately doing the job a unit test would.
