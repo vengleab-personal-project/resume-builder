@@ -13,7 +13,10 @@ export const GET = withErrorHandling(async (_req: NextRequest, context: RouteCon
   const user = await requireUser();
   const { id } = await context.params;
 
-  const resume = await findOwnedResume(user.id, id);
+  // FULL-pinned: this route feeds the two-column editor, and a basic CV read
+  // through it would reach `ResumePreview` as a shape it cannot render. A basic
+  // CV reads through /api/basic-resume/[id] instead.
+  const resume = await findOwnedResume(user.id, id, 'FULL');
   if (!resume) {
     throw new HttpError(404, 'NOT_FOUND', 'Resume not found');
   }

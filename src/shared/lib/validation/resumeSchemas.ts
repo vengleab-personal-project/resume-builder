@@ -38,6 +38,18 @@ export const updateResumeSchema = z
     { error: 'NOTHING_TO_UPDATE' }
   );
 
+// Lowercase on the wire, uppercase in the database, mapped here so a query
+// string never reaches Prisma unchecked. The default is what keeps every caller
+// written before the basic CV existed pointed at the rows it has always read.
+const WIRE_TO_DB_RESUME_KIND = { full: 'FULL', basic: 'BASIC' } as const;
+
+export const resumeKindQuerySchema = z.object({
+  kind: z
+    .enum(['full', 'basic'])
+    .default('full')
+    .transform((value) => WIRE_TO_DB_RESUME_KIND[value]),
+});
+
 export const evaluationListQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(20),
   cursor: z.string().min(1).optional(),

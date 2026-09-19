@@ -11,6 +11,12 @@ PDF (print) or DOCX, and manage multiple saved CVs backed by Postgres. It also
 has its own auth (username/password + Telegram login) and a coin-based billing
 system (Bakong KHQR payments) that gates AI actions.
 
+A second product line is being added alongside it: **Basic Resume**, the Cambodian
+short-form CV (ប្រវត្តិរូបសង្ខេប), built by answering spoken questions rather than by
+typing into a form. It is a separate document with its own shape, template and
+editor — see "Two resume kinds" below. It does not replace or change the
+two-column builder.
+
 ## Commands
 
 ```bash
@@ -67,7 +73,7 @@ src/
 └── shared/               # Safe for both client and server
     ├── types/              # cross-cutting TS types (incl. shared/types/persistence.ts DTOs)
     ├── lib/                # pure utilities + zod validation schemas
-    ├── messages/           # i18n dictionaries (en.ts, km.ts)
+    ├── messages/           # i18n dictionaries (en.ts, km.ts) — identical key shapes, enforced
     └── config/             # constants, auth config, public env (shared/config/env.ts)
 ```
 
@@ -113,6 +119,41 @@ schema `version` + `migrate()` — bump both together whenever the persisted sha
 - Resumes are soft-deleted (`deletedAt`), never hard-deleted, because `EvaluationResult` rows
   reference them and a resume being scored later must not silently disappear.
 
+### Two resume kinds — `Resume.kind` (in progress: the Basic Resume product line)
+
+There are two resume products sharing one `Resume` table, distinguished by `kind`:
+
+- **`FULL`** — the professional two-column resume. `data` holds `ResumeData`. This is the
+  original product and everything above describes it.
+- **`BASIC`** — the Cambodian short-form CV (ប្រវត្តិរូបសង្ខេប), built by talking to the app.
+  `data` holds `BasicResumeData` (`shared/types/basic-resume.ts`) — a different document, not
+  a subset: it carries date of birth, nationality, gender, marital status, health and place of
+  birth, and omits summary, skills, certifications, publications, volunteering and references.
+
+**Because `data` is an opaque JSON column, `kind` is the only thing that says which shape is
+in it — so no resume query may go unqualified.** `findOwnedResume` takes the kind as a
+required argument for exactly this reason: a `BASIC` row fed to `useResumeStore` does not fail
+at the boundary, it throws deep inside `ResumePreview`. Writes take `kind` as a WHERE-clause
+guard, so a PATCH aimed at the wrong product line reads as "no such resume" rather than
+landing. `GET /api/resumes?kind=full|basic` defaults to `full`.
+
+Each kind has its own default resume (the partial unique index is scoped by
+`(userId, kind)`), its own template, and its own editor. Never route one kind into the other's
+editor, and never convert between them.
+
+The whole basic-CV line ships behind `BASIC_RESUME_ENABLED` (server-side, default off). Landed
+so far: the data model, the fixed 15-question interview script
+(`shared/lib/basic-interview-script.ts`, EN + KM), and the template
+(`client/features/BasicResume/`, preview + DOCX). Still to come: the Gemini voice pipeline,
+the interview session API, the voice UI, and the entry/export wiring.
+
+Two conventions worth keeping when extending it:
+- The interview script's `targetPath` and `promptKey` are **checked types**, not strings — a
+  typo'd path or a missing translation is a compile error. This repo has no test framework, so
+  that type-level proof is deliberately doing the job a unit test would.
+- An empty section is omitted entirely, never rendered as a bare heading. Both the preview and
+  the DOCX gate on the single `basicSectionHasContent`, so they cannot disagree.
+
 ### Auth
 
 - Custom JWT session (`jose`, HS256) in an httpOnly cookie (`rb_session`), plus optional
@@ -135,6 +176,10 @@ schema `version` + `migrate()` — bump both together whenever the persisted sha
 `ActionCost`, together — so the coin system can never charge for a different model than the
 one invoked. Actual provider calls go through `ai/clients/{gemini,openai}.ts`; multi-step flows
 (resume parsing, refinement) are orchestrated in `ai/workflows/`.
+
+`AiAction.VOICE_INTERVIEW` (5 coins) is charged **once per interview session**, not per turn,
+and is bounded by server-enforced turn/duration/size caps instead. Per-turn billing would make
+the price of a CV unpredictable to a user who can re-answer a question.
 
 ### Billing / coins
 

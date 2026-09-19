@@ -42,7 +42,10 @@ export function useResumeListLogic() {
     setIsLoading(true);
     setFailed(false);
     try {
-      const res = await fetch('/api/resumes', { credentials: 'same-origin' });
+      // FULL only for now. M7 adds the basic CVs to this screen as a second,
+      // visually distinct group; until the basic editor exists there is nowhere
+      // for a BASIC row listed here to open.
+      const res = await fetch('/api/resumes?kind=full', { credentials: 'same-origin' });
       if (!res.ok) {
         setFailed(true);
         return [] as ResumeSummary[];

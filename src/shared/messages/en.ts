@@ -501,7 +501,8 @@ const en = {
         actions: {
             PARSE_RESUME: "Parse resume",
             REFINE_RESUME: "Refine content",
-            EVALUATE_RESUME: "Evaluate resume"
+            EVALUATE_RESUME: "Evaluate resume",
+            VOICE_INTERVIEW: "Voice interview"
         },
         chatModels: {
             title: "Chat Models",
@@ -608,7 +609,8 @@ const en = {
         action: {
             PARSE_RESUME: "Resume parsing",
             REFINE_RESUME: "AI refinement",
-            EVALUATE_RESUME: "AI evaluation"
+            EVALUATE_RESUME: "AI evaluation",
+            VOICE_INTERVIEW: "Voice interview"
         },
         errors: {
             loadFailed: "Could not load billing information. Please try again.",
@@ -651,6 +653,93 @@ const en = {
         delete: "Delete",
         renamePrompt: "Rename resume",
         deleteConfirm: "Delete this resume? This action cannot be undone."
+    },
+    // Printed on the CV itself, not shown in the app chrome. These are the
+    // section headings a Cambodian employer expects to see on a short-form CV;
+    // the English set is the same document, labelled for an English reader.
+    basicResume: {
+        documentTitle: "Curriculum Vitae",
+        nameLabel: "Name:",
+        phoneLabel: "Phone:",
+        photoAlt: "Photograph",
+        sections: {
+            personal: "Personal data",
+            positionSought: "Position applied for",
+            education: "Education",
+            experience: "Work experience",
+            languages: "Languages",
+            interests: "Interests",
+            personalStatement: "Personal qualities"
+        },
+        personal: {
+            nationality: "Nationality",
+            gender: "Gender",
+            dateOfBirth: "Date of birth",
+            placeOfBirth: "Place of birth",
+            maritalStatus: "Marital status",
+            health: "Health"
+        }
+    },
+    // Spoken aloud, not read. Every prompt is written to be said in one breath
+    // and understood by someone who has never written a CV: short sentences,
+    // no jargon, an example where the answer shape is not obvious.
+    // `followUp` exists only on questions that are allowed one (§5.3) — the
+    // optional personal questions have none, because the app must never push a
+    // user to answer them.
+    basicInterview: {
+        questions: {
+            fullName: {
+                prompt: "Let's start with your name. What is your full name?",
+                followUp: "Sorry, I didn't catch that. Could you say your full name again, slowly?"
+            },
+            positionSought: {
+                prompt: "What job are you applying for?",
+                followUp: "What kind of work are you looking for? For example, waiter, security guard, or factory worker."
+            },
+            phone: {
+                prompt: "What is your phone number?",
+                followUp: "Could you say your phone number again, one number at a time?"
+            },
+            address: {
+                prompt: "Where do you live? You can tell me your village, commune, district and province.",
+                followUp: "Which province do you live in, and which district?"
+            },
+            dateOfBirth: {
+                prompt: "When were you born? Tell me the day, the month and the year.",
+                followUp: "Which year were you born? If you remember the day and month, tell me those too."
+            },
+            gender: {
+                prompt: "What is your gender? You can skip this question if you prefer."
+            },
+            nationality: {
+                prompt: "What is your nationality?"
+            },
+            placeOfBirth: {
+                prompt: "Where were you born?"
+            },
+            maritalStatus: {
+                prompt: "Are you single or married? You can skip this question if you prefer."
+            },
+            health: {
+                prompt: "How is your general health? You can skip this question if you prefer."
+            },
+            education: {
+                prompt: "Now let's talk about school. Tell me each school or course you have done, and the year. Take your time.",
+                followUp: "What was the last school or course you finished, and roughly what year was that?"
+            },
+            experience: {
+                prompt: "Have you worked before? Tell me each job you have had, and the year."
+            },
+            languages: {
+                prompt: "What languages do you speak? For each one, tell me what you can do — speak, listen, read, or translate."
+            },
+            interests: {
+                prompt: "What do you like to do in your free time?"
+            },
+            personalStatement: {
+                prompt: "Last question. How would you describe yourself as a worker?"
+            }
+        }
     },
     language: {
         en: "English",
