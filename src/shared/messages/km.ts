@@ -656,6 +656,29 @@ const km: typeof en = {
         renamePrompt: "ប្តូរឈ្មោះប្រវត្តិរូប",
         deleteConfirm: "លុបប្រវត្តិរូបនេះមែនទេ? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។"
     },
+    basicResume: {
+        documentTitle: "ប្រវត្តិរូបសង្ខេប",
+        nameLabel: "ឈ្មោះ:",
+        phoneLabel: "លេខទូរស័ព្ទ",
+        photoAlt: "រូបថត",
+        sections: {
+            personal: "ទិន្នន័យផ្ទាល់ខ្លួន",
+            positionSought: "មុខតំណែង",
+            education: "ប្រវត្តិនៃការសិក្សា",
+            experience: "បទពិសោធន៍ការងារ",
+            languages: "ភាសាបរទេស",
+            interests: "ចំណង់ចំណូលចិត្ត",
+            personalStatement: "បុគ្គលិកលក្ខណៈផ្ទាល់ខ្លួន"
+        },
+        personal: {
+            nationality: "សញ្ជាតិ",
+            gender: "ភេទ",
+            dateOfBirth: "ថ្ងៃខែកើត",
+            placeOfBirth: "ទីកន្លែងកំណើត",
+            maritalStatus: "ស្ថានភាពគ្រួសារ",
+            health: "សុខភាព"
+        }
+    },
     basicInterview: {
         questions: {
             fullName: {

@@ -12,13 +12,17 @@ export const BASIC_RESUME_SCHEMA_VERSION = 1;
  * reordering it is not a feature. It is written to `Resume.sectionOrder` only so
  * that column is never empty for a BASIC row; the template renders this order
  * unconditionally and does not read it back.
+ *
+ * The order follows the reference CV: the position applied for sits between the
+ * personal data block and the schooling, not up in the header with the name.
  */
 export const BASIC_SECTION_ORDER = [
   'personal',
-  'interests',
+  'positionSought',
   'education',
   'experience',
   'languages',
+  'interests',
   'personalStatement',
 ] as const;
 
@@ -70,6 +74,8 @@ export const basicSectionHasContent = (
   switch (section) {
     case 'personal':
       return Object.values(data.personal).some(hasText);
+    case 'positionSought':
+      return hasText(data.positionSought);
     case 'interests':
       return data.interests.some(hasText);
     case 'education':

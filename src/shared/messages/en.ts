@@ -654,6 +654,32 @@ const en = {
         renamePrompt: "Rename resume",
         deleteConfirm: "Delete this resume? This action cannot be undone."
     },
+    // Printed on the CV itself, not shown in the app chrome. These are the
+    // section headings a Cambodian employer expects to see on a short-form CV;
+    // the English set is the same document, labelled for an English reader.
+    basicResume: {
+        documentTitle: "Curriculum Vitae",
+        nameLabel: "Name:",
+        phoneLabel: "Phone:",
+        photoAlt: "Photograph",
+        sections: {
+            personal: "Personal data",
+            positionSought: "Position applied for",
+            education: "Education",
+            experience: "Work experience",
+            languages: "Languages",
+            interests: "Interests",
+            personalStatement: "Personal qualities"
+        },
+        personal: {
+            nationality: "Nationality",
+            gender: "Gender",
+            dateOfBirth: "Date of birth",
+            placeOfBirth: "Place of birth",
+            maritalStatus: "Marital status",
+            health: "Health"
+        }
+    },
     // Spoken aloud, not read. Every prompt is written to be said in one breath
     // and understood by someone who has never written a CV: short sentences,
     // no jargon, an example where the answer shape is not obvious.
