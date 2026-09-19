@@ -11,11 +11,12 @@ PDF (print) or DOCX, and manage multiple saved CVs backed by Postgres. It also
 has its own auth (username/password + Telegram login) and a coin-based billing
 system (Bakong KHQR payments) that gates AI actions.
 
-A second product line is being added alongside it: **Basic Resume**, the Cambodian
-short-form CV (ប្រវត្តិរូបសង្ខេប), built by answering spoken questions rather than by
-typing into a form. It is a separate document with its own shape, template and
-editor — see "Two resume kinds" below. It does not replace or change the
-two-column builder.
+A second product line sits alongside it: **Basic Resume**, the Cambodian short-form
+CV (ប្រវត្តិរូបសង្ខេប), at `/basic-resume`. It is aimed at job seekers with no resume to
+upload, for whom an 11-section English editor is the wrong document entirely. Answers
+are typed today and will also be spoken once the voice interview lands. It is a separate
+document with its own shape, template and editor — see "Two resume kinds" below. It does
+not replace or change the two-column builder.
 
 ## Commands
 
