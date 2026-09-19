@@ -45,6 +45,13 @@ export type AuthErrorCode =
   | 'LAST_CREDENTIAL'
   | 'CROSS_ORIGIN'
   | 'NOT_FOUND'
+  // Voice interview. These reach the client as designed UI states rather than
+  // as generic failures -- see §8.2 -- so each one has to be distinguishable.
+  | 'AUDIO_TOO_LARGE'
+  | 'AUDIO_TOO_LONG'
+  | 'AUDIO_UNSUPPORTED'
+  | 'SESSION_EXPIRED'
+  | 'SESSION_EXHAUSTED'
   | 'INTERNAL_ERROR';
 
 export interface AuthErrorResponse {

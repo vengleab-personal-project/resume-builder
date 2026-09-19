@@ -54,6 +54,49 @@ export const FALLBACK_ACTION_COSTS: Readonly<Record<AiActionKey, number>> = {
 
 export const DEFAULT_ACTION_COIN_COST = 1;
 
+// --- Voice interview -------------------------------------------------------
+
+// Speech-to-text and text-to-speech model ids live here as constants rather
+// than as admin-editable ChatModel rows, unlike every other model this app
+// uses. That is a deliberate, bounded exception: the registry resolves exactly
+// one model per action and cannot express a three-model pipeline, and making
+// these editable would let an admin point TTS at a model that returns no audio
+// and break the product with nothing to validate it. The env overrides below
+// keep a model rename a config change rather than a deploy.
+export const VOICE_MODEL_IDS = {
+  // Audio in, text out. Any current flash model handles this.
+  STT: 'gemini-3.8-flash',
+  // Audio OUT, which is the capability the legacy SDK cannot reach at all and
+  // the reason @google/genai is installed alongside it.
+  TTS: 'gemini-2.5-flash-preview-tts',
+} as const;
+
+// Every one of these is enforced server-side, before any model call. Client-side
+// equivalents are UX; these are the cost control. A single VOICE_INTERVIEW debit
+// covers a whole session, so the session has to be bounded or the charge is
+// unbounded.
+export const VOICE_INTERVIEW_LIMITS = {
+  // 15 questions plus at most one follow-up each.
+  MAX_TURNS: 30,
+  MAX_AUDIO_SECONDS: 60,
+  MAX_AUDIO_BYTES: 5 * 1024 * 1024,
+  SESSION_TTL_SECONDS: 30 * 60,
+} as const;
+
+export const VOICE_AUDIO = {
+  // MediaRecorder gives webm/opus on Chrome and Firefox and mp4 on Safari, so
+  // both are accepted and the type is read off the blob, never assumed.
+  ACCEPTED_MIME_PREFIXES: ['audio/webm', 'audio/mp4', 'audio/ogg', 'audio/wav', 'audio/mpeg'],
+  // What Gemini TTS actually returns: raw headerless PCM, which no browser will
+  // play. gemini-voice.ts wraps it before it leaves the server.
+  TTS_SAMPLE_RATE: 24000,
+  TTS_BITS_PER_SAMPLE: 16,
+  TTS_CHANNELS: 1,
+  // A warm, neutral prebuilt voice. Gemini's voice list is not locale-specific;
+  // the spoken language follows the text it is given.
+  TTS_VOICE: 'Kore',
+} as const;
+
 export const GEMINI_MODEL_IDS = {
   FLASH_PREVIEW_3_8: 'gemini-3.8-flash',
   FLASH_PREVIEW: 'gemini-3-flash-preview',

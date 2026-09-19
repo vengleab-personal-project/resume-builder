@@ -253,6 +253,10 @@ export const useBasicResumeLogic = () => {
     isExportingDocx,
     setTitle,
     setTheme,
+    // The voice interview writes the CV server-side, so its responses are
+    // adopted here rather than merged locally -- the server's copy is the one
+    // that was actually persisted, and re-saving it would race the next turn.
+    adoptServerResume: adopt,
     setScalar,
     setPair,
     addPair,
