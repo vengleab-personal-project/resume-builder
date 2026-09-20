@@ -626,16 +626,28 @@ const en = {
         }
     },
     sidebar: {
-        myResumes: "My Resumes",
-        resumeBuilder: "Resume Builder",
+        appTitle: "ResumeBuilder",
+        navLabel: "Main navigation",
+        groupCreate: "Create",
+        groupManage: "Manage",
+        myResumes: "My resumes",
+        resumeBuilder: "Professional resume",
+        resumeBuilderHint: "Full CV, two columns",
         basicResume: "Basic CV",
-        aiEvaluation: "AI Evaluation",
+        basicResumeHint: "Short form, by voice",
+        aiEvaluation: "AI evaluation",
         settings: "Settings",
         admin: "Administration",
         account: "Account",
         signOut: "Sign out",
-        backToHome: "Back to Home",
-        language: "Language"
+        backToHome: "Back to home",
+        language: "Language",
+        coins: "coins",
+        topUp: "Top up",
+        collapse: "Collapse menu",
+        expand: "Expand menu",
+        openMenu: "Open menu",
+        closeMenu: "Close menu"
     },
     resumeList: {
         title: "My Resumes",

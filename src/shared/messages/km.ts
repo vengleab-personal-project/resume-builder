@@ -628,16 +628,28 @@ const km: typeof en = {
         }
     },
     sidebar: {
+        appTitle: "ResumeBuilder",
+        navLabel: "ម៉ឺនុយមេ",
+        groupCreate: "បង្កើត",
+        groupManage: "គ្រប់គ្រង",
         myResumes: "ប្រវត្តិរូបរបស់ខ្ញុំ",
-        resumeBuilder: "បង្កើតប្រវត្តិរូប",
+        resumeBuilder: "ប្រវត្តិរូបវិជ្ជាជីវៈ",
+        resumeBuilderHint: "ប្រវត្តិរូបពេញ ពីរជួរ",
         basicResume: "ប្រវត្តិរូបសង្ខេប",
-        aiEvaluation: "វាយតម្លៃជាមួយ AI",
+        basicResumeHint: "ទម្រង់ខ្លី ដោយសំឡេង",
+        aiEvaluation: "ការវាយតម្លៃដោយ AI",
         settings: "ការកំណត់",
         admin: "ការគ្រប់គ្រងប្រព័ន្ធ",
         account: "គណនី",
         signOut: "ចាកចេញ",
         backToHome: "ត្រឡប់ទៅទំព័រដើម",
-        language: "ភាសា"
+        language: "ភាសា",
+        coins: "កាក់",
+        topUp: "បញ្ចូលកាក់",
+        collapse: "បង្រួមម៉ឺនុយ",
+        expand: "ពង្រីកម៉ឺនុយ",
+        openMenu: "បើកម៉ឺនុយ",
+        closeMenu: "បិទម៉ឺនុយ"
     },
     resumeList: {
         title: "ប្រវត្តិរូបរបស់ខ្ញុំ",

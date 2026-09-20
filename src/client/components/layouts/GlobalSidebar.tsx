@@ -1,153 +1,136 @@
-"use client";
+'use client';
 
-import React from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { FileText, Files, IdCard, Sparkles, Settings, FileCode2, Globe, UserRound, LogOut } from 'lucide-react';
-import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-import { useTranslations } from '@/client/hooks/useTranslations';
-import { useSession } from '@/client/features/Auth/useSession';
-import { CoinBalanceBadge } from '@/client/features/Coins';
-import { AUTH_ROUTES } from '@/shared/config/auth';
+import { Menu, X } from 'lucide-react';
+import { useCoinBalanceLogic } from '@/client/features/Coins';
+import { useGlobalSidebarLogic, isRouteActive } from './useGlobalSidebarLogic';
+import { SidebarBrand } from './sidebar/SidebarBrand';
+import { SidebarFooter } from './sidebar/SidebarFooter';
+import { SidebarNavItem } from './sidebar/SidebarNavItem';
+import { SidebarSection } from './sidebar/SidebarSection';
 
-function cn(...inputs: (string | undefined | null | false)[]) {
-  return twMerge(clsx(inputs));
-}
-
+/**
+ * The app's primary navigation.
+ *
+ * Labelled rather than icon-only. The previous rail showed four unlabelled
+ * glyphs whose meaning only appeared on hover, which cannot work on a touch
+ * screen at all and stopped working on desktop the moment the app had two
+ * different things called a "resume". Labels, one-line hints on the two
+ * creation routes, and named groups make "which of these builds what" answerable
+ * without clicking anything.
+ *
+ * Collapsing back to a rail is kept as a choice, not the default, and is
+ * remembered per browser.
+ */
 export function GlobalSidebar() {
-  const pathname = usePathname();
-  const router = useRouter();
-  const { t, locale, setLocale } = useTranslations('sidebar');
-  const { user, signOut } = useSession();
-  const isAdmin = user?.role === 'ADMIN';
+  const vm = useGlobalSidebarLogic();
+  const { balance } = useCoinBalanceLogic();
 
-  const handleSignOut = async () => {
-    await signOut();
-    router.replace(AUTH_ROUTES.LOGIN);
-    router.refresh();
+  const footerLabels = {
+    coins: vm.t.coins,
+    topUp: vm.t.topUp,
+    admin: vm.t.admin,
+    account: vm.t.account,
+    signOut: vm.t.signOut,
+    language: vm.t.language,
   };
 
-  const navItems = [
-    { name: t.myResumes, href: '/resumes', icon: Files },
-    { name: t.resumeBuilder, href: '/builder', icon: FileText },
-    { name: t.basicResume, href: '/basic-resume', icon: IdCard },
-    { name: t.aiEvaluation, href: '/evaluation', icon: Sparkles },
-  ];
+  // `onNavigate` is set only for the drawer: picking a page there has to close
+  // the overlay covering it. Closing on the click rather than on the route
+  // change keeps it instant and keeps the state out of an effect.
+  const panel = (collapsed: boolean, showToggle: boolean, onNavigate?: () => void) => (
+    <>
+      <SidebarBrand
+        appTitle={vm.t.appTitle}
+        homeLabel={vm.t.backToHome}
+        collapseLabel={vm.t.collapse}
+        expandLabel={vm.t.expand}
+        collapsed={collapsed}
+        showToggle={showToggle}
+        onToggle={vm.toggleCollapsed}
+        onNavigate={onNavigate}
+      />
 
-  const toggleLanguage = () => {
-    setLocale(locale === 'en' ? 'km' : 'en');
-  };
-
-  return (
-    <aside className="w-16 flex-shrink-0 bg-slate-900 flex flex-col items-center py-4 z-50 h-full overflow-hidden print:hidden">
-      {/* Top Logo */}
-      <Link
-        href="/"
-        title={t.backToHome}
-        className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white mb-8 hover:scale-105 hover:bg-indigo-500 transition-all shadow-md"
-      >
-        <FileCode2 size={20} strokeWidth={2.5} />
-      </Link>
-
-      {/* Nav Links */}
-      <nav className="flex-1 flex flex-col gap-4 w-full px-3">
-        {navItems.map((item) => {
-          const isActive = pathname.startsWith(item.href);
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              title={item.name}
-              className={cn(
-                "w-10 h-10 rounded-xl flex items-center justify-center transition-all group relative",
-                isActive
-                  ? "bg-white/10 text-white"
-                  : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
-              )}
-            >
-              <Icon size={20} className={cn("transition-transform", isActive ? "scale-110" : "group-hover:scale-110")} />
-              
-              {/* Tooltip */}
-              <div className="absolute left-14 px-2.5 py-1 bg-slate-800 text-slate-200 text-[11px] font-semibold rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 shadow-xl">
-                {item.name}
-              </div>
-            </Link>
-          );
-        })}
+      <nav aria-label={vm.t.navLabel} className="min-h-0 flex-1 overflow-y-auto px-3 pb-4">
+        {vm.groups.map((group) => (
+          <SidebarSection key={group.id} label={group.label} collapsed={collapsed}>
+            {group.items.map((item) => (
+              <SidebarNavItem
+                key={item.href}
+                href={item.href}
+                label={item.label}
+                hint={item.hint}
+                icon={item.icon}
+                isActive={isRouteActive(vm.pathname, item.href)}
+                collapsed={collapsed}
+                onNavigate={onNavigate}
+              />
+            ))}
+          </SidebarSection>
+        ))}
       </nav>
 
-      {/* Bottom Actions */}
-      <div className="mt-auto w-full px-3 flex flex-col items-center gap-3">
-        <CoinBalanceBadge />
+      <SidebarFooter
+        labels={footerLabels}
+        user={vm.user}
+        isAdmin={vm.isAdmin}
+        balance={balance}
+        locale={vm.locale}
+        collapsed={collapsed}
+        isAdminActive={isRouteActive(vm.pathname, '/admin')}
+        isAccountActive={isRouteActive(vm.pathname, '/account')}
+        onToggleLanguage={vm.toggleLanguage}
+        onSignOut={() => void vm.handleSignOut()}
+        onNavigate={onNavigate}
+      />
+    </>
+  );
 
-        {/* Language Switch Button */}
+  return (
+    <>
+      {/* Mobile: a real top bar, because a 64px rail permanently eating a phone
+          screen is worse than a button that summons one. */}
+      <header className="flex items-center gap-3 border-b border-slate-800 bg-slate-900 px-4 py-2.5 lg:hidden print:hidden">
         <button
           type="button"
-          onClick={toggleLanguage}
-          title={`${t.language}: ${locale.toUpperCase()}`}
-          className="w-10 h-10 rounded-xl flex flex-col items-center justify-center text-slate-400 hover:bg-white/10 hover:text-white transition-all group relative"
+          onClick={vm.openDrawer}
+          aria-label={vm.t.openMenu}
+          aria-expanded={vm.isDrawerOpen}
+          className="rounded-lg p-1.5 text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
         >
-          <Globe size={16} />
-          <span className="text-[9px] font-bold mt-0.5 tracking-wider uppercase text-indigo-400">
-            {locale === 'en' ? 'EN' : 'ខ្មែរ'}
-          </span>
-          <div className="absolute left-14 px-2.5 py-1 bg-slate-800 text-slate-200 text-[11px] font-semibold rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 shadow-xl">
-            {locale === 'en' ? 'Switch to ភាសាខ្មែរ' : 'Switch to English'}
-          </div>
+          <Menu size={20} />
         </button>
+        <span className="text-sm font-bold text-white">{vm.t.appTitle}</span>
+      </header>
 
-        {/* Hidden for non-admins. This is chrome only — requireAdmin() on every
-            /api/admin/* handler is what actually gates the capability. */}
-        {isAdmin && (
-          <Link
-            href="/admin"
-            title={t.admin}
-            className={cn(
-              "w-10 h-10 rounded-xl flex items-center justify-center transition-all group relative",
-              pathname.startsWith('/admin')
-                ? "bg-white/10 text-white"
-                : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
-            )}
-          >
-            <Settings size={20} />
-            <div className="absolute left-14 px-2.5 py-1 bg-slate-800 text-slate-200 text-[11px] font-semibold rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 shadow-xl">
-              {t.admin}
-            </div>
-          </Link>
-        )}
-
-        <Link
-          href="/account"
-          title={t.account}
-          className={cn(
-            "w-10 h-10 rounded-xl flex items-center justify-center transition-all group relative",
-            pathname.startsWith('/account')
-              ? "bg-white/10 text-white"
-              : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
-          )}
-        >
-          <UserRound size={20} />
-          <div className="absolute left-14 px-2.5 py-1 bg-slate-800 text-slate-200 text-[11px] font-semibold rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 shadow-xl">
-            {user?.username ?? t.account}
-          </div>
-        </Link>
-
-        {user && (
+      {vm.isDrawerOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden print:hidden">
           <button
             type="button"
-            onClick={handleSignOut}
-            title={t.signOut}
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-all group relative"
-          >
-            <LogOut size={20} />
-            <div className="absolute left-14 px-2.5 py-1 bg-slate-800 text-slate-200 text-[11px] font-semibold rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 shadow-xl">
-              {t.signOut}
-            </div>
-          </button>
-        )}
-      </div>
-    </aside>
+            aria-label={vm.t.closeMenu}
+            onClick={vm.closeDrawer}
+            className="absolute inset-0 h-full w-full bg-slate-950/60"
+          />
+          <aside className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-slate-900 shadow-2xl">
+            <button
+              type="button"
+              onClick={vm.closeDrawer}
+              aria-label={vm.t.closeMenu}
+              className="absolute right-3 top-4 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+            >
+              <X size={18} />
+            </button>
+            {panel(false, false, vm.closeDrawer)}
+          </aside>
+        </div>
+      )}
+
+      <aside
+        className={`hidden h-full shrink-0 flex-col bg-slate-900 transition-[width] duration-200 lg:flex print:hidden ${
+          vm.collapsed ? 'w-[76px]' : 'w-64'
+        }`}
+      >
+        {panel(vm.collapsed, true)}
+      </aside>
+    </>
   );
 }
