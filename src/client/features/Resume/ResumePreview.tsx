@@ -3,6 +3,7 @@
 import React, { memo, useMemo } from 'react';
 import { useResumeStore } from '@/client/store/resume-store';
 import { useTranslations } from '@/client/hooks/useTranslations';
+import { usePrintSidebarBackground } from './usePrintSidebarBackground';
 
 import {
   ResumeHeader,
@@ -23,6 +24,7 @@ const hasData = (arr: unknown[] | undefined) => Array.isArray(arr) && arr.filter
 
 const ResumePreviewComponent = () => {
   const { resumeData, theme, sectionOrder } = useResumeStore();
+  usePrintSidebarBackground(theme.backgroundColor);
   const {
     personalInfo,
     education,

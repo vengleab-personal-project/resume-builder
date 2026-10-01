@@ -88,6 +88,14 @@ html[lang="km"] body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
+    /* Sidebar-coloured strip down the left 32% of every sheet, including the
+       top/bottom page margins (--resume-sidebar-bg is set by ResumePreview and
+       absent elsewhere, so other pages print on plain white). */
+    background: linear-gradient(
+      to right,
+      var(--resume-sidebar-bg, transparent) 32%,
+      transparent 32%
+    ) !important;
   }
   
   body {
