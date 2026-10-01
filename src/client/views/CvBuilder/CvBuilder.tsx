@@ -63,7 +63,7 @@ export default function CvBuilder() {
   };
 
   return (
-    <div className="h-full flex flex-col font-sans text-slate-900 bg-slate-100 relative">
+    <div className="h-full flex flex-col font-sans text-slate-900 bg-slate-100 relative print:block print:h-auto print:bg-white">
       
       {/* App Header */}
       <header className="bg-white border-b border-slate-200 flex flex-col sticky top-0 z-50 print:hidden">
@@ -187,7 +187,7 @@ export default function CvBuilder() {
       </header>
 
       {/* Main Layout */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden print:block print:overflow-visible">
         
         {/* Left Panel: Controls (Scrollable) */}
         {viewMode === ViewMode.EDITOR && (

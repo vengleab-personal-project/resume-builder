@@ -12,9 +12,9 @@ export default function AppLayout({
     <AppSessionProvider>
       {/* Column on phones so the sidebar's top bar stacks above the page, row
           from lg up where the sidebar is a real column beside it. */}
-      <div className="flex h-screen w-full flex-col overflow-hidden bg-slate-100 lg:flex-row">
+      <div className="flex h-screen w-full flex-col overflow-hidden bg-slate-100 lg:flex-row print:block print:h-auto print:overflow-visible">
         <GlobalSidebar />
-        <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden print:block print:overflow-visible">
           {children}
         </main>
       </div>

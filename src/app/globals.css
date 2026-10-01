@@ -53,9 +53,17 @@ html[lang="km"] body {
 }
 /* Print styles for pixel-perfect PDF export */
 @media print {
+  /* Breathing room above and below the content on every page. Sides stay at 0
+     so the sidebar colour remains full-bleed; the first page keeps no top
+     margin so the header banner touches the top edge. The sidebar background
+     layer extends into these margins (see ResumePreview). */
   @page {
-    margin: 0;
+    margin: 12mm 0;
     size: A4 portrait;
+  }
+
+  @page :first {
+    margin-top: 0;
   }
   
   /* Force exact colors to print (backgrounds, etc.) */
@@ -146,6 +154,31 @@ html[lang="km"] body {
   #basic-resume-preview h1,
   #basic-resume-preview h2 {
     break-after: avoid;
+    break-inside: avoid;
+  }
+
+  /* Page breaks: fall between blocks, never through a line of text.
+     Sidebar sections move whole; headings stay with what follows them; a
+     bullet, paragraph or entry header is never split across two pages. Long
+     experience/education entries may still split, but only between bullets. */
+  #resume-preview aside section {
+    break-inside: avoid;
+  }
+
+  #resume-preview h2,
+  #resume-preview h3 {
+    break-after: avoid;
+    break-inside: avoid;
+  }
+
+  #resume-preview li,
+  #resume-preview p {
+    break-inside: avoid;
+    orphans: 3;
+    widows: 3;
+  }
+
+  #resume-preview [data-print-keep] {
     break-inside: avoid;
   }
 

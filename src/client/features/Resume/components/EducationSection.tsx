@@ -21,14 +21,14 @@ export const EducationSection = ({ education, primaryColor, title }: EducationSe
 
       {education.map((edu, idx) => (
         <React.Fragment key={idx}>
-          <div className={`pl-6 relative ${edu.breakPage ? 'print:break-after-page mb-8' : ''}`}>
+          <div data-print-keep className={`pl-6 relative ${edu.breakPage ? 'print:break-after-page mb-8' : ''}`}>
             {/* Timeline Dot */}
             <div
               className="absolute left-0 top-1.5 w-3 h-3 rounded-full border-[2px] bg-white shadow-sm z-10 box-border"
               style={{ borderColor: primaryColor }}
             />
 
-            <div className="flex justify-between items-start mb-1">
+            <div data-print-keep className="flex justify-between items-start mb-1 print:break-after-avoid">
               <h3 className="text-lg font-bold text-slate-900 leading-tight">
                 {edu.degree}
               </h3>
