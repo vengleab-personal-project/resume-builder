@@ -24,15 +24,34 @@ export async function requireAdmin(): Promise<PublicUser> {
   return user;
 }
 
+function normalizeOrigin(value: string): string | null {
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+}
+
 // Cookie-authenticated state-changing routes need CSRF protection. sameSite=lax
 // already blocks cross-site POSTs from forms, but this closes the gap for
 // requests that slip through (and is cheap).
+//
+// Fails closed: browsers always send Origin on POST/PUT/PATCH/DELETE, so a
+// request with neither Origin nor a same-origin Sec-Fetch-Site is not a browser
+// acting on the user's behalf.
 export function assertSameOrigin(req: Request): void {
   const origin = req.headers.get('origin');
-  if (!origin) return;
+
+  if (!origin) {
+    const fetchSite = req.headers.get('sec-fetch-site');
+    if (fetchSite === 'same-origin' || fetchSite === 'none') return;
+    throw new HttpError(403, 'CROSS_ORIGIN', 'Cross-origin request rejected');
+  }
 
   const allowed = new Set<string>();
-  if (ENV.APP_URL) allowed.add(ENV.APP_URL);
+  // Normalised so a trailing slash in NEXT_PUBLIC_APP_URL still matches.
+  const appOrigin = ENV.APP_URL ? normalizeOrigin(ENV.APP_URL) : null;
+  if (appOrigin) allowed.add(appOrigin);
 
   const host = req.headers.get('host');
   if (host) {

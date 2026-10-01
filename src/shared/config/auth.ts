@@ -68,6 +68,7 @@ export const AUTH_ROUTES = {
 export const PROTECTED_PATH_PREFIXES: readonly string[] = [
   '/builder',
   '/basic-resume',
+  '/resumes',
   '/evaluation',
   '/account',
   '/billing',

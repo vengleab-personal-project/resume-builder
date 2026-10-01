@@ -6278,4 +6278,7 @@ snapshots:
 
   zustand@5.0.15(@types/react@19.3.0)(immer@11.1.18)(react@19.2.3)(use-sync-external-store@1.7.0(react@19.2.3)):
     optionalDependencies:
-      '@typ
+      '@types/react': 19.3.0
+      immer: 11.1.18
+      react: 19.2.3
+      use-sync-external-store: 1.7.0(react@19.2.3)

@@ -67,10 +67,7 @@ export const DELETE = withErrorHandling(async (req: NextRequest, context: RouteC
   const user = await requireUser();
   const { id } = await context.params;
 
-  // Read the row as a BASIC one first: softDeleteResume is deliberately
-  // kind-agnostic, so without this check this route would delete a full resume.
-  const resume = await findOwnedBasicResume(user.id, id);
-  if (!resume || !(await softDeleteResume(user.id, id))) {
+  if (!(await softDeleteResume(user.id, id, 'BASIC'))) {
     throw new HttpError(404, 'NOT_FOUND', 'Resume not found');
   }
 

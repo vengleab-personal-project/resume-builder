@@ -248,9 +248,9 @@ export async function updateBasicResumeWithVersionCheck(
   return count === 1 ? { status: 'updated', resume: current } : { status: 'conflict', resume: current };
 }
 
-export async function softDeleteResume(userId: string, id: string): Promise<boolean> {
+export async function softDeleteResume(userId: string, id: string, kind: ResumeKind): Promise<boolean> {
   const { count } = await prisma.resume.updateMany({
-    where: { id, userId, deletedAt: null },
+    where: { id, userId, kind, deletedAt: null },
     // isDefault is cleared alongside the tombstone so the partial unique index
     // does not block the user from making another resume their default.
     data: { deletedAt: new Date(), isDefault: false },

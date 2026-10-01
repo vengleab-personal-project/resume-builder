@@ -7,7 +7,7 @@ import {
   buildRefinementPrompt,
   generateMockRefinement,
 } from "@/server/modules/ai/workflows/refinementService";
-import { requireUser } from "@/server/modules/auth/guards";
+import { assertSameOrigin, requireUser } from "@/server/modules/auth/guards";
 import { errorResponse } from "@/server/errors";
 import { resolveAiRequest } from "@/server/modules/ai/registry";
 import { withCoinDeduction } from "@/server/modules/billing/coinService";
@@ -20,6 +20,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   let user: PublicUser;
   try {
+    assertSameOrigin(req);
     user = await requireUser();
   } catch (error) {
     return errorResponse(error);

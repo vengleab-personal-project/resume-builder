@@ -1,13 +1,28 @@
 import React from 'react';
+import { redirect } from 'next/navigation';
 import { GlobalSidebar } from '@/client/components/layouts/GlobalSidebar';
 import { AppSessionProvider } from '@/client/components/layouts/AppSessionProvider';
 import { TopUpModal } from '@/client/features/Billing';
+import { getCurrentUser } from '@/server/modules/auth/getCurrentUser';
+import { AUTH_ROUTES } from '@/shared/config/auth';
 
-export default function AppLayout({
+// Never prerender: the session check has to run per request, and there is no
+// DATABASE_URL at build time.
+export const dynamic = 'force-dynamic';
+
+export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Every page in this group needs a signed-in user. The middleware redirect is
+  // only a fast path whose matcher can drift from the route list; this check
+  // cannot. The data behind each page is still gated by requireUser() in the API.
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect(AUTH_ROUTES.LOGIN);
+  }
+
   return (
     <AppSessionProvider>
       {/* Column on phones so the sidebar's top bar stacks above the page, row

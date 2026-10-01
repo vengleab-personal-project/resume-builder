@@ -39,7 +39,7 @@ export const DELETE = withErrorHandling(async (req: NextRequest, context: RouteC
   const user = await requireUser();
   const { id } = await context.params;
 
-  const deleted = await softDeleteResume(user.id, id);
+  const deleted = await softDeleteResume(user.id, id, 'FULL');
   if (!deleted) {
     throw new HttpError(404, 'NOT_FOUND', 'Resume not found');
   }

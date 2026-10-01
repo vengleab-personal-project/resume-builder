@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { HTTP_STATUS, API_ERROR_MESSAGES } from '@/shared/config/constants';
 import { orchestrateResumeParsing } from '@/server/modules/ai/workflows/parseResumeOrchestrator';
-import { requireUser } from '@/server/modules/auth/guards';
+import { assertSameOrigin, requireUser } from '@/server/modules/auth/guards';
 import { errorResponse } from '@/server/errors';
 import { resolveAiRequest } from '@/server/modules/ai/registry';
 import { serverEnv } from '@/server/config/env.server';
@@ -15,6 +15,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(req: NextRequest) {
   let user: PublicUser;
   try {
+    assertSameOrigin(req);
     user = await requireUser();
   } catch (error) {
     return errorResponse(error);

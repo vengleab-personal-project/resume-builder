@@ -78,7 +78,12 @@ export const config = {
   matcher: [
     // /api/auth/* is deliberately absent: those routes must be reachable while
     // logged out, and a redirect response would break their JSON contract.
+    //
+    // Keep in step with PROTECTED_PATH_PREFIXES: Next only accepts a literal
+    // matcher here, so it cannot be derived from that list.
     '/builder/:path*',
+    '/basic-resume/:path*',
+    '/resumes/:path*',
     '/evaluation/:path*',
     '/account/:path*',
     '/billing/:path*',
