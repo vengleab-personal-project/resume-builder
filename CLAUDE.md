@@ -120,6 +120,36 @@ schema `version` + `migrate()` — bump both together whenever the persisted sha
 - Resumes are soft-deleted (`deletedAt`), never hard-deleted, because `EvaluationResult` rows
   reference them and a resume being scored later must not silently disappear.
 
+### PDF export is the browser's print engine — the print contract
+
+"Export PDF" is `window.print()` (`useCvBuilderLogic.handleExportPDF`) styled by the
+`@media print` block in `app/globals.css` plus `print:` utilities on the preview. There is no
+test for it, and it has broken three separate ways, so treat these as invariants:
+
+- **Every ancestor of `#resume-preview` must stop clipping in print.** The app shell
+  (`app/(app)/layout.tsx`) and `CvBuilder` use `h-screen overflow-hidden` for the on-screen
+  app layout; Chrome prints only what fits in that box, so a long resume came out as **one
+  page**. Each such wrapper needs `print:block print:h-auto print:overflow-visible`. When you
+  add or restyle a wrapper above the preview (new layout, sidebar, banner), re-check this.
+- **Never fit-to-page with `zoom`/`transform`/scale on the preview.** An attempt measured
+  `scrollHeight` (inflated by the print-only `fixed … h-[200vh]` background layers) and
+  zoomed by it: tiny text, and the `fixed`/`h-screen` sidebar background shrank with it.
+- **Page breaks must fall between blocks, never through a line.** The rules live in
+  `globals.css` under `#resume-preview`: sidebar `section`s `break-inside: avoid`; `h2`/`h3`
+  `break-after: avoid`; `li`/`p` `break-inside: avoid` with orphans/widows; entry headers carry
+  `data-print-keep` + `print:break-after-avoid` (Experience/Education). Long experience
+  entries may split, but only between bullets. `exp.breakPage` (`print:break-after-page`) is a
+  user-set manual break and must keep working. New section components inherit this for free if
+  they use `section`/`li`/`p`/`h2`/`h3`; a bare `div` of text lines does not.
+- **Page margins and the sidebar colour.** `@page` is `12mm 0` (`:first` has `margin-top: 0` so
+  the header banner stays full-bleed). Nothing inside the document — not even `position:
+  fixed` — paints into the top/bottom margins, so the grey sidebar would show white bands
+  there. The fix is a sidebar-coloured strip on `html`'s background (`globals.css`), fed by the
+  `--resume-sidebar-bg` variable that `usePrintSidebarBackground` sets while the preview is
+  mounted (the theme colour is user-chosen, so it cannot be hard-coded). If you change the
+  margin, change the `@page` rule and the `-12mm` offsets in `ResumePreview` together.
+- Browser print dialog Margins must stay on "Default"; "None"/"Minimum" override `@page`.
+
 ### Two resume kinds — `Resume.kind` (in progress: the Basic Resume product line)
 
 There are two resume products sharing one `Resume` table, distinguished by `kind`:
