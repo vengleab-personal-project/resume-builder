@@ -28,15 +28,53 @@ import { HttpError } from '@/server/errors';
 
 let client: GoogleGenAI | null = null;
 
+/**
+ * Returns a GoogleGenAI client configured for the active backend.
+ *
+ * - 'ai-studio' (default): authenticates with GEMINI_API_KEY.
+ * - 'vertex': authenticates via Application Default Credentials
+ *   (GOOGLE_APPLICATION_CREDENTIALS → service account JSON key,
+ *   Workload Identity, gcloud ADC, …). Requires GCP_PROJECT.
+ *
+ * The singleton is reset to null whenever the backend selection might change
+ * (only at cold-start in practice; lambda environments have a single env snapshot).
+ */
 function genai(): GoogleGenAI {
   if (!client) {
-    client = new GoogleGenAI({ apiKey: serverEnv.GEMINI_API_KEY });
+    if (serverEnv.GEMINI_BACKEND === 'vertex') {
+      if (!serverEnv.GCP_PROJECT) {
+        throw new Error(
+          'GEMINI_BACKEND=vertex requires GCP_PROJECT to be set. ' +
+          'Make sure GCP_SERVICE_ACCOUNT_KEY_PATH points to a valid service account key.'
+        );
+      }
+      // @google/genai does not expose googleAuthOptions for the vertexai mode,
+      // so we wire up the key file via GOOGLE_APPLICATION_CREDENTIALS before the
+      // client is created. This is safe: Next.js server code owns the process
+      // and this runs once at cold-start. Falls back to whatever ADC provides
+      // (Workload Identity, gcloud ADC, etc.) when the path is not set.
+      const keyPath = serverEnv.GCP_SERVICE_ACCOUNT_KEY_PATH;
+      if (keyPath && !process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+        process.env.GOOGLE_APPLICATION_CREDENTIALS = keyPath;
+      }
+      client = new GoogleGenAI({
+        vertexai: true,
+        project: serverEnv.GCP_PROJECT,
+        location: serverEnv.GCP_LOCATION,
+      });
+    } else {
+      client = new GoogleGenAI({ apiKey: serverEnv.GEMINI_API_KEY });
+    }
   }
   return client;
 }
 
 /** Whether a real voice pipeline is reachable. False means typed-only, unbilled. */
 export function isVoiceAvailable(): boolean {
+  if (serverEnv.GEMINI_BACKEND === 'vertex') {
+    // Vertex AI uses ADC — no API key needed, but GCP_PROJECT must be set.
+    return Boolean(serverEnv.GCP_PROJECT);
+  }
   return Boolean(serverEnv.GEMINI_API_KEY);
 }
 

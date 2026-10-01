@@ -73,6 +73,41 @@ export const serverEnv = {
   get GEMINI_API_KEY(): string {
     return optional('GEMINI_API_KEY');
   },
+
+  /**
+   * Controls which Gemini backend is used.
+   *
+   * - 'ai-studio' (default): calls generativelanguage.googleapis.com with an
+   *   API key (GEMINI_API_KEY). No GCP project needed.
+   * - 'vertex': calls aiplatform.googleapis.com with Application Default
+   *   Credentials (service account key file via GOOGLE_APPLICATION_CREDENTIALS,
+   *   Workload Identity, or any other ADC source). Requires GCP_PROJECT.
+   */
+  get GEMINI_BACKEND(): 'vertex' | 'ai-studio' {
+    return process.env.GEMINI_BACKEND === 'vertex' ? 'vertex' : 'ai-studio';
+  },
+  /** GCP project ID — required when GEMINI_BACKEND=vertex. */
+  get GCP_PROJECT(): string {
+    return optional('GCP_PROJECT');
+  },
+  /** GCP region for Vertex AI endpoints. Defaults to global. */
+  get GCP_LOCATION(): string {
+    return process.env.GCP_LOCATION || 'global';
+  },
+  /**
+   * Absolute path to a GCP service account JSON key file.
+   *
+   * Preferred over the system-level GOOGLE_APPLICATION_CREDENTIALS because
+   * Next.js injects .env values into process.env reliably, whereas native
+   * libraries sometimes read GOOGLE_APPLICATION_CREDENTIALS before Next.js
+   * has had a chance to set it (e.g. on cold-start in some runtimes).
+   *
+   * When set, both Gemini clients pass it directly to googleAuthOptions so
+   * ADC discovery is bypassed entirely.
+   */
+  get GCP_SERVICE_ACCOUNT_KEY_PATH(): string {
+    return optional('GCP_SERVICE_ACCOUNT_KEY_PATH');
+  },
   get MAX_AI_TOKENS(): number {
     return integer('MAX_AI_TOKENS', 5000);
   },
