@@ -2,13 +2,19 @@ import { z } from 'zod';
 import type enMessages from '@/shared/messages/en';
 import type { BasicResumeData } from '@/shared/types/basic-resume';
 
-// The fixed question script the voice interview follows. Pure data: no I/O, no
-// model call, importable from both client and server.
+// The fixed script the voice interview follows. Pure data: no I/O, no model
+// call, importable from both client and server.
 //
 // A hardcoded ordered list -- rather than letting the model decide what to ask
 // next -- is what guarantees coverage. The model's only freedom is one
-// clarifying follow-up per question (§5.3), so there is no path on which a
+// clarifying follow-up per section (§5.3), so there is no path on which a
 // section of the CV is simply never asked about.
+//
+// Each step is a whole section (about you, school, work and skills, interests)
+// rather than one field: a person describes their life in a few breaths, not in
+// fifteen separate prompts. The cost of that is that one answer now fills many
+// fields, so extraction is scoped to the fields the section declares and the
+// merge refuses to write anywhere else.
 
 // ---------------------------------------------------------------------------
 // Target paths, proved at compile time
@@ -17,7 +23,7 @@ import type { BasicResumeData } from '@/shared/types/basic-resume';
 /**
  * Resolves a dot path against a type, or `never` if it does not exist.
  *
- * This is the load-bearing part of this file. A typo'd `targetPath` is the worst
+ * This is the load-bearing part of this file. A typo'd field `path` is the worst
  * failure mode the interview has: it does not throw, it silently drops the
  * user's answer into a field nothing reads, and the CV comes out missing a
  * section the user definitely answered. Making the path a checked type rather
@@ -55,10 +61,10 @@ export type BasicListPath = ListPath<'education' | 'experience' | 'languages' | 
 // Answer schemas
 // ---------------------------------------------------------------------------
 
-// What a single question's extraction is allowed to return -- and the whole of
-// what it is allowed to return. Extraction is scoped to one question at a time
-// and never sees the rest of the CV, which is what stops question 12 rewriting
-// question 3's answer.
+// What a single field's extraction is allowed to return -- and the whole of
+// what it is allowed to return. Extraction is scoped to one section at a time
+// and never sees the rest of the CV, which is what stops the interests answer
+// rewriting the education one.
 //
 // Entry `id`s are absent on purpose: they are minted server-side when the
 // answer is merged, so a model cannot collide or re-use one.
@@ -79,183 +85,96 @@ export const ANSWER_SCHEMAS = {
 export type BasicAnswerSchemaKey = keyof typeof ANSWER_SCHEMAS;
 
 // ---------------------------------------------------------------------------
-// Questions
+// Sections
 // ---------------------------------------------------------------------------
 
 /** The i18n keys under the `basicInterview.questions` namespace. */
 type InterviewPromptKey = keyof (typeof enMessages)['basicInterview']['questions'];
 
-interface InterviewQuestionBase {
+/**
+ * One field a section fills. The path is a checked type. A list field's answer
+ * shape is named by its own path -- the list paths and ANSWER_SCHEMAS keys are
+ * the same words -- so a field cannot be paired with the wrong shape.
+ */
+export type InterviewField =
+  | { path: BasicScalarPath; required: boolean }
+  | { path: BasicListPath; required: boolean };
+
+export interface InterviewQuestion {
   /** Stable key, used as the session's cursor. Never renumber these. */
   id: string;
   /** i18n key, never literal copy -- so EN and KM cannot drift apart. */
   promptKey: InterviewPromptKey;
-  /** Which answer shape extraction must return for this question. */
-  answerSchema: BasicAnswerSchemaKey;
+  /** Everything this one answer is allowed to write. Nothing else is touched. */
+  fields: readonly InterviewField[];
   /**
-   * A skippable question. Silence, "skip" or an unparseable answer records
-   * empty and moves on -- no follow-up, no second ask.
+   * A skippable section. Silence, "skip" or an unparseable answer records
+   * nothing and moves on -- no follow-up, no second ask.
    */
   optional: boolean;
   /** At most one rephrased re-ask, then advance regardless (§5.3). */
   followUpAllowed: boolean;
 }
 
-export interface ScalarInterviewQuestion extends InterviewQuestionBase {
-  kind: 'scalar';
-  targetPath: BasicScalarPath;
-  answerSchema: 'scalar';
+export function isListField(field: InterviewField): field is { path: BasicListPath; required: boolean } {
+  return isListPath(field.path);
 }
 
-export interface ListInterviewQuestion extends InterviewQuestionBase {
-  kind: 'list';
-  targetPath: BasicListPath;
-  answerSchema: Exclude<BasicAnswerSchemaKey, 'scalar'>;
+function isListPath(path: string): path is BasicListPath {
+  return path === 'education' || path === 'experience' || path === 'languages' || path === 'interests';
 }
-
-export type InterviewQuestion = ScalarInterviewQuestion | ListInterviewQuestion;
 
 /**
- * The 15 questions, in the order they are asked.
+ * The four sections, in the order they are asked.
  *
- * Gender, marital status, health, nationality and place of birth are marked
- * optional and are never followed up on. They are conventional in this CV
+ * Gender, marital status, health, nationality and place of birth are never
+ * `required` and are never followed up on. They are conventional in this CV
  * format and they are sensitive personal data; a user's silence is a complete
  * answer and the app must not push for one.
  */
 export const BASIC_INTERVIEW_SCRIPT: readonly InterviewQuestion[] = [
   {
-    id: 'fullName',
-    targetPath: 'fullName',
-    kind: 'scalar',
-    promptKey: 'fullName',
-    answerSchema: 'scalar',
+    id: 'bio',
+    promptKey: 'bio',
+    fields: [
+      { path: 'fullName', required: true },
+      { path: 'positionSought', required: true },
+      { path: 'contact.phone', required: true },
+      { path: 'contact.address', required: true },
+      { path: 'personal.dateOfBirth', required: true },
+      { path: 'personal.gender', required: false },
+      { path: 'personal.nationality', required: false },
+      { path: 'personal.placeOfBirth', required: false },
+      { path: 'personal.maritalStatus', required: false },
+      { path: 'personal.health', required: false },
+    ],
     optional: false,
     followUpAllowed: true,
-  },
-  {
-    id: 'positionSought',
-    targetPath: 'positionSought',
-    kind: 'scalar',
-    promptKey: 'positionSought',
-    answerSchema: 'scalar',
-    optional: false,
-    followUpAllowed: true,
-  },
-  {
-    id: 'contact.phone',
-    targetPath: 'contact.phone',
-    kind: 'scalar',
-    promptKey: 'phone',
-    answerSchema: 'scalar',
-    optional: false,
-    followUpAllowed: true,
-  },
-  {
-    id: 'contact.address',
-    targetPath: 'contact.address',
-    kind: 'scalar',
-    promptKey: 'address',
-    answerSchema: 'scalar',
-    optional: false,
-    followUpAllowed: true,
-  },
-  {
-    id: 'personal.dateOfBirth',
-    targetPath: 'personal.dateOfBirth',
-    kind: 'scalar',
-    promptKey: 'dateOfBirth',
-    answerSchema: 'scalar',
-    optional: false,
-    followUpAllowed: true,
-  },
-  {
-    id: 'personal.gender',
-    targetPath: 'personal.gender',
-    kind: 'scalar',
-    promptKey: 'gender',
-    answerSchema: 'scalar',
-    optional: true,
-    followUpAllowed: false,
-  },
-  {
-    id: 'personal.nationality',
-    targetPath: 'personal.nationality',
-    kind: 'scalar',
-    promptKey: 'nationality',
-    answerSchema: 'scalar',
-    optional: true,
-    followUpAllowed: false,
-  },
-  {
-    id: 'personal.placeOfBirth',
-    targetPath: 'personal.placeOfBirth',
-    kind: 'scalar',
-    promptKey: 'placeOfBirth',
-    answerSchema: 'scalar',
-    optional: true,
-    followUpAllowed: false,
-  },
-  {
-    id: 'personal.maritalStatus',
-    targetPath: 'personal.maritalStatus',
-    kind: 'scalar',
-    promptKey: 'maritalStatus',
-    answerSchema: 'scalar',
-    optional: true,
-    followUpAllowed: false,
-  },
-  {
-    id: 'personal.health',
-    targetPath: 'personal.health',
-    kind: 'scalar',
-    promptKey: 'health',
-    answerSchema: 'scalar',
-    optional: true,
-    followUpAllowed: false,
   },
   {
     id: 'education',
-    targetPath: 'education',
-    kind: 'list',
     promptKey: 'education',
-    answerSchema: 'education',
+    fields: [{ path: 'education', required: true }],
     optional: false,
     followUpAllowed: true,
   },
   {
     id: 'experience',
-    targetPath: 'experience',
-    kind: 'list',
     promptKey: 'experience',
-    answerSchema: 'experience',
-    optional: true,
-    followUpAllowed: false,
-  },
-  {
-    id: 'languages',
-    targetPath: 'languages',
-    kind: 'list',
-    promptKey: 'languages',
-    answerSchema: 'languages',
+    fields: [
+      { path: 'experience', required: false },
+      { path: 'languages', required: false },
+    ],
     optional: true,
     followUpAllowed: false,
   },
   {
     id: 'interests',
-    targetPath: 'interests',
-    kind: 'list',
     promptKey: 'interests',
-    answerSchema: 'interests',
-    optional: true,
-    followUpAllowed: false,
-  },
-  {
-    id: 'personalStatement',
-    targetPath: 'personalStatement',
-    kind: 'scalar',
-    promptKey: 'personalStatement',
-    answerSchema: 'scalar',
+    fields: [
+      { path: 'interests', required: false },
+      { path: 'personalStatement', required: false },
+    ],
     optional: true,
     followUpAllowed: false,
   },
@@ -283,7 +202,7 @@ export function nextInterviewQuestion(id: string | null): InterviewQuestion | nu
   return BASIC_INTERVIEW_SCRIPT[index + 1] ?? null;
 }
 
-/** 1-based position, for "step N of 15". */
+/** 1-based position, for "part N of 4". */
 export function interviewQuestionPosition(id: string): number {
   return BASIC_INTERVIEW_SCRIPT.findIndex((question) => question.id === id) + 1;
 }

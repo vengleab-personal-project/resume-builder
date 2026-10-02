@@ -39,7 +39,7 @@ const startSchema = z.object({
  * Per-turn billing was rejected deliberately: it makes the price of a CV
  * unpredictable to a user who can re-answer a question, and it is unenforceable
  * in a flow the user can restart. What makes one charge safe is that the session
- * is bounded server-side -- 30 turns, 30 minutes, 60s and 5MB per upload.
+ * is bounded server-side -- 12 turns, 30 minutes, 120s and 5MB per upload.
  */
 export const POST = withErrorHandling(async (req: NextRequest) => {
   assertSameOrigin(req);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { BasicResumeDTO } from '@/shared/types/persistence';
 import { useVoiceRecorder } from '@/client/features/BasicResume/useVoiceRecorder';
 import { useVoicePlayback } from '@/client/features/BasicResume/useVoicePlayback';
@@ -72,6 +72,26 @@ export const useVoiceInterviewLogic = (onResume: (resume: BasicResumeDTO) => voi
 
   const sessionRef = useRef<string | null>(null);
 
+  // One request in flight at a time. Aborted on unmount and on exit so a reply
+  // that arrives after the user has left is dropped instead of speaking the next
+  // question over another page. The server still finishes the turn it received;
+  // the session stays ACTIVE, so coming back resumes at the right question.
+  const requestRef = useRef<AbortController | null>(null);
+
+  const beginRequest = useCallback(() => {
+    requestRef.current?.abort();
+    const controller = new AbortController();
+    requestRef.current = controller;
+    return controller.signal;
+  }, []);
+
+  const abortRequest = useCallback(() => {
+    requestRef.current?.abort();
+    requestRef.current = null;
+  }, []);
+
+  useEffect(() => abortRequest, [abortRequest]);
+
   const applyStep = useCallback(
     (step: { question: InterviewQuestionView | null; position: number; total: number; audio: string | null }) => {
       setQuestion(step.question);
@@ -91,12 +111,14 @@ export const useVoiceInterviewLogic = (onResume: (resume: BasicResumeDTO) => voi
     async (locale: 'en' | 'km', resumeId?: string) => {
       setProblem(null);
       setPhase('starting');
+      const signal = beginRequest();
       try {
         const res = await fetch('/api/basic-resume/session', {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ locale, resumeId }),
+          signal,
         });
 
         if (res.status === 402) {
@@ -111,6 +133,7 @@ export const useVoiceInterviewLogic = (onResume: (resume: BasicResumeDTO) => voi
         }
 
         const body = (await res.json()) as StartResponse;
+        if (signal.aborted) return;
         sessionRef.current = body.sessionId;
         setVoiceAvailable(body.voice !== false);
         setTranscript('');
@@ -118,11 +141,12 @@ export const useVoiceInterviewLogic = (onResume: (resume: BasicResumeDTO) => voi
         if (body.resume) onResume(body.resume);
         applyStep(body);
       } catch {
+        if (signal.aborted) return;
         setProblem('network');
         setPhase('off');
       }
     },
-    [applyStep, onResume]
+    [applyStep, beginRequest, onResume]
   );
 
   const submit = useCallback(
@@ -132,12 +156,14 @@ export const useVoiceInterviewLogic = (onResume: (resume: BasicResumeDTO) => voi
 
       setPhase('thinking');
       setProblem(null);
+      const signal = beginRequest();
 
       try {
         const res = await fetch(`/api/basic-resume/session/${sessionId}/turn`, {
           method: 'POST',
           credentials: 'same-origin',
           body: payload,
+          signal,
         });
 
         if (res.status === 410) {
@@ -157,6 +183,7 @@ export const useVoiceInterviewLogic = (onResume: (resume: BasicResumeDTO) => voi
         }
 
         const body = (await res.json()) as TurnResponse;
+        if (signal.aborted) return;
         setTranscript(body.transcript);
         setIsFollowUp(body.isFollowUp);
         onResume(body.resume);
@@ -170,11 +197,12 @@ export const useVoiceInterviewLogic = (onResume: (resume: BasicResumeDTO) => voi
 
         applyStep(body);
       } catch {
+        if (signal.aborted) return;
         setProblem('network');
         setPhase('asking');
       }
     },
-    [applyStep, onResume]
+    [applyStep, beginRequest, onResume]
   );
 
   /** Press to talk. Resolves when the recording stops and the turn is sent. */
@@ -183,7 +211,9 @@ export const useVoiceInterviewLogic = (onResume: (resume: BasicResumeDTO) => voi
     setPhase('listening');
     const answer = await recorder.start();
     if (!answer) {
-      setPhase('asking');
+      // exit() clears the session before this runs; do not pull the panel back
+      // from 'off' to 'asking' after the user has left the interview.
+      if (sessionRef.current) setPhase('asking');
       return;
     }
     const form = new FormData();
@@ -212,13 +242,15 @@ export const useVoiceInterviewLogic = (onResume: (resume: BasicResumeDTO) => voi
   }, [playback, submit]);
 
   const exit = useCallback(() => {
+    abortRequest();
+    recorder.cancel();
     playback.stop();
     sessionRef.current = null;
     setPhase('off');
     setQuestion(null);
     setProblem(null);
     setTranscript('');
-  }, [playback]);
+  }, [abortRequest, playback, recorder]);
 
   return {
     phase,

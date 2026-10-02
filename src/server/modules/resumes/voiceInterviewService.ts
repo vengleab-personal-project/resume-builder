@@ -99,7 +99,10 @@ export async function finishSession(
 /** Where the interview is, from the session's cursor. */
 export function currentQuestion(session: VoiceInterviewSession): InterviewQuestion | null {
   if (!session.questionId) return null;
-  return findInterviewQuestion(session.questionId) ?? null;
+  // A cursor from an older script (the interview used to be fifteen single
+  // fields) is not a dead end: nextInterviewQuestion restarts at the first
+  // section, the same rule it applies to any unknown id.
+  return findInterviewQuestion(session.questionId) ?? nextInterviewQuestion(session.questionId);
 }
 
 export interface TurnOutcome {
@@ -109,7 +112,7 @@ export interface TurnOutcome {
   next: InterviewQuestion | null;
   /** True when `next` is a re-ask of the same question rather than a new one. */
   isFollowUp: boolean;
-  /** 1-based position of `next` in the script, for "step N of 15". */
+  /** 1-based position of `next` in the script, for "part N of 4". */
   position: number;
   finished: boolean;
   exhausted: boolean;

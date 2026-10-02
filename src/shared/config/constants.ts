@@ -68,7 +68,7 @@ export const VOICE_MODEL_IDS = {
   STT: 'gemini-3.8-flash',
   // Audio OUT, which is the capability the legacy SDK cannot reach at all and
   // the reason @google/genai is installed alongside it.
-  TTS: 'gemini-2.5-flash-preview-tts',
+  TTS: 'gemini-3.5-flash-tts',
 } as const;
 
 // Every one of these is enforced server-side, before any model call. Client-side
@@ -76,9 +76,13 @@ export const VOICE_MODEL_IDS = {
 // covers a whole session, so the session has to be bounded or the charge is
 // unbounded.
 export const VOICE_INTERVIEW_LIMITS = {
-  // 15 questions plus at most one follow-up each.
-  MAX_TURNS: 30,
-  MAX_AUDIO_SECONDS: 60,
+  // Four sections plus at most one follow-up each is 8; the rest is headroom for
+  // a retry. Each answer now covers a whole section, so a turn is allowed to run
+  // longer -- but total spoken audio per session is bounded by the product of
+  // the two (12 x 120s = 24 min, down from 30 x 60s = 30 min), so one debit buys
+  // no more audio than it did when the interview was field by field.
+  MAX_TURNS: 12,
+  MAX_AUDIO_SECONDS: 120,
   MAX_AUDIO_BYTES: 5 * 1024 * 1024,
   SESSION_TTL_SECONDS: 30 * 60,
 } as const;

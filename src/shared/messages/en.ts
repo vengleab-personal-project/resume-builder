@@ -699,11 +699,11 @@ const en = {
             voiceTab: "Answer out loud",
             voice: {
                 title: "Answer out loud",
-                intro: "I'll ask you about 15 short questions. Answer out loud, or type — whichever is easier. You can skip anything you'd rather not say.",
+                intro: "I'll ask about four short parts: about you, school, work and skills, and interests. Answer each one out loud, or type — whichever is easier. You can skip anything you'd rather not say.",
                 startEn: "Start in English",
                 startKm: "Start in Khmer",
-                cost: "Costs 5 coins for the whole interview, however many questions you answer.",
-                step: "Question {n} of {total}",
+                cost: "Costs 5 coins for the whole interview, however many parts you answer.",
+                step: "Part {n} of {total}",
                 finished: "All done",
                 finishedNote: "Your CV is on the right. Check it over and fix anything I misheard — you can edit every field by typing.",
                 close: "Close",
@@ -727,7 +727,7 @@ const en = {
                     "session-exhausted": "We've used all the turns for this interview. Your CV is saved with everything you answered.",
                     network: "Couldn't reach the server. Check your connection and try that answer again.",
                     "no-speech": "I didn't hear anything. Check your microphone isn't muted, or type your answer instead.",
-                    degraded: "I saved your answer exactly as you gave it, but couldn't tidy it up just now. Check that section of your CV before you send it.",
+                    degraded: "I couldn't fully understand your answer just now, so I only saved the parts I was sure of. Check your CV and fill in anything that's missing before you send it.",
                     "start-failed": "Couldn't start the interview. Please try again."
                 },
                 micProblems: {
@@ -777,56 +777,19 @@ const en = {
     // user to answer them.
     basicInterview: {
         questions: {
-            fullName: {
-                prompt: "Let's start with your name. What is your full name?",
-                followUp: "Sorry, I didn't catch that. Could you say your full name again, slowly?"
-            },
-            positionSought: {
-                prompt: "What job are you applying for?",
-                followUp: "What kind of work are you looking for? For example, waiter, security guard, or factory worker."
-            },
-            phone: {
-                prompt: "What is your phone number?",
-                followUp: "Could you say your phone number again, one number at a time?"
-            },
-            address: {
-                prompt: "Where do you live? You can tell me your village, commune, district and province.",
-                followUp: "Which province do you live in, and which district?"
-            },
-            dateOfBirth: {
-                prompt: "When were you born? Tell me the day, the month and the year.",
-                followUp: "Which year were you born? If you remember the day and month, tell me those too."
-            },
-            gender: {
-                prompt: "What is your gender? You can skip this question if you prefer."
-            },
-            nationality: {
-                prompt: "What is your nationality?"
-            },
-            placeOfBirth: {
-                prompt: "Where were you born?"
-            },
-            maritalStatus: {
-                prompt: "Are you single or married? You can skip this question if you prefer."
-            },
-            health: {
-                prompt: "How is your general health? You can skip this question if you prefer."
+            bio: {
+                prompt: "Let's start with the basics. Please tell me your full name, the job you are applying for, your phone number, where you live, and when you were born. If you like, you can also tell me your gender, nationality, place of birth, marital status and health, or skip those.",
+                followUp: "Thank you. I'm still missing a few details. Please tell me again your full name, the job you want, your phone number, where you live, and the day, month and year you were born."
             },
             education: {
                 prompt: "Now let's talk about school. Tell me each school or course you have done, and the year. Take your time.",
                 followUp: "What was the last school or course you finished, and roughly what year was that?"
             },
             experience: {
-                prompt: "Have you worked before? Tell me each job you have had, and the year."
-            },
-            languages: {
-                prompt: "What languages do you speak? For each one, tell me what you can do — speak, listen, read, or translate."
+                prompt: "Next, your work and skills. Tell me each job you have had and the year, and the languages you speak, saying whether you can speak, listen, read or translate. If you have not worked before, you can skip this."
             },
             interests: {
-                prompt: "What do you like to do in your free time?"
-            },
-            personalStatement: {
-                prompt: "Last question. How would you describe yourself as a worker?"
+                prompt: "Last part. What do you like to do in your free time? And how would you describe yourself as a worker?"
             }
         }
     },

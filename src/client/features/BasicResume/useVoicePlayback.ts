@@ -31,13 +31,23 @@ export const useVoicePlayback = () => {
     setIsSpeaking(false);
   }, []);
 
-  useEffect(() => stop, [stop]);
+  // A response that lands after the user has left the screen must not start
+  // playing: stop() on unmount has already run, so a late speak() would create a
+  // fresh Audio nothing is left to stop.
+  const unmountedRef = useRef(false);
+  useEffect(() => {
+    unmountedRef.current = false;
+    return () => {
+      unmountedRef.current = true;
+      stop();
+    };
+  }, [stop]);
 
   /** Takes base64 WAV as the turn routes return it. */
   const speak = useCallback(
     async (base64Wav: string | null) => {
       stop();
-      if (!base64Wav) return;
+      if (!base64Wav || unmountedRef.current) return;
 
       const bytes = Uint8Array.from(atob(base64Wav), (char) => char.charCodeAt(0));
       const url = URL.createObjectURL(new Blob([bytes], { type: 'audio/wav' }));

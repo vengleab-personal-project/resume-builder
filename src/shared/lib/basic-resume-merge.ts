@@ -4,16 +4,29 @@ import type {
   BasicLanguageEntry,
   BasicResumeData,
 } from '@/shared/types/basic-resume';
-import { ANSWER_SCHEMAS, type InterviewQuestion } from '@/shared/lib/basic-interview-script';
+import {
+  ANSWER_SCHEMAS,
+  isListField,
+  type InterviewField,
+  type InterviewQuestion,
+} from '@/shared/lib/basic-interview-script';
 
 /**
- * Writes one question's answer into the CV, and nothing else.
+ * Writes one section's answer into the CV, and nothing else.
  *
  * This is the only function in the voice flow that can destroy an answer the
- * user already gave, which is why it is pure, takes exactly one question, and
+ * user already gave, which is why it is pure, takes exactly one section, and
  * returns a new object rather than mutating. The extraction model never sees
- * the whole CV; this function is what keeps question 12 from overwriting
- * question 3, and the guarantee is structural rather than a matter of prompting.
+ * the whole CV; this function is what keeps the interests answer from
+ * overwriting the education one, and the guarantee is structural rather than a
+ * matter of prompting: only the paths the section declares are ever read out of
+ * the model's reply, and anything else in it is dropped.
+ *
+ * `value` is an object keyed by field path. A missing key, a null, an empty
+ * string or an empty list leaves that field exactly as it was. That matters on a
+ * follow-up: the second answer to a section only re-asks what was missing, so
+ * the fields the user already gave must survive a reply that says nothing about
+ * them.
  *
  * An unparseable value returns the CV unchanged. That is the correct outcome for
  * both silence and a refusal: on this format an unanswered field renders as
@@ -25,16 +38,32 @@ export function applyExtractedValue(
   value: unknown,
   makeId: () => string = () => crypto.randomUUID()
 ): BasicResumeData {
-  if (question.kind === 'scalar') {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return data;
+  const answer = value as Record<string, unknown>;
+
+  return question.fields.reduce(
+    (current, field) => applyField(current, field, answer[field.path], makeId),
+    data
+  );
+}
+
+function applyField(
+  data: BasicResumeData,
+  field: InterviewField,
+  value: unknown,
+  makeId: () => string
+): BasicResumeData {
+  if (!isListField(field)) {
     const parsed = ANSWER_SCHEMAS.scalar.safeParse(value);
     if (!parsed.success) return data;
-    return setScalarPath(data, question.targetPath, parsed.data.trim());
+    const text = parsed.data.trim();
+    return text ? setScalarPath(data, field.path, text) : data;
   }
 
-  switch (question.answerSchema) {
+  switch (field.path) {
     case 'education': {
       const parsed = ANSWER_SCHEMAS.education.safeParse(value);
-      if (!parsed.success) return data;
+      if (!parsed.success || parsed.data.length === 0) return data;
       const education: BasicEducationEntry[] = parsed.data.map((entry) => ({
         id: makeId(),
         year: entry.year.trim(),
@@ -44,7 +73,7 @@ export function applyExtractedValue(
     }
     case 'experience': {
       const parsed = ANSWER_SCHEMAS.experience.safeParse(value);
-      if (!parsed.success) return data;
+      if (!parsed.success || parsed.data.length === 0) return data;
       const experience: BasicExperienceEntry[] = parsed.data.map((entry) => ({
         id: makeId(),
         year: entry.year.trim(),
@@ -54,7 +83,7 @@ export function applyExtractedValue(
     }
     case 'languages': {
       const parsed = ANSWER_SCHEMAS.languages.safeParse(value);
-      if (!parsed.success) return data;
+      if (!parsed.success || parsed.data.length === 0) return data;
       const languages: BasicLanguageEntry[] = parsed.data.map((entry) => ({
         id: makeId(),
         name: entry.name.trim(),
@@ -65,7 +94,8 @@ export function applyExtractedValue(
     case 'interests': {
       const parsed = ANSWER_SCHEMAS.interests.safeParse(value);
       if (!parsed.success) return data;
-      return { ...data, interests: parsed.data.map((item) => item.trim()).filter(Boolean) };
+      const interests = parsed.data.map((item) => item.trim()).filter(Boolean);
+      return interests.length > 0 ? { ...data, interests } : data;
     }
     default:
       return data;
@@ -95,14 +125,13 @@ function setScalarPath(data: BasicResumeData, path: string, value: string): Basi
   return data;
 }
 
-/** Whether a question's target now holds anything, used to decide follow-ups. */
-export function isQuestionAnswered(data: BasicResumeData, question: InterviewQuestion): boolean {
-  if (question.kind === 'list') {
-    const list = data[question.targetPath];
+function isFieldFilled(data: BasicResumeData, field: InterviewField): boolean {
+  if (isListField(field)) {
+    const list = data[field.path];
     return Array.isArray(list) && list.length > 0;
   }
 
-  const [head, tail] = question.targetPath.split('.');
+  const [head, tail] = field.path.split('.');
   if (head === 'contact' && tail) {
     return Boolean((data.contact as unknown as Record<string, string | undefined>)[tail]?.trim());
   }
@@ -111,4 +140,15 @@ export function isQuestionAnswered(data: BasicResumeData, question: InterviewQue
   }
   const scalar = data[head as 'fullName' | 'positionSought' | 'personalStatement'];
   return typeof scalar === 'string' && scalar.trim().length > 0;
+}
+
+/**
+ * Whether the section holds everything it needs, used to decide follow-ups.
+ *
+ * Only `required` fields count. The sensitive ones (gender, health, marital
+ * status...) are never required, so a section is never re-asked because someone
+ * chose not to say them.
+ */
+export function isQuestionAnswered(data: BasicResumeData, question: InterviewQuestion): boolean {
+  return question.fields.filter((field) => field.required).every((field) => isFieldFilled(data, field));
 }

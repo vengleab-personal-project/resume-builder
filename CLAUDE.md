@@ -14,7 +14,7 @@ system (Bakong KHQR payments) that gates AI actions.
 A second product line sits alongside it: **Basic Resume**, the Cambodian short-form
 CV (ប្រវត្តិរូបសង្ខេប), at `/basic-resume`. It is aimed at job seekers with no resume to
 upload, for whom an 11-section English editor is the wrong document entirely. It is built
-by answering ~15 spoken questions — or typing the same answers — in English or Khmer. It
+by answering four spoken sections (about you, school, work and skills, interests) — or typing the same answers — in English or Khmer. It
 is a separate document with its own shape, template and editor — see "Two resume kinds"
 below. It does not replace or change the two-column builder.
 
@@ -203,11 +203,18 @@ through the same route.
   data with no consent flow, retention policy or deletion path here.
 - The caps in `VOICE_INTERVIEW_LIMITS` are the cost control for a single per-session debit, so
   they are enforced server-side before any model call. Raising them changes what one charge
-  buys.
+  buys: audio per session is bounded by `MAX_TURNS × MAX_AUDIO_SECONDS` (12 × 120s), so raise
+  one only by lowering the other.
 
 Two more conventions worth keeping:
-- The interview script's `targetPath` and `promptKey` are **checked types**, not strings — a
-  typo'd path or a missing translation is a compile error. This repo has no test framework, so
+- The interview script's field `path`s and `promptKey` are **checked types**, not strings — a
+  typo'd path or a missing translation is a compile error. Each interview step is a whole
+  *section* that fills several fields from one answer, so extraction is scoped to the fields
+  the section declares and `applyExtractedValue` drops any other key the model returns. A
+  missing, null or empty value never overwrites a field already filled (a follow-up only
+  re-asks what was missing). Only `required` fields trigger a follow-up; the sensitive personal
+  fields never do. When the model is unreachable the fallback fills only what is mechanically
+  recognisable (phone, full date, year, comma lists) — it never guesses a name or address. This repo has no test framework, so
   that type-level proof is deliberately doing the job a unit test would.
 - An empty section is omitted entirely, never rendered as a bare heading. Both the preview and
   the DOCX gate on the single `basicSectionHasContent`, so they cannot disagree.

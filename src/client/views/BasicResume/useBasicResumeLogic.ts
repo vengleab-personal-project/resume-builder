@@ -170,7 +170,7 @@ export const useBasicResumeLogic = () => {
     return () => clearTimeout(timer);
   }, [activeId, title, data, theme, adopt]);
 
-  // Typed edits. The path strings match the interview script's `targetPath`
+  // Typed edits. The path strings match the interview script's field `path`
   // values, so when the voice flow lands both paths write through one place.
   const setScalar = useCallback((path: string, value: string) => {
     setData((current) => {

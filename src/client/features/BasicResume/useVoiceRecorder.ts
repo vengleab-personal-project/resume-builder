@@ -46,6 +46,11 @@ export const useVoiceRecorder = () => {
   const startedAtRef = useRef(0);
   const streamRef = useRef<MediaStream | null>(null);
   const resolveRef = useRef<((answer: RecordedAnswer | null) => void) | null>(null);
+  const maxDurationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Bumped by cancel(). A start() still waiting on the permission prompt compares
+  // it after the await, so a microphone granted after the user left is released
+  // instead of being left recording.
+  const generationRef = useRef(0);
 
   // Releases the microphone the moment recording ends. Holding the stream open
   // leaves the browser's recording indicator lit, which reads to a user as the
@@ -55,9 +60,41 @@ export const useVoiceRecorder = () => {
     streamRef.current = null;
   }, []);
 
-  useEffect(() => () => releaseStream(), [releaseStream]);
+  const clearMaxDurationTimer = useCallback(() => {
+    if (maxDurationTimerRef.current) {
+      clearTimeout(maxDurationTimerRef.current);
+      maxDurationTimerRef.current = null;
+    }
+  }, []);
 
-  // Ticking clock, so the user can see the 60s cap approaching rather than
+  // Throws the recording away instead of finishing it. Used when the user leaves
+  // the screen or exits the interview: finishing would resolve the answer, and
+  // the caller would then send a turn nobody is waiting for. Handlers are
+  // detached first so stopping the recorder cannot resolve a real answer.
+  const cancel = useCallback(() => {
+    generationRef.current += 1;
+    clearMaxDurationTimer();
+
+    const recorder = recorderRef.current;
+    if (recorder) {
+      recorder.ondataavailable = null;
+      recorder.onstop = null;
+      recorder.onerror = null;
+      if (recorder.state !== 'inactive') recorder.stop();
+      recorderRef.current = null;
+    }
+
+    chunksRef.current = [];
+    releaseStream();
+    resolveRef.current?.(null);
+    resolveRef.current = null;
+    setState('idle');
+    setElapsed(0);
+  }, [clearMaxDurationTimer, releaseStream]);
+
+  useEffect(() => cancel, [cancel]);
+
+  // Ticking clock, so the user can see the recording cap approaching rather than
   // being cut off by it.
   useEffect(() => {
     if (state !== 'recording') return;
@@ -83,10 +120,12 @@ export const useVoiceRecorder = () => {
     setProblem(null);
     setState('requesting');
 
+    const generation = generationRef.current;
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch (error) {
+      if (generation !== generationRef.current) return null;
       const name = (error as DOMException)?.name;
       // NotAllowedError covers both an explicit block and a dismissed prompt;
       // the browser does not distinguish them, so the copy has to cover both.
@@ -98,6 +137,11 @@ export const useVoiceRecorder = () => {
             : 'capture-failed'
       );
       setState('blocked');
+      return null;
+    }
+
+    if (generation !== generationRef.current) {
+      stream.getTracks().forEach((track) => track.stop());
       return null;
     }
 
@@ -118,6 +162,7 @@ export const useVoiceRecorder = () => {
     });
 
     recorder.onstop = () => {
+      clearMaxDurationTimer();
       const durationSeconds = (Date.now() - startedAtRef.current) / 1000;
       const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' });
       releaseStream();
@@ -128,6 +173,7 @@ export const useVoiceRecorder = () => {
     };
 
     recorder.onerror = () => {
+      clearMaxDurationTimer();
       releaseStream();
       setProblem('capture-failed');
       setState('blocked');
@@ -140,12 +186,12 @@ export const useVoiceRecorder = () => {
 
     // The server rejects anything longer, so stopping here turns a hard failure
     // into a complete answer that happens to be the maximum length.
-    setTimeout(() => {
+    maxDurationTimerRef.current = setTimeout(() => {
       if (recorderRef.current?.state === 'recording') recorderRef.current.stop();
     }, VOICE_INTERVIEW_LIMITS.MAX_AUDIO_SECONDS * 1000);
 
     return answer;
-  }, [releaseStream]);
+  }, [clearMaxDurationTimer, releaseStream]);
 
   return {
     state,
@@ -155,5 +201,6 @@ export const useVoiceRecorder = () => {
     isSupported: supported(),
     start,
     finish,
+    cancel,
   };
 };
