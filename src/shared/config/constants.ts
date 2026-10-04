@@ -56,19 +56,20 @@ export const DEFAULT_ACTION_COIN_COST = 1;
 
 // --- Voice interview -------------------------------------------------------
 
-// Speech-to-text and text-to-speech model ids live here as constants rather
-// than as admin-editable ChatModel rows, unlike every other model this app
-// uses. That is a deliberate, bounded exception: the registry resolves exactly
-// one model per action and cannot express a three-model pipeline, and making
-// these editable would let an admin point TTS at a model that returns no audio
-// and break the product with nothing to validate it. The env overrides below
+// Speech-to-text and speech-out model ids live here as constants rather than
+// as admin-editable ChatModel rows, unlike every other model this app uses.
+// That is a deliberate, bounded exception: the registry resolves exactly one
+// model per action and cannot express a multi-model pipeline, and making these
+// editable would let an admin point speech at a model that returns no audio and
+// break the product with nothing to validate it. The env overrides below
 // keep a model rename a config change rather than a deploy.
 export const VOICE_MODEL_IDS = {
   // Audio in, text out. Any current flash model handles this.
   STT: 'gemini-3.8-flash',
-  // Audio OUT, which is the capability the legacy SDK cannot reach at all and
-  // the reason @google/genai is installed alongside it.
-  TTS: 'gemini-3.5-flash-tts',
+  // Audio OUT, through the Gemini Live API (a one-shot session per spoken
+  // question). Audio output is the capability the legacy SDK cannot reach at all
+  // and the reason @google/genai is installed alongside it.
+  LIVE: 'gemini-3.8-live',
 } as const;
 
 // Every one of these is enforced server-side, before any model call. Client-side
@@ -99,6 +100,14 @@ export const VOICE_AUDIO = {
   // A warm, neutral prebuilt voice. Gemini's voice list is not locale-specific;
   // the spoken language follows the text it is given.
   TTS_VOICE: 'Kore',
+  // A question is a sentence or two and takes ~5s end to end on a good
+  // connection (socket handshake included), so a session still silent after this
+  // long is stuck, not slow. Bounded so a hung socket cannot hold the turn route
+  // open.
+  LIVE_TIMEOUT_MS: 30_000,
+  // ~48 KB/s of 24 kHz PCM, so this is well over a minute of speech -- far past
+  // any prompt. A ceiling on a misbehaving model, not a tuning value.
+  LIVE_MAX_AUDIO_BYTES: 4 * 1024 * 1024,
 } as const;
 
 export const GEMINI_MODEL_IDS = {

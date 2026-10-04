@@ -112,14 +112,14 @@ export const serverEnv = {
     return integer('MAX_AI_TOKENS', 5000);
   },
 
-  // Overrides for the two voice models. Both are preview-line models that may be
+  // Overrides for the two voice models (speech in, speech out). Both are preview-line models that may be
   // renamed or withdrawn upstream; keeping them as env-overridable constants is
   // what makes that a config change rather than a code change.
   get GEMINI_VOICE_STT_MODEL(): string {
     return process.env.GEMINI_VOICE_STT_MODEL || VOICE_MODEL_IDS.STT;
   },
-  get GEMINI_VOICE_TTS_MODEL(): string {
-    return process.env.GEMINI_VOICE_TTS_MODEL || VOICE_MODEL_IDS.TTS;
+  get GEMINI_VOICE_LIVE_MODEL(): string {
+    return process.env.GEMINI_VOICE_LIVE_MODEL || VOICE_MODEL_IDS.LIVE;
   },
 
   // --- Payments -------------------------------------------------------------

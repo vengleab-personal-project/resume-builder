@@ -1,5 +1,5 @@
 import 'server-only';
-import { GoogleGenAI, Modality } from '@google/genai';
+import { GoogleGenAI, Modality, type LiveServerMessage, type Session } from '@google/genai';
 import { serverEnv } from '@/server/config/env.server';
 import { VOICE_AUDIO, VOICE_INTERVIEW_LIMITS } from '@/shared/config/constants';
 import { HttpError } from '@/server/errors';
@@ -79,7 +79,7 @@ export function isVoiceAvailable(): boolean {
 }
 
 function assertConfiguredModel(modelId: string): void {
-  const allowed = [serverEnv.GEMINI_VOICE_STT_MODEL, serverEnv.GEMINI_VOICE_TTS_MODEL];
+  const allowed = [serverEnv.GEMINI_VOICE_STT_MODEL, serverEnv.GEMINI_VOICE_LIVE_MODEL];
   if (!allowed.includes(modelId)) {
     throw new Error(`Model ${modelId} is not a configured voice model`);
   }
@@ -248,42 +248,145 @@ export interface SpokenPrompt {
   mimeType: 'audio/wav';
 }
 
-/**
- * Speaks a question. Returns null rather than throwing when speech is
- * unavailable or the model returns no audio: the question text is always shown
- * on screen, so a silent prompt degrades the experience without breaking the
- * interview.
- */
-export async function synthesizeSpeech(text: string): Promise<SpokenPrompt | null> {
-  if (!isVoiceAvailable() || !text.trim()) return null;
+// The Live API is conversational: given text it would normally answer it. This
+// pins it to reading the text aloud, so what is heard is what is on screen.
+const LIVE_SPEECH_INSTRUCTION =
+  'You are a text-to-speech voice. Read the user\'s message aloud exactly as written, in the language it is written in. ' +
+  'Do not answer it, add to it, translate it, or comment on it. Say nothing else.';
 
-  const model = serverEnv.GEMINI_VOICE_TTS_MODEL;
+/**
+ * Speaks `text` through a one-shot Gemini Live session: connect, send the text,
+ * collect the audio until the model finishes its turn, close.
+ *
+ * Server-side on purpose. The audio never reaches a browser as a stream, so the
+ * turn caps, the single debit and the "nothing stored" rule are untouched -- this
+ * replaces only where the sound comes from. Works on both backends, since the
+ * client is built for AI Studio or Vertex in genai().
+ *
+ * Throws on any failure; synthesizeSpeech turns that into a silent prompt.
+ */
+async function synthesizeWithLive(text: string): Promise<SpokenPrompt | null> {
+  const model = serverEnv.GEMINI_VOICE_LIVE_MODEL;
   assertConfiguredModel(model);
 
-  try {
-    const response = await genai().models.generateContent({
-      model,
-      contents: [{ role: 'user', parts: [{ text }] }],
-      config: {
-        responseModalities: [Modality.AUDIO],
-        speechConfig: {
-          voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE_AUDIO.TTS_VOICE } },
-        },
-      },
-    });
+  const chunks: Buffer[] = [];
+  let mimeType: string | undefined;
+  let received = 0;
 
-    const audioPart = partsOf(response).find((part) => part.inlineData?.data);
-    if (!audioPart?.inlineData?.data) return null;
+  await new Promise<void>((resolve, reject) => {
+    let session: Session | undefined;
+    let settled = false;
 
-    return {
-      wav: pcmToWav(Buffer.from(audioPart.inlineData.data, 'base64'), {
-        sampleRate: sampleRateFromMime(audioPart.inlineData.mimeType),
-      }),
-      mimeType: 'audio/wav',
+    const finish = (outcome: () => void) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      try {
+        session?.close();
+      } catch {
+        // Already closed; nothing to release.
+      }
+      outcome();
     };
+
+    const timer = setTimeout(
+      () => finish(() => reject(new Error('Live speech timed out'))),
+      VOICE_AUDIO.LIVE_TIMEOUT_MS
+    );
+
+    const onMessage = (message: LiveServerMessage) => {
+      const content = message.serverContent;
+
+      for (const part of content?.modelTurn?.parts ?? []) {
+        const data = part.inlineData?.data;
+        if (!data) continue;
+
+        const chunk = Buffer.from(data, 'base64');
+        received += chunk.byteLength;
+        if (received > VOICE_AUDIO.LIVE_MAX_AUDIO_BYTES) {
+          finish(() => reject(new Error('Live speech exceeded the audio ceiling')));
+          return;
+        }
+        mimeType ??= part.inlineData?.mimeType;
+        chunks.push(chunk);
+      }
+
+      if (content?.turnComplete) finish(resolve);
+    };
+
+    genai()
+      .live.connect({
+        model,
+        config: {
+          responseModalities: [Modality.AUDIO],
+          systemInstruction: LIVE_SPEECH_INSTRUCTION,
+          speechConfig: {
+            voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE_AUDIO.TTS_VOICE } },
+          },
+        },
+        callbacks: {
+          onmessage: onMessage,
+          onerror: (event: { message?: string }) =>
+            finish(() => reject(new Error(event.message || 'Live speech error'))),
+          // A close before turnComplete is a success only if audio arrived.
+          onclose: () =>
+            finish(() =>
+              chunks.length > 0 ? resolve() : reject(new Error('Live session closed without audio'))
+            ),
+        },
+      })
+      .then((connected) => {
+        session = connected;
+        // Settled while the socket was still opening (timeout): release it now.
+        if (settled) {
+          connected.close();
+          return;
+        }
+        // Text goes in as realtime input rather than client content: newer Live
+        // models accept client content only to seed history.
+        connected.sendRealtimeInput({ text });
+      })
+      .catch((error: unknown) => finish(() => reject(error)));
+  });
+
+  if (chunks.length === 0) return null;
+
+  return {
+    wav: pcmToWav(Buffer.concat(chunks), { sampleRate: sampleRateFromMime(mimeType) }),
+    mimeType: 'audio/wav',
+  };
+}
+
+/**
+ * Speaks a question through Gemini Live. Returns null rather than throwing when
+ * speech is unavailable or the model returns no audio: the question text is
+ * always shown on screen, so a silent prompt degrades the experience without
+ * breaking the interview.
+ *
+ * Null also means "pipeline down" to the session route, which then does not
+ * charge -- so a Live outage costs the user nothing.
+ */
+export async function synthesizeSpeech(text: string): Promise<SpokenPrompt | null> {
+  if (!text.trim()) return null;
+
+  // Logged because a silent null is indistinguishable from a working pipeline
+  // that simply had nothing to say, and the UI only reports "speaking isn't
+  // available" without saying why.
+  if (!isVoiceAvailable()) {
+    console.error(
+      serverEnv.GEMINI_BACKEND === 'vertex'
+        ? 'Voice synthesis skipped: GEMINI_BACKEND=vertex but GCP_PROJECT is not set'
+        : 'Voice synthesis skipped: GEMINI_API_KEY is not set'
+    );
+    return null;
+  }
+
+  try {
+    return await synthesizeWithLive(text);
   } catch (error) {
-    // Never log the text: prompts are fixed copy, but this path is one edit away
-    // from carrying a user's own words, and transcripts must not reach logs.
+    // Message only, never the text: prompts are fixed copy, but this path is one
+    // edit away from carrying a user's own words, and transcripts must not reach
+    // logs.
     console.error('Voice synthesis failed:', error instanceof Error ? error.message : 'unknown');
     return null;
   }
