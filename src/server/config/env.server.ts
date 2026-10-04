@@ -156,7 +156,8 @@ export const serverEnv = {
     return process.env.BAKONG_API_BASE_URL || 'https://api-bakong.nbc.gov.kh';
   },
   get BAKONG_ACCESS_TOKEN(): string {
-    return optional('BAKONG_ACCESS_TOKEN');
+    // BAKONG_API_KEY is accepted as an alias; ACCESS_TOKEN wins if both are set.
+    return optional('BAKONG_ACCESS_TOKEN') || optional('BAKONG_API_KEY');
   },
   get BAKONG_ACCOUNT_ID(): string {
     return optional('BAKONG_ACCOUNT_ID');
@@ -174,6 +175,12 @@ export const serverEnv = {
   },
   get BAKONG_ACQUIRING_BANK(): string {
     return optional('BAKONG_ACQUIRING_BANK');
+  },
+  // Individual-type KHQR only. Some banks (ABA) share one bank-level
+  // BAKONG_ACCOUNT_ID and identify the payee by their own account number here,
+  // alongside BAKONG_ACQUIRING_BANK.
+  get BAKONG_ACCOUNT_INFORMATION(): string {
+    return optional('BAKONG_ACCOUNT_INFORMATION');
   },
   get BAKONG_MOBILE_NUMBER(): string {
     return optional('BAKONG_MOBILE_NUMBER');

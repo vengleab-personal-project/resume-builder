@@ -78,7 +78,11 @@ export const bakongProvider: PaymentProvider = {
             serverEnv.BAKONG_ACCOUNT_ID,
             serverEnv.BAKONG_MERCHANT_NAME,
             serverEnv.BAKONG_MERCHANT_CITY,
-            optional
+            {
+              ...optional,
+              accountInformation: serverEnv.BAKONG_ACCOUNT_INFORMATION || undefined,
+              acquiringBank: serverEnv.BAKONG_ACQUIRING_BANK || undefined,
+            }
           )
         );
 
