@@ -1,6 +1,6 @@
 import { Loader2, Mic, Square, Volume2 } from 'lucide-react';
 
-export type VoiceOrbPhase = 'loading' | 'asking' | 'listening' | 'thinking' | 'speaking';
+export type VoiceOrbPhase = 'loading' | 'asking' | 'listening' | 'live' | 'thinking' | 'speaking';
 
 export type VoiceOrbProps = {
   phase: VoiceOrbPhase;
@@ -17,6 +17,8 @@ const RING: Record<VoiceOrbPhase, string> = {
   loading: 'bg-indigo-500',
   asking: 'bg-indigo-600 hover:bg-indigo-500',
   listening: 'bg-red-600 hover:bg-red-500 motion-safe:animate-pulse',
+  // A live conversation: the microphone is open on its own. Not a button to press.
+  live: 'bg-emerald-600 motion-safe:animate-pulse',
   thinking: 'bg-slate-400',
   speaking: 'bg-indigo-400',
 };
@@ -57,7 +59,7 @@ export const VoiceOrb = ({
       <button
         type="button"
         onClick={onPress}
-        disabled={disabled || phase === 'thinking' || phase === 'loading'}
+        disabled={disabled || phase === 'thinking' || phase === 'loading' || phase === 'live'}
         aria-label={actionLabel}
         className={`relative flex h-24 w-24 items-center justify-center rounded-full text-white shadow-lg transition-colors disabled:opacity-60 ${RING[phase]}`}
       >

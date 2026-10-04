@@ -1,5 +1,6 @@
 import { AlertTriangle, X } from 'lucide-react';
 import type { InterviewProblem, InterviewPhase, InterviewQuestionView } from '../useVoiceInterviewLogic';
+import type { LiveState } from '@/client/features/BasicResume/useLiveSession';
 import type { VoiceRecorderProblem, VoiceRecorderState } from '@/client/features/BasicResume/useVoiceRecorder';
 import { InterviewProgress } from './InterviewProgress';
 import { QuestionCard } from './QuestionCard';
@@ -18,6 +19,8 @@ export type VoiceInterviewLabels = {
   press: string;
   stop: string;
   statusLoading: string;
+  statusLiveListening: string;
+  switchToPressToTalk: string;
   statusAsking: string;
   statusListening: string;
   statusThinking: string;
@@ -50,6 +53,9 @@ export type VoiceInterviewPanelProps = {
   elapsedSeconds: number;
   maxSeconds: number;
   isSpeaking: boolean;
+  liveActive: boolean;
+  liveState: LiveState;
+  onSwitchToPressToTalk: () => void;
   onStart: (locale: 'en' | 'km') => void;
   onRecord: () => void;
   onStopRecording: () => void;
@@ -61,9 +67,19 @@ export type VoiceInterviewPanelProps = {
 const orbPhase = (
   phase: InterviewPhase,
   micState: VoiceRecorderState,
-  isSpeaking: boolean
+  isSpeaking: boolean,
+  liveActive: boolean,
+  liveState: LiveState
 ): VoiceOrbPhase => {
   if (phase === 'starting') return 'loading';
+  // In a live conversation the orb mirrors the call, not the press-to-talk
+  // recorder: the microphone is open without being pressed.
+  if (liveActive || liveState === 'connecting') {
+    if (liveState === 'connecting') return 'loading';
+    if (liveState === 'speaking') return 'speaking';
+    if (liveState === 'working') return 'thinking';
+    return 'live';
+  }
   if (phase === 'thinking') return 'thinking';
   if (micState === 'recording' || phase === 'listening') return 'listening';
   if (isSpeaking) return 'speaking';
@@ -86,6 +102,9 @@ export const VoiceInterviewPanel = ({
   elapsedSeconds,
   maxSeconds,
   isSpeaking,
+  liveActive,
+  liveState,
+  onSwitchToPressToTalk,
   onStart,
   onRecord,
   onStopRecording,
@@ -141,8 +160,27 @@ export const VoiceInterviewPanel = ({
     );
   }
 
-  const listening = micState === 'recording' || phase === 'listening';
+  const inLiveCall = liveActive || liveState === 'connecting';
+  const listening = !inLiveCall && (micState === 'recording' || phase === 'listening');
   const busy = phase === 'thinking' || phase === 'starting';
+
+  const statusLabel = inLiveCall
+    ? liveState === 'connecting'
+      ? labels.statusLoading
+      : liveState === 'speaking'
+        ? labels.statusSpeaking
+        : liveState === 'working'
+          ? labels.statusThinking
+          : labels.statusLiveListening
+    : listening
+      ? labels.statusListening
+      : phase === 'starting'
+        ? labels.statusLoading
+        : phase === 'thinking'
+          ? labels.statusThinking
+          : isSpeaking
+            ? labels.statusSpeaking
+            : labels.statusAsking;
 
   return (
     <div className="space-y-5">
@@ -175,25 +213,28 @@ export const VoiceInterviewPanel = ({
       )}
 
       {voiceAvailable && micSupported && (
-        <VoiceOrb
-          phase={orbPhase(phase, micState, isSpeaking)}
-          statusLabel={
-            listening
-              ? labels.statusListening
-              : phase === 'starting'
-                ? labels.statusLoading
-                : phase === 'thinking'
-                ? labels.statusThinking
-                : isSpeaking
-                  ? labels.statusSpeaking
-                  : labels.statusAsking
-          }
-          actionLabel={listening ? labels.stop : labels.press}
-          elapsedSeconds={elapsedSeconds}
-          maxSeconds={maxSeconds}
-          disabled={busy}
-          onPress={listening ? onStopRecording : onRecord}
-        />
+        <div className="space-y-2">
+          <VoiceOrb
+            phase={orbPhase(phase, micState, isSpeaking, liveActive, liveState)}
+            statusLabel={statusLabel}
+            actionLabel={listening ? labels.stop : labels.press}
+            elapsedSeconds={elapsedSeconds}
+            maxSeconds={maxSeconds}
+            disabled={busy}
+            onPress={listening ? onStopRecording : onRecord}
+          />
+          {liveActive && (
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={onSwitchToPressToTalk}
+                className="text-xs font-semibold text-slate-500 underline hover:text-slate-800"
+              >
+                {labels.switchToPressToTalk}
+              </button>
+            </div>
+          )}
+        </div>
       )}
 
       {question && (

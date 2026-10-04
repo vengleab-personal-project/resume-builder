@@ -24,6 +24,13 @@ import { base64ToFloat32, CAPTURE_WORKLET_SOURCE, pcmToBase64 } from './liveAudi
 
 export type LiveState = 'idle' | 'connecting' | 'listening' | 'speaking' | 'working';
 
+/**
+ * How a connection attempt ended. `mic` is a refused or missing microphone,
+ * which has its own message; `cancelled` is the user leaving mid-connect, which
+ * is not a failure and must not show one.
+ */
+export type LiveConnectOutcome = 'ok' | 'mic' | 'failed' | 'cancelled';
+
 export interface LiveGrant {
   token: string;
   model: string;
@@ -41,6 +48,9 @@ export interface LiveHandlers {
   /** The session ended without the caller asking it to. */
   onClosed: (reason: 'failed' | 'ended') => void;
 }
+
+// A socket that has not finished its handshake by now is not going to.
+const CONNECT_TIMEOUT_MS = 10_000;
 
 const SOCKET_URL =
   'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained';
@@ -72,6 +82,9 @@ export const useLiveSession = () => {
   const readyRef = useRef(false);
   const disposedRef = useRef(false);
   const handlersRef = useRef<LiveHandlers | null>(null);
+  // Settles the connect() still waiting on the handshake, so leaving mid-connect
+  // resolves it instead of leaving the caller awaiting forever.
+  const settleConnectRef = useRef<((outcome: LiveConnectOutcome) => void) | null>(null);
 
   const send = useCallback((payload: unknown) => {
     const socket = socketRef.current;
@@ -223,6 +236,8 @@ export const useLiveSession = () => {
 
   const teardown = useCallback(() => {
     stopPlayback();
+    settleConnectRef.current?.('cancelled');
+    settleConnectRef.current = null;
 
     const socket = socketRef.current;
     socketRef.current = null;
@@ -280,7 +295,7 @@ export const useLiveSession = () => {
   }, []);
 
   const connect = useCallback(
-    async (grant: LiveGrant, handlers: LiveHandlers): Promise<boolean> => {
+    async (grant: LiveGrant, handlers: LiveHandlers): Promise<LiveConnectOutcome> => {
       disposedRef.current = false;
       handlersRef.current = handlers;
       setMicProblem(null);
@@ -305,11 +320,11 @@ export const useLiveSession = () => {
         );
         teardown();
         setState('idle');
-        return false;
+        return 'mic';
       }
       if (disposedRef.current) {
         stream.getTracks().forEach((track) => track.stop());
-        return false;
+        return 'cancelled';
       }
       streamRef.current = stream;
 
@@ -321,7 +336,7 @@ export const useLiveSession = () => {
         );
         await ctx.audioWorklet.addModule(workletUrl);
         URL.revokeObjectURL(workletUrl);
-        if (disposedRef.current) return false;
+        if (disposedRef.current) return 'cancelled';
 
         const capture = new AudioWorkletNode(ctx, 'pcm-capture', {
           processorOptions: { targetRate: VOICE_AUDIO.LIVE_INPUT_SAMPLE_RATE },
@@ -342,16 +357,26 @@ export const useLiveSession = () => {
         teardown();
         setState('idle');
         setMicProblem('capture-failed');
-        return false;
+        return 'mic';
       }
 
-      return new Promise<boolean>((resolve) => {
+      return new Promise<LiveConnectOutcome>((resolve) => {
         let settled = false;
-        const settle = (ok: boolean) => {
+        const settle = (outcome: LiveConnectOutcome) => {
           if (settled) return;
           settled = true;
-          resolve(ok);
+          clearTimeout(timer);
+          settleConnectRef.current = null;
+          resolve(outcome);
         };
+        settleConnectRef.current = settle;
+
+        const timer = setTimeout(() => {
+          if (settled) return;
+          teardown();
+          setState('idle');
+          settle('failed');
+        }, CONNECT_TIMEOUT_MS);
 
         const socket = new WebSocket(`${SOCKET_URL}?access_token=${encodeURIComponent(grant.token)}`);
         socketRef.current = socket;
@@ -366,7 +391,7 @@ export const useLiveSession = () => {
             const message = JSON.parse(raw) as ServerMessage;
             const wasReady = readyRef.current;
             handleMessage(message);
-            if (!wasReady && readyRef.current) settle(true);
+            if (!wasReady && readyRef.current) settle('ok');
           } catch {
             // A frame that is not JSON is not one this hook understands; skip it.
           }
@@ -381,8 +406,10 @@ export const useLiveSession = () => {
           const wasReady = readyRef.current;
           teardown();
           setState('idle');
-          settle(false);
-          handlersRef.current?.onClosed(wasReady ? 'ended' : 'failed');
+          settle('failed');
+          // Only a call that was up is reported here; one that never connected is
+          // already reported through connect()'s outcome.
+          if (wasReady) handlersRef.current?.onClosed('ended');
         };
       });
     },

@@ -96,11 +96,14 @@ export default function BasicResume() {
                 problem={interview.problem}
                 voiceAvailable={interview.voiceAvailable}
                 micState={interview.recorder.state}
-                micProblem={interview.recorder.problem}
+                micProblem={interview.recorder.problem ?? interview.liveMicProblem}
                 micSupported={interview.recorder.isSupported}
                 elapsedSeconds={interview.recorder.elapsedSeconds}
                 maxSeconds={interview.recorder.maxSeconds}
                 isSpeaking={interview.isSpeaking}
+                liveActive={interview.liveActive}
+                liveState={interview.liveState}
+                onSwitchToPressToTalk={interview.switchToPressToTalk}
                 onStart={startInterview}
                 onRecord={() => void interview.record()}
                 onStopRecording={interview.stopRecording}

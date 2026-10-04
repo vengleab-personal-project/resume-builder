@@ -710,6 +710,8 @@ const en = {
                 press: "Press to answer",
                 stop: "Stop recording",
                 statusLoading: "Getting the voice ready...",
+                statusLiveListening: "Listening — just talk",
+                switchToPressToTalk: "Switch to press-to-talk",
                 statusAsking: "Ready when you are",
                 statusListening: "Listening...",
                 statusThinking: "Thinking...",
@@ -729,7 +731,8 @@ const en = {
                     network: "Couldn't reach the server. Check your connection and try that answer again.",
                     "no-speech": "I didn't hear anything. Check your microphone isn't muted, or type your answer instead.",
                     degraded: "I couldn't fully understand your answer just now, so I only saved the parts I was sure of. Check your CV and fill in anything that's missing before you send it.",
-                    "start-failed": "Couldn't start the interview. Please try again."
+                    "start-failed": "Couldn't start the interview. Please try again.",
+                    "live-failed": "The live conversation isn't available right now. You can press to talk, or type your answers below."
                 },
                 micProblems: {
                     unsupported: "This browser can't record audio. You can still type every answer.",
