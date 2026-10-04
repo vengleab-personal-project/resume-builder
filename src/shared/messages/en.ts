@@ -709,6 +709,7 @@ const en = {
                 close: "Close",
                 press: "Press to answer",
                 stop: "Stop recording",
+                statusLoading: "Getting the voice ready...",
                 statusAsking: "Ready when you are",
                 statusListening: "Listening...",
                 statusThinking: "Thinking...",

@@ -17,6 +17,7 @@ export type VoiceInterviewLabels = {
   close: string;
   press: string;
   stop: string;
+  statusLoading: string;
   statusAsking: string;
   statusListening: string;
   statusThinking: string;
@@ -62,6 +63,7 @@ const orbPhase = (
   micState: VoiceRecorderState,
   isSpeaking: boolean
 ): VoiceOrbPhase => {
+  if (phase === 'starting') return 'loading';
   if (phase === 'thinking') return 'thinking';
   if (micState === 'recording' || phase === 'listening') return 'listening';
   if (isSpeaking) return 'speaking';
@@ -178,7 +180,9 @@ export const VoiceInterviewPanel = ({
           statusLabel={
             listening
               ? labels.statusListening
-              : phase === 'thinking'
+              : phase === 'starting'
+                ? labels.statusLoading
+                : phase === 'thinking'
                 ? labels.statusThinking
                 : isSpeaking
                   ? labels.statusSpeaking

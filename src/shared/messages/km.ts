@@ -707,6 +707,7 @@ const km: typeof en = {
                 close: "បិទ",
                 press: "ចុចដើម្បីឆ្លើយ",
                 stop: "ឈប់ថត",
+                statusLoading: "កំពុងរៀបចំសំឡេង...",
                 statusAsking: "ត្រៀមរួចរាល់",
                 statusListening: "កំពុងស្តាប់...",
                 statusThinking: "កំពុងគិត...",
