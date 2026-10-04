@@ -5,7 +5,12 @@ import { assertSameOrigin, requireUser } from '@/server/modules/auth/guards';
 import { HttpError, withErrorHandling } from '@/server/errors';
 import { withCoinDeduction } from '@/server/modules/billing/coinService';
 import { resolveAiRequest } from '@/server/modules/ai/registry';
-import { synthesizeSpeech } from '@/server/modules/ai/clients/gemini-voice';
+import {
+  isLiveConversationAvailable,
+  mintLiveGrant,
+  synthesizeSpeech,
+  type LiveGrant,
+} from '@/server/modules/ai/clients/gemini-voice';
 import {
   createResume,
   findOwnedBasicResume,
@@ -30,7 +35,22 @@ export const dynamic = 'force-dynamic';
 const startSchema = z.object({
   locale: z.enum(['en', 'km']),
   resumeId: z.string().min(1).optional(),
+  // Ask for a live conversation. Honoured only where the backend can issue
+  // browser tokens; otherwise the response says `live: null` and the client runs
+  // press-to-talk, so asking never fails the start.
+  live: z.boolean().optional(),
 });
+
+/** A live grant, or null when live was not asked for, is not possible, or failed. */
+async function liveGrantFor(wanted: boolean | undefined, locale: 'en' | 'km'): Promise<LiveGrant | null> {
+  if (!wanted || !isLiveConversationAvailable()) return null;
+  try {
+    return await mintLiveGrant(locale);
+  } catch (error) {
+    console.error('Live token failed:', error instanceof Error ? error.message : 'unknown');
+    return null;
+  }
+}
 
 /**
  * Starts an interview.
@@ -50,7 +70,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
   if (!parsed.success) {
     throw new HttpError(400, 'INVALID_INPUT', 'Invalid session request');
   }
-  const { locale, resumeId } = parsed.data;
+  const { locale, resumeId, live: wantsLive } = parsed.data;
 
   // Resuming rather than starting: return the live session untouched and,
   // crucially, do not debit again.
@@ -59,7 +79,10 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     const question = currentQuestion(existing) ?? nextInterviewQuestion(null);
     const resume = await findOwnedBasicResume(user.id, existing.resumeId);
     const text = question ? promptFor(question.id, existing.locale as 'en' | 'km', false) : '';
-    const spoken = text ? await synthesizeSpeech(text) : null;
+    // Resuming never debits, so a fresh token costs nothing; the old one was
+    // single-use and may already be spent.
+    const liveGrant = text ? await liveGrantFor(wantsLive, existing.locale === 'km' ? 'km' : 'en') : null;
+    const spoken = !liveGrant && text ? await synthesizeSpeech(text) : null;
     return NextResponse.json({
       sessionId: existing.id,
       resumeId: existing.resumeId,
@@ -69,7 +92,8 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       position: question ? BASIC_INTERVIEW_SCRIPT.findIndex((q) => q.id === question.id) + 1 : 0,
       total: BASIC_INTERVIEW_SCRIPT.length,
       resume,
-      voice: spoken !== null,
+      voice: liveGrant !== null || spoken !== null,
+      live: liveGrant,
       audio: spoken ? spoken.wav.toString('base64') : null,
     });
   }
@@ -107,17 +131,19 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
         questionId: first.id,
       });
 
-      // Speaking the first question is the one model call this route makes, so
-      // it doubles as the liveness check that decides whether to charge.
+      // Minting the live token (or, in press-to-talk, speaking the first
+      // question) is the one model call this route makes, so it doubles as the
+      // liveness check that decides whether to charge.
       // Checking only that a key is *present* is not enough: a key that is
       // expired, revoked or out of credit charges the user five coins for an
       // interview that then cannot understand a word they say. If this fails the
       // interview still runs -- typed, with the questions on screen -- and is
       // free, which is the same rule every other fallback path in this app
       // follows.
-      const spoken = await synthesizeSpeech(text);
+      const liveGrant = await liveGrantFor(wantsLive, locale);
+      const spoken = liveGrant ? null : await synthesizeSpeech(text);
 
-      return { data: { session, spoken }, billable: spoken !== null };
+      return { data: { session, spoken, liveGrant }, billable: liveGrant !== null || spoken !== null };
     }
   );
 
@@ -135,7 +161,8 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       balance: charged.balance,
       // False whenever speech did not actually work, whatever the reason, so the
       // UI shows the typed-only notice rather than a microphone that cannot help.
-      voice: charged.data.spoken !== null,
+      voice: charged.data.liveGrant !== null || charged.data.spoken !== null,
+      live: charged.data.liveGrant,
       audio: charged.data.spoken ? charged.data.spoken.wav.toString('base64') : null,
     },
     { status: 201 }

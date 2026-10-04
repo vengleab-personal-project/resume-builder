@@ -108,6 +108,12 @@ export const VOICE_AUDIO = {
   // ~48 KB/s of 24 kHz PCM, so this is well over a minute of speech -- far past
   // any prompt. A ceiling on a misbehaving model, not a tuning value.
   LIVE_MAX_AUDIO_BYTES: 4 * 1024 * 1024,
+  // A live-conversation token must be used to open its socket within this long,
+  // or it is dead. The client connects the moment it receives the token.
+  LIVE_TOKEN_START_WINDOW_SECONDS: 60,
+  // What the microphone is streamed to Gemini as. The model's reply comes back
+  // at TTS_SAMPLE_RATE.
+  LIVE_INPUT_SAMPLE_RATE: 16000,
 } as const;
 
 export const GEMINI_MODEL_IDS = {

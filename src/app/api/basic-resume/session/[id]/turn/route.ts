@@ -104,7 +104,10 @@ export const POST = withErrorHandling(async (req: NextRequest, context: RouteCon
   await advanceSession(session.id, outcome);
 
   const nextText = outcome.next ? promptFor(outcome.next.id, locale, outcome.isFollowUp) : '';
-  const spoken = nextText ? await synthesizeSpeech(nextText) : null;
+  // A live conversation speaks the next question itself, from the text returned
+  // below, so rendering audio here would pay for speech nobody plays.
+  const wantsAudio = form.get('speak') !== 'false';
+  const spoken = nextText && wantsAudio ? await synthesizeSpeech(nextText) : null;
 
   return NextResponse.json({
     transcript,

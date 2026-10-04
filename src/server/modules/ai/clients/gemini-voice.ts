@@ -357,6 +357,106 @@ async function synthesizeWithLive(text: string): Promise<SpokenPrompt | null> {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Live conversation: a short-lived, locked token the browser connects with
+// ---------------------------------------------------------------------------
+
+export interface LiveGrant {
+  /** Ephemeral token. Single use, expires with the session, never the API key. */
+  token: string;
+  model: string;
+  expiresAt: string;
+}
+
+/**
+ * Browser-held Live sessions need ephemeral tokens, which the Gemini Developer
+ * API (AI Studio) issues. Vertex AI has no equivalent, so there the interview
+ * stays press-to-talk -- a browser cannot be given service-account credentials.
+ */
+export function isLiveConversationAvailable(): boolean {
+  return serverEnv.GEMINI_BACKEND === 'ai-studio' && Boolean(serverEnv.GEMINI_API_KEY);
+}
+
+const LIVE_LANGUAGE_NAME = { en: 'English', km: 'Khmer' } as const;
+
+/**
+ * The interviewer's whole brief, locked into the token.
+ *
+ * Locked rather than sent by the browser because the browser is not trusted: a
+ * client that could rewrite this could turn a paid interview into a general
+ * chat with a billed model. The model never sees the CV and never decides what
+ * is written -- it asks, listens, and calls `submit_answer`; the server runs the
+ * same extraction, caps and merge it always has.
+ */
+function liveInstruction(locale: 'en' | 'km'): string {
+  return [
+    `You are a friendly interviewer helping someone make a short CV. Speak ${LIVE_LANGUAGE_NAME[locale]}.`,
+    'When the message begins with "Ask:", say the text after it aloud exactly as written, then stop and listen.',
+    'Listen to the whole answer. People may pause and take their time, so do not interrupt.',
+    'Never answer the question yourself, comment on the answer, correct it, or add anything. Never invent details.',
+    'When the person has finished answering, or says they want to skip, call submit_answer exactly once.',
+    'submit_answer returns {"say": "..."}. Say that text aloud exactly as written, then stop and listen again.',
+  ].join('\n');
+}
+
+/**
+ * Mints the token for one live interview. Making it is also the liveness check
+ * that decides whether to charge: it is an authenticated call, so a revoked,
+ * expired or out-of-credit key fails here before the user is billed.
+ */
+export async function mintLiveGrant(locale: 'en' | 'km'): Promise<LiveGrant> {
+  const model = serverEnv.GEMINI_VOICE_LIVE_MODEL;
+  assertConfiguredModel(model);
+
+  // Ephemeral tokens exist only on the v1alpha surface, so this is a dedicated
+  // client rather than the shared one.
+  const tokens = new GoogleGenAI({
+    apiKey: serverEnv.GEMINI_API_KEY,
+    httpOptions: { apiVersion: 'v1alpha' },
+  }).authTokens;
+
+  const expiresAt = new Date(Date.now() + VOICE_INTERVIEW_LIMITS.SESSION_TTL_SECONDS * 1000).toISOString();
+
+  const created = await tokens.create({
+    config: {
+      // One socket, ever. Resuming a dropped connection does not count as a use.
+      uses: 1,
+      expireTime: expiresAt,
+      newSessionExpireTime: new Date(
+        Date.now() + VOICE_AUDIO.LIVE_TOKEN_START_WINDOW_SECONDS * 1000
+      ).toISOString(),
+      liveConnectConstraints: {
+        model,
+        config: {
+          responseModalities: [Modality.AUDIO],
+          systemInstruction: liveInstruction(locale),
+          // Transcripts are how the answer reaches the server's extraction. They
+          // pass through the browser to our turn route and are never stored.
+          inputAudioTranscription: {},
+          outputAudioTranscription: {},
+          speechConfig: {
+            voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE_AUDIO.TTS_VOICE } },
+          },
+          tools: [
+            {
+              functionDeclarations: [
+                {
+                  name: 'submit_answer',
+                  description:
+                    'Call exactly once when the person has finished answering the current question, or has said they want to skip it.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+    },
+  });
+
+  if (!created.name) throw new Error('Live token response had no token');
+  return { token: created.name, model, expiresAt };
+}
+
 /**
  * Speaks a question through Gemini Live. Returns null rather than throwing when
  * speech is unavailable or the model returns no audio: the question text is
