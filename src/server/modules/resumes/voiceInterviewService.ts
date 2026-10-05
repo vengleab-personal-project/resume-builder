@@ -185,6 +185,34 @@ export async function advanceSession(
   await prisma.voiceInterviewSession.update({ where: { id: sessionId }, data });
 }
 
+/**
+ * Takes the next turn slot, atomically, before any model call is made.
+ *
+ * Checking the count and incrementing it later leaves a window in which several
+ * simultaneous requests all pass the check and each run a paid extraction. The
+ * conditional update lets exactly one of them through per count value.
+ */
+export async function claimTurn(session: VoiceInterviewSession): Promise<boolean> {
+  const { count } = await prisma.voiceInterviewSession.updateMany({
+    where: {
+      id: session.id,
+      status: 'ACTIVE',
+      turnCount: session.turnCount,
+      expiresAt: { gt: new Date() },
+    },
+    data: { turnCount: { increment: 1 } },
+  });
+  return count === 1;
+}
+
+/** Gives back a turn that was claimed but never got to use a model, so a retry is not charged twice. */
+export async function releaseTurn(sessionId: string): Promise<void> {
+  await prisma.voiceInterviewSession.updateMany({
+    where: { id: sessionId, turnCount: { gt: 0 } },
+    data: { turnCount: { decrement: 1 } },
+  });
+}
+
 export async function setCursor(sessionId: string, questionId: string): Promise<void> {
   await prisma.voiceInterviewSession.update({
     where: { id: sessionId },

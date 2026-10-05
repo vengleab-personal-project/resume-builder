@@ -193,26 +193,35 @@ through the same route.
   deliberately constants (`VOICE_MODEL_IDS`), so it would reject every voice call.
 - Gemini TTS returns **headerless PCM**. Unwrapped, browsers play silence with no error.
   `pcmToWav` is the fix and is byte-exact.
-- The interview has two ways to talk, and both end at the same turn route, so caps, extraction,
-  the single debit and the saved CV are identical:
+- The interview has two ways to talk, both ending in the same saved CV and the same caps and
+  single debit:
   - **Live conversation (default where available).** `POST /api/basic-resume/session` with
     `live: true` mints a single-use, locked **ephemeral token** (`mintLiveGrant`, AI Studio
     only — Vertex has no browser tokens, so it silently falls back to press-to-talk). The
-    browser (`useLiveSession`) streams the mic to Gemini Live and plays the reply. The token
-    locks the model, the interviewer instructions and one tool, `submit_answer`; the API key
-    never reaches the browser. The model decides nothing about the CV: when it judges an answer
-    finished it calls `submit_answer`, the client sends the **input transcript** to the normal
-    turn route as typed text with `speak=false`, and returns the next question as the tool
-    response for the model to say. Minting the token is the liveness check that gates the debit.
-  - **Press-to-talk.** Record → STT → extract → speech out. Speech out is a one-shot Gemini
-    Live session on the server (`synthesizeSpeech`, `VOICE_MODEL_IDS.LIVE`, env
+    browser (`useLiveSession`) streams the mic to Gemini Live. The token locks the model, the
+    interviewer **brief** and one tool, `end_interview`; the API key never reaches the browser.
+    The brief (`liveInstruction`) is generated from the field table in
+    `shared/lib/basic-interview-topics.ts` — what to collect, where to start, a suggested order
+    — and then the model runs the conversation and judges when it has enough. **Nothing is
+    saved during the call.** The browser keeps the two-sided transcript in memory; when the call
+    ends (the model says goodbye and calls `end_interview`, the user presses Finish, or the
+    socket drops) it is sent once to `POST /api/basic-resume/session/[id]/finish`, which runs
+    one **structured-output** extraction over the whole conversation
+    (`interviewConsolidation.ts`, a response schema, temperature 0) and merges with
+    `applyExtractedValue(..., { appendLists: true })`. The server — not the model — decides
+    whether the CV is complete (`missingTopics`); if a required detail is missing the client
+    offers to continue (a fresh token, same session, no new charge) or to type it. If the model is
+    unreachable nothing is guessed: the transcript stays in the browser for a retry. Minting the
+    token is the liveness check that gates the debit.
+  - **Press-to-talk.** Record → STT → section extraction → speech out. Speech out is a one-shot
+    Gemini Live session on the server (`synthesizeSpeech`, `VOICE_MODEL_IDS.LIVE`, env
     `GEMINI_VOICE_LIVE_MODEL`); there is **no TTS model and no fallback** — a failure returns
     null, which reads as "pipeline down" and is not charged. Live output is headerless PCM too.
-  The user can switch from live to press-to-talk mid-interview; it is the same session.
-- In live mode **audio goes browser → Google directly**, not through this server. We still store
-  and log nothing, but the server can no longer see or size the audio, so the cost bounds are
-  the token (`uses: 1`, expires with the session) and the turn cap on `submit_answer`. There is
-  no consent flow for this either.
+- In live mode **audio goes browser → Google directly**, not through this server, and the full
+  transcript reaches `/finish` in one request. We still store and log nothing, but the server
+  can no longer see or size the audio, so the cost bounds are the token (`uses: 1`, expires with
+  the session), the turn cap on `/finish`, and the transcript size caps. There is no consent flow
+  for this either. A call abandoned by closing the tab is never consolidated.
 - **A model outage must never cost a user their answer.** `extractAnswer` reports
   "unreachable" distinctly from "no answer"; unreachable falls back to recording what was
   actually said, parsed deterministically. Never invent CV content — a fabricated detail on a

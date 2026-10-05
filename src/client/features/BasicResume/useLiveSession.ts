@@ -9,12 +9,11 @@ import { base64ToFloat32, CAPTURE_WORKLET_SOURCE, pcmToBase64 } from './liveAudi
  * The browser end of a live (streaming) interview.
  *
  * The microphone streams to Gemini Live and the reply streams back, so there is
- * no press-to-talk. What it deliberately does NOT do is decide anything: the
- * model asks and listens, and when it judges an answer finished it calls
- * `submit_answer`. This hook then hands the transcript to the caller, who sends
- * it through the same turn route a typed answer uses -- so extraction, the turn
- * cap, the merge and the follow-up policy are all the server's, exactly as in
- * press-to-talk. Nothing here is a source of truth.
+ * no press-to-talk. The model runs the whole conversation from a brief it was
+ * given, in its own words and its own order, and decides for itself when it has
+ * heard enough. This hook does not interpret any of it: it keeps a transcript of
+ * both sides, in memory, and hands it over when the call ends. The server turns
+ * that transcript into the CV -- nothing is saved while the call is running.
  *
  * The socket is opened with a short-lived, single-use token the server minted
  * and locked (model, instructions, tools). The API key never reaches the
@@ -22,7 +21,7 @@ import { base64ToFloat32, CAPTURE_WORKLET_SOURCE, pcmToBase64 } from './liveAudi
  * are not stored or logged.
  */
 
-export type LiveState = 'idle' | 'connecting' | 'listening' | 'speaking' | 'working';
+export type LiveState = 'idle' | 'connecting' | 'listening' | 'speaking';
 
 /**
  * How a connection attempt ended. `mic` is a refused or missing microphone,
@@ -37,20 +36,29 @@ export interface LiveGrant {
   expiresAt: string;
 }
 
+/** One side's contribution to the conversation, in the order it happened. */
+export interface DialogueEntry {
+  role: 'interviewer' | 'person';
+  text: string;
+}
+
 export interface LiveHandlers {
   /**
-   * The model says the person has finished. Resolve with what it should say
-   * next, or `done` when the interview is over or cannot continue.
+   * The call is over -- the model said it has what it needs and finished its
+   * goodbye, or the connection dropped. `dialogue` is everything said.
    */
-  onAnswer: (transcript: string) => Promise<{ say: string | null; done: boolean }>;
-  /** What has been heard of the current answer so far, for display. */
+  onEnd: (dialogue: DialogueEntry[], reason: 'finished' | 'dropped') => void;
+  /** What has been heard of the person so far in the current stretch, for display. */
   onHeard: (transcript: string) => void;
-  /** The session ended without the caller asking it to. */
-  onClosed: (reason: 'failed' | 'ended') => void;
+  /** What the model is saying, as text -- a caption, so the call works with sound off. */
+  onModelSaid: (text: string) => void;
 }
 
 // A socket that has not finished its handshake by now is not going to.
 const CONNECT_TIMEOUT_MS = 10_000;
+
+// How long a goodbye may take before the call ends anyway.
+const END_GRACE_MS = 15_000;
 
 const SOCKET_URL =
   'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained';
@@ -60,6 +68,7 @@ interface ServerMessage {
   serverContent?: {
     modelTurn?: { parts?: Array<{ inlineData?: { data?: string } }> };
     inputTranscription?: { text?: string };
+    outputTranscription?: { text?: string };
     interrupted?: boolean;
     turnComplete?: boolean;
   };
@@ -77,24 +86,48 @@ export const useLiveSession = () => {
   const sourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
   const nextStartRef = useRef(0);
   const modelTurnDoneRef = useRef(true);
-  const pendingRef = useRef('');
-  const answeringRef = useRef(false);
   const readyRef = useRef(false);
   const disposedRef = useRef(false);
   const handlersRef = useRef<LiveHandlers | null>(null);
+
+  // The conversation so far. Consecutive chunks from the same side are one entry;
+  // a change of speaker starts a new one.
+  const dialogueRef = useRef<DialogueEntry[]>([]);
+  const modelSaidRef = useRef('');
+  // The model's next utterance starts a fresh caption.
+  const newModelTurnRef = useRef(true);
+  // The model has called end_interview: close once it has finished saying goodbye.
+  const endingRef = useRef(false);
+  // Backstop for that goodbye: a turn that never completes must not hold the call open.
+  const endTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Settles the connect() still waiting on the handshake, so leaving mid-connect
   // resolves it instead of leaving the caller awaiting forever.
   const settleConnectRef = useRef<((outcome: LiveConnectOutcome) => void) | null>(null);
+  // `endCall` is defined after the message handlers that need to call it.
+  const endCallRef = useRef<((reason: 'finished' | 'dropped') => void) | null>(null);
 
   const send = useCallback((payload: unknown) => {
     const socket = socketRef.current;
     if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify(payload));
   }, []);
 
+  const record = useCallback((role: DialogueEntry['role'], chunk: string) => {
+    const entries = dialogueRef.current;
+    const last = entries[entries.length - 1];
+    if (last && last.role === role) last.text += chunk;
+    else entries.push({ role, text: chunk });
+  }, []);
+
   const settleState = useCallback(() => {
     // Back to listening only once the model has finished AND its audio has
     // finished playing; the reply is queued ahead of real time.
-    if (modelTurnDoneRef.current && sourcesRef.current.size === 0 && !answeringRef.current) {
+    if (modelTurnDoneRef.current && sourcesRef.current.size === 0) {
+      if (endingRef.current) {
+        // Its goodbye is done: the call is over.
+        endCallRef.current?.('finished');
+        return;
+      }
       setState('listening');
     }
   }, []);
@@ -142,56 +175,6 @@ export const useLiveSession = () => {
     [settleState]
   );
 
-  const handleToolCall = useCallback(
-    async (calls: Array<{ id: string; name: string }>) => {
-      for (const call of calls) {
-        if (call.name !== 'submit_answer') {
-          send({ toolResponse: { functionResponses: [{ id: call.id, name: call.name, response: {} }] } });
-          continue;
-        }
-
-        // The model should call this once. A second call while the first is
-        // still being processed would submit the same answer twice.
-        if (answeringRef.current) {
-          send({
-            toolResponse: {
-              functionResponses: [{ id: call.id, name: call.name, response: { ignored: true } }],
-            },
-          });
-          continue;
-        }
-
-        answeringRef.current = true;
-        setState('working');
-        const transcript = pendingRef.current.trim();
-        pendingRef.current = '';
-
-        let outcome: { say: string | null; done: boolean };
-        try {
-          outcome = (await handlersRef.current?.onAnswer(transcript)) ?? { say: null, done: true };
-        } catch {
-          outcome = { say: null, done: true };
-        }
-        answeringRef.current = false;
-        if (disposedRef.current) return;
-
-        send({
-          toolResponse: {
-            functionResponses: [
-              {
-                id: call.id,
-                name: call.name,
-                response: outcome.say ? { say: outcome.say } : { done: true },
-              },
-            ],
-          },
-        });
-        settleState();
-      }
-    },
-    [send, settleState]
-  );
-
   const handleMessage = useCallback(
     (message: ServerMessage) => {
       if (message.setupComplete) {
@@ -217,21 +200,49 @@ export const useLiveSession = () => {
         }
 
         if (content.inputTranscription?.text) {
-          pendingRef.current += content.inputTranscription.text;
-          handlersRef.current?.onHeard(pendingRef.current.trim());
+          record('person', content.inputTranscription.text);
+          // "I heard" shows the person's current stretch of speech, not the whole call.
+          const latest = dialogueRef.current[dialogueRef.current.length - 1];
+          handlersRef.current?.onHeard(latest.text.trim());
+        }
+
+        if (content.outputTranscription?.text) {
+          if (newModelTurnRef.current) {
+            modelSaidRef.current = '';
+            newModelTurnRef.current = false;
+          }
+          modelSaidRef.current += content.outputTranscription.text;
+          record('interviewer', content.outputTranscription.text);
+          handlersRef.current?.onModelSaid(modelSaidRef.current.trim());
         }
 
         if (content.turnComplete) {
           modelTurnDoneRef.current = true;
+          newModelTurnRef.current = true;
           settleState();
         }
       }
 
-      if (message.toolCall?.functionCalls?.length) {
-        void handleToolCall(message.toolCall.functionCalls);
+      for (const call of message.toolCall?.functionCalls ?? []) {
+        // end_interview is the only tool. Anything else gets an empty answer so
+        // the model is never left waiting on one.
+        send({
+          toolResponse: {
+            functionResponses: [
+              { id: call.id, name: call.name, response: call.name === 'end_interview' ? { ok: true } : {} },
+            ],
+          },
+        });
+        if (call.name === 'end_interview') {
+          // The model says a goodbye after this. Closing now would cut it off, so
+          // the call ends when that turn has been spoken in full.
+          endingRef.current = true;
+          modelTurnDoneRef.current = false;
+          endTimerRef.current = setTimeout(() => endCallRef.current?.('finished'), END_GRACE_MS);
+        }
       }
     },
-    [handleToolCall, playChunk, settleState, stopPlayback]
+    [playChunk, record, send, settleState, stopPlayback]
   );
 
   const teardown = useCallback(() => {
@@ -260,14 +271,55 @@ export const useLiveSession = () => {
     void playCtxRef.current?.close().catch(() => undefined);
     playCtxRef.current = null;
 
+    if (endTimerRef.current) {
+      clearTimeout(endTimerRef.current);
+      endTimerRef.current = null;
+    }
+
     readyRef.current = false;
-    answeringRef.current = false;
     modelTurnDoneRef.current = true;
-    pendingRef.current = '';
+    newModelTurnRef.current = true;
+    endingRef.current = false;
+    modelSaidRef.current = '';
   }, [stopPlayback]);
 
+  /** Tears the call down and takes the transcript with it. */
+  const takeDialogue = useCallback((): DialogueEntry[] => {
+    const dialogue = dialogueRef.current.filter((entry) => entry.text.trim());
+    dialogueRef.current = [];
+    return dialogue;
+  }, []);
+
+  /** The call is over, one way or another: hand the transcript to the caller. */
+  const endCall = useCallback(
+    (reason: 'finished' | 'dropped') => {
+      if (disposedRef.current) return;
+      const dialogue = takeDialogue();
+      const handlers = handlersRef.current;
+      teardown();
+      setState('idle');
+      handlers?.onEnd(dialogue, reason);
+    },
+    [takeDialogue, teardown]
+  );
+  endCallRef.current = endCall;
+
+  /**
+   * Ends the call on the user's say-so and returns the transcript. Does not call
+   * `onEnd`: the caller asked for it and already knows.
+   */
+  const finish = useCallback((): DialogueEntry[] => {
+    const dialogue = takeDialogue();
+    disposedRef.current = true;
+    teardown();
+    setState('idle');
+    return dialogue;
+  }, [takeDialogue, teardown]);
+
+  /** Closes without a transcript: leaving the screen, or abandoning the interview. */
   const close = useCallback(() => {
     disposedRef.current = true;
+    dialogueRef.current = [];
     teardown();
     setState('idle');
   }, [teardown]);
@@ -278,6 +330,7 @@ export const useLiveSession = () => {
     disposedRef.current = false;
     return () => {
       disposedRef.current = true;
+      dialogueRef.current = [];
       teardown();
     };
   }, [teardown]);
@@ -298,6 +351,8 @@ export const useLiveSession = () => {
     async (grant: LiveGrant, handlers: LiveHandlers): Promise<LiveConnectOutcome> => {
       disposedRef.current = false;
       handlersRef.current = handlers;
+      dialogueRef.current = [];
+      endingRef.current = false;
       setMicProblem(null);
       setState('connecting');
       prime();
@@ -404,27 +459,42 @@ export const useLiveSession = () => {
         socket.onclose = () => {
           if (disposedRef.current) return;
           const wasReady = readyRef.current;
-          teardown();
-          setState('idle');
-          settle('failed');
-          // Only a call that was up is reported here; one that never connected is
-          // already reported through connect()'s outcome.
-          if (wasReady) handlersRef.current?.onClosed('ended');
+          if (!wasReady) {
+            // Never connected: reported through connect()'s outcome, and there is
+            // no conversation to hand over.
+            teardown();
+            setState('idle');
+            settle('failed');
+            return;
+          }
+          // The call was up and dropped. Whatever was said is still worth keeping.
+          endCall('dropped');
         };
       });
     },
-    [handleMessage, prime, send, teardown]
+    [endCall, handleMessage, prime, send, teardown]
   );
 
-  /** Has the model say `text`, as a question. Also starts a fresh answer. */
-  const ask = useCallback(
+  /**
+   * Sends the model a note from the app, not the person: "begin", "they typed
+   * this instead". The model treats it as an instruction and replies aloud.
+   */
+  const tell = useCallback(
     (text: string) => {
-      pendingRef.current = '';
       modelTurnDoneRef.current = false;
-      send({ realtimeInput: { text: `Ask: ${text}` } });
+      send({ realtimeInput: { text } });
     },
     [send]
   );
 
-  return { state, micProblem, prime, connect, ask, close };
+  /** A typed answer given during the call: part of the conversation like any other. */
+  const addPersonText = useCallback(
+    (text: string) => {
+      // A leading space keeps it apart from speech it lands next to.
+      record('person', ` ${text}`);
+    },
+    [record]
+  );
+
+  return { state, micProblem, prime, connect, tell, addPersonText, finish, close };
 };

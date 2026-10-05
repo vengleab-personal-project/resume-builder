@@ -57,6 +57,8 @@ export type BasicScalarPath = ScalarPath<
 
 export type BasicListPath = ListPath<'education' | 'experience' | 'languages' | 'interests'>;
 
+export type BasicFieldPath = BasicScalarPath | BasicListPath;
+
 // ---------------------------------------------------------------------------
 // Answer schemas
 // ---------------------------------------------------------------------------

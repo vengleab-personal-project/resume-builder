@@ -710,8 +710,11 @@ const en = {
                 press: "Press to answer",
                 stop: "Stop recording",
                 statusLoading: "Getting the voice ready...",
+                statusConsolidating: "Putting your CV together...",
                 statusLiveListening: "Listening — just talk",
-                switchToPressToTalk: "Switch to press-to-talk",
+                finishCall: "Finish",
+                continueConversation: "Continue the conversation",
+                retry: "Try again",
                 statusAsking: "Ready when you are",
                 statusListening: "Listening...",
                 statusThinking: "Thinking...",
@@ -732,7 +735,9 @@ const en = {
                     "no-speech": "I didn't hear anything. Check your microphone isn't muted, or type your answer instead.",
                     degraded: "I couldn't fully understand your answer just now, so I only saved the parts I was sure of. Check your CV and fill in anything that's missing before you send it.",
                     "start-failed": "Couldn't start the interview. Please try again.",
-                    "live-failed": "The live conversation isn't available right now. You can press to talk, or type your answers below."
+                    "live-failed": "The live conversation stopped. You can continue it, press to talk, or type your answers below.",
+                    "missing-details": "Thanks. A few details are still missing from your CV. Continue the conversation, press to talk, or type them below.",
+                    "consolidate-failed": "I couldn't put your CV together just now. Nothing is lost — press Try again."
                 },
                 micProblems: {
                     unsupported: "This browser can't record audio. You can still type every answer.",

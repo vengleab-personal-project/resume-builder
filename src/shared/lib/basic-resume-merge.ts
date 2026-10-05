@@ -36,22 +36,46 @@ export function applyExtractedValue(
   data: BasicResumeData,
   question: InterviewQuestion,
   value: unknown,
-  makeId: () => string = () => crypto.randomUUID()
+  makeId: () => string = () => crypto.randomUUID(),
+  options: { appendLists?: boolean } = {}
 ): BasicResumeData {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return data;
   const answer = value as Record<string, unknown>;
 
   return question.fields.reduce(
-    (current, field) => applyField(current, field, answer[field.path], makeId),
+    (current, field) => applyField(current, field, answer[field.path], makeId, options.appendLists === true),
     data
   );
+}
+
+/** Same entry, ignoring case and spacing -- what "already recorded" means for a list. */
+const entryKey = (...parts: string[]) => parts.map((part) => part.trim().toLowerCase()).join('|');
+
+/**
+ * Adds `incoming` after `existing`, skipping entries already there.
+ *
+ * A free conversation gives a list in pieces ("I studied at X in 2015" ... later
+ * "I also did a course at Y"), so replacing the list would silently drop the
+ * first piece. Entries that repeat what is already recorded are skipped, because
+ * people restate things and the model re-reports them.
+ */
+function appendUnique<T>(existing: T[], incoming: T[], key: (item: T) => string): T[] {
+  const seen = new Set(existing.map(key));
+  const added = incoming.filter((item) => {
+    const k = key(item);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+  return [...existing, ...added];
 }
 
 function applyField(
   data: BasicResumeData,
   field: InterviewField,
   value: unknown,
-  makeId: () => string
+  makeId: () => string,
+  append: boolean
 ): BasicResumeData {
   if (!isListField(field)) {
     const parsed = ANSWER_SCHEMAS.scalar.safeParse(value);
@@ -69,7 +93,7 @@ function applyField(
         year: entry.year.trim(),
         detail: entry.detail.trim(),
       }));
-      return { ...data, education };
+      return { ...data, education: append ? appendUnique(data.education, education, (e) => entryKey(e.year, e.detail)) : education };
     }
     case 'experience': {
       const parsed = ANSWER_SCHEMAS.experience.safeParse(value);
@@ -79,7 +103,7 @@ function applyField(
         year: entry.year.trim(),
         detail: entry.detail.trim(),
       }));
-      return { ...data, experience };
+      return { ...data, experience: append ? appendUnique(data.experience, experience, (e) => entryKey(e.year, e.detail)) : experience };
     }
     case 'languages': {
       const parsed = ANSWER_SCHEMAS.languages.safeParse(value);
@@ -89,13 +113,14 @@ function applyField(
         name: entry.name.trim(),
         skills: entry.skills.trim(),
       }));
-      return { ...data, languages };
+      return { ...data, languages: append ? appendUnique(data.languages, languages, (l) => entryKey(l.name)) : languages };
     }
     case 'interests': {
       const parsed = ANSWER_SCHEMAS.interests.safeParse(value);
       if (!parsed.success) return data;
       const interests = parsed.data.map((item) => item.trim()).filter(Boolean);
-      return interests.length > 0 ? { ...data, interests } : data;
+      if (interests.length === 0) return data;
+      return { ...data, interests: append ? appendUnique(data.interests, interests, (i) => entryKey(i)) : interests };
     }
     default:
       return data;
@@ -125,7 +150,7 @@ function setScalarPath(data: BasicResumeData, path: string, value: string): Basi
   return data;
 }
 
-function isFieldFilled(data: BasicResumeData, field: InterviewField): boolean {
+export function isFieldFilled(data: BasicResumeData, field: InterviewField): boolean {
   if (isListField(field)) {
     const list = data[field.path];
     return Array.isArray(list) && list.length > 0;

@@ -3,6 +3,7 @@ import { GoogleGenAI, Modality, type LiveServerMessage, type Session } from '@go
 import { serverEnv } from '@/server/config/env.server';
 import { VOICE_AUDIO, VOICE_INTERVIEW_LIMITS } from '@/shared/config/constants';
 import { HttpError } from '@/server/errors';
+import { FIELD_TOPICS, FREE_FORM_QUESTION } from '@/shared/lib/basic-interview-topics';
 
 /**
  * Speech in and speech out for the basic CV's voice interview.
@@ -67,6 +68,15 @@ function genai(): GoogleGenAI {
     }
   }
   return client;
+}
+
+/**
+ * The configured @google/genai client, for the one other place that needs this
+ * SDK: structured-output extraction after a live call. Exported rather than
+ * duplicated so both backends (AI Studio, Vertex) are wired in a single place.
+ */
+export function getGenAiClient(): GoogleGenAI {
+  return genai();
 }
 
 /** Whether a real voice pipeline is reachable. False means typed-only, unbilled. */
@@ -384,18 +394,49 @@ const LIVE_LANGUAGE_NAME = { en: 'English', km: 'Khmer' } as const;
  *
  * Locked rather than sent by the browser because the browser is not trusted: a
  * client that could rewrite this could turn a paid interview into a general
- * chat with a billed model. The model never sees the CV and never decides what
- * is written -- it asks, listens, and calls `submit_answer`; the server runs the
- * same extraction, caps and merge it always has.
+ * chat with a billed model.
+ *
+ * The model is told what to find out and where to start, then left to run the
+ * conversation and to judge when it has enough. It writes nothing: the CV is
+ * built afterwards from the full transcript (see interviewConsolidation), and the
+ * server checks that every required detail made it in. If the model stops early,
+ * the client is told what is missing and offers to carry on, so a wrong judgement
+ * costs a second round, not a hole in the CV.
+ *
+ * The lists are generated from the same field table the server extracts and
+ * checks against, so the brief cannot drift from what is actually required.
  */
 function liveInstruction(locale: 'en' | 'km'): string {
+  const fields = FREE_FORM_QUESTION.fields;
+  const list = (items: typeof fields) => items.map((field) => `- ${FIELD_TOPICS[field.path].ask}`).join('\n');
+
+  const required = fields.filter((field) => field.required);
+  const optional = fields.filter((field) => !field.required && !FIELD_TOPICS[field.path].sensitive);
+  const personal = fields.filter((field) => FIELD_TOPICS[field.path].sensitive);
+
   return [
-    `You are a friendly interviewer helping someone make a short CV. Speak ${LIVE_LANGUAGE_NAME[locale]}.`,
-    'When the message begins with "Ask:", say the text after it aloud exactly as written, then stop and listen.',
-    'Listen to the whole answer. People may pause and take their time, so do not interrupt.',
-    'Never answer the question yourself, comment on the answer, correct it, or add anything. Never invent details.',
-    'When the person has finished answering, or says they want to skip, call submit_answer exactly once.',
-    'submit_answer returns {"say": "..."}. Say that text aloud exactly as written, then stop and listen again.',
+    `You are a warm, patient interviewer helping someone make a short CV. Speak ${LIVE_LANGUAGE_NAME[locale]}.`,
+    'Many people you talk to are job seekers with little formal schooling. Use short sentences and everyday words. Never use jargon.',
+    '',
+    'WHAT YOU NEED TO FIND OUT',
+    'You must get all of these:',
+    list(required),
+    'Also ask about these, once each, if the person has anything to say:',
+    list(optional),
+    'These are personal. Ask each at most once, gently, tell the person they may skip, and never press if they decline:',
+    list(personal),
+    '',
+    'HOW TO RUN IT',
+    'Start by greeting them warmly in one short sentence, then ask for their name and the job they want.',
+    'After that a good order is: phone number and where they live, date of birth, school or courses, work experience and languages, what they enjoy, how they would describe themselves, and last the personal details.',
+    'It is a conversation, not a form. Ask one or two things at a time in your own words, react briefly and kindly, and if the person goes somewhere else, follow them and come back to anything you still need.',
+    'Repeat phone numbers and spelled names back to check you heard them right. If you are unsure of anything, ask them to say it again.',
+    'Never invent, assume or guess anything about the person.',
+    '',
+    'WHEN TO STOP',
+    'Keep track yourself of what you have learned. Keep going until you have everything in the first list and have offered each topic in the second.',
+    'If the person says they want to stop, or to skip something, respect that.',
+    'When you have enough, call end_interview, then say a short thank-you and goodbye. Never mention tools or lists.',
   ].join('\n');
 }
 
@@ -430,8 +471,9 @@ export async function mintLiveGrant(locale: 'en' | 'km'): Promise<LiveGrant> {
         config: {
           responseModalities: [Modality.AUDIO],
           systemInstruction: liveInstruction(locale),
-          // Transcripts are how the answer reaches the server's extraction. They
-          // pass through the browser to our turn route and are never stored.
+          // Both sides are transcribed: the CV is built from the whole conversation
+          // when the call ends. The browser keeps it in memory and sends it once;
+          // it is never stored or logged.
           inputAudioTranscription: {},
           outputAudioTranscription: {},
           speechConfig: {
@@ -441,9 +483,9 @@ export async function mintLiveGrant(locale: 'en' | 'km'): Promise<LiveGrant> {
             {
               functionDeclarations: [
                 {
-                  name: 'submit_answer',
+                  name: 'end_interview',
                   description:
-                    'Call exactly once when the person has finished answering the current question, or has said they want to skip it.',
+                    'Call once when you have everything you need and the conversation is finished. The call ends after you say goodbye.',
                 },
               ],
             },

@@ -103,7 +103,12 @@ export default function BasicResume() {
                 isSpeaking={interview.isSpeaking}
                 liveActive={interview.liveActive}
                 liveState={interview.liveState}
-                onSwitchToPressToTalk={interview.switchToPressToTalk}
+                modelSaid={interview.modelSaid}
+                canContinueLive={interview.canContinueLive}
+                consolidationFailed={interview.consolidationFailed}
+                onFinishLive={interview.finishLive}
+                onContinueLive={() => void interview.continueLive()}
+                onRetryConsolidation={interview.retryConsolidation}
                 onStart={startInterview}
                 onRecord={() => void interview.record()}
                 onStopRecording={interview.stopRecording}
