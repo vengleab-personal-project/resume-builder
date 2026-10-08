@@ -1,0 +1,104 @@
+// Workstream C — multi-provider payments.
+//
+// Nothing in here is Bakong-specific. Adding a provider is one enum value plus
+// one folder under src/server/payments/providers/; the persistence, idempotency
+// and coin-crediting logic in paymentService.ts stays untouched.
+
+enum PaymentProviderId {
+  BAKONG
+  MOCK
+}
+
+enum PaymentOrderStatus {
+  PENDING
+  PAID
+  FAILED
+  EXPIRED
+  CANCELED
+}
+
+enum CurrencyCode {
+  KHR
+  USD
+}
+
+// Purchasable bundles. Price is ALWAYS read from this table server-side; a
+// client-supplied amount is never trusted.
+model CoinPackage {
+  id String @id @default(cuid())
+
+  code        String @unique
+  name        String
+  description String?
+
+  coinAmount Int
+  bonusCoins Int @default(0)
+
+  // Integer minor units (KHR exponent 0, USD exponent 2). No floats ever touch
+  // a money comparison.
+  priceMinor Int
+  currency   CurrencyCode
+
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  orders PaymentOrder[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
+model PaymentOrder {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  provider PaymentProviderId
+
+  packageId   String?
+  coinPackage CoinPackage? @relation(fields: [packageId], references: [id], onDelete: SetNull)
+
+  // Snapshotted at order creation so a later price/bonus edit cannot change
+  // what an already-issued QR is worth.
+  coinAmount      Int
+  bonusCoins      Int          @default(0)
+  fiatAmountMinor Int
+  currency        CurrencyCode
+
+  status PaymentOrderStatus @default(PENDING)
+
+  // Our reconciliation reference, embedded in the QR payload.
+  billNumber String @unique
+
+  providerRef   String?
+  // Guard 3: two orders can never claim the same real-world bank transaction.
+  // Postgres treats NULLs as distinct, so unsettled orders don't collide.
+  providerTxnId String?
+
+  qrPayload   String?
+  qrMd5       String?
+  checkoutUrl String?
+  deepLink    String?
+
+  failureReason String?
+
+  // Server-side poll debounce. Shared DB state, because an in-memory debounce
+  // is useless across independent serverless invocations.
+  lastCheckedAt DateTime?
+  paidAt        DateTime?
+  expiresAt     DateTime
+
+  coinTransaction CoinTransaction?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, providerTxnId])
+  @@index([userId, createdAt])
+  @@index([status, expiresAt])
+  @@index([status, lastCheckedAt])
+  @@index([qrMd5])
+}

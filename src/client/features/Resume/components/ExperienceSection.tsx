@@ -28,7 +28,7 @@ export const ExperienceSection = ({ experience, primaryColor, title }: Experienc
               style={{ borderColor: primaryColor }}
             />
 
-            <div className="flex justify-between items-start mb-2">
+            <div data-print-keep className="flex justify-between items-start mb-2 print:break-after-avoid">
               <h3 className="text-lg font-bold text-slate-900 leading-tight">
                 {exp.company}{exp.location ? ` - ${exp.location}` : ''}
               </h3>
@@ -37,7 +37,7 @@ export const ExperienceSection = ({ experience, primaryColor, title }: Experienc
               </span>
             </div>
 
-            <p className="text-md font-bold text-slate-700 mb-2 uppercase tracking-wide opacity-90">
+            <p className="text-md font-bold text-slate-700 mb-2 uppercase tracking-wide opacity-90 print:break-after-avoid">
               {exp.role}
             </p>
 

@@ -1,19 +1,120 @@
+import type { AiActionKey, AiProviderKey } from '@/shared/types';
 
 export const AI_PROVIDERS = {
   OPENAI: 'openai',
   GOOGLE: 'google',
 } as const;
 
-export const AI_MODELS = {
-  [AI_PROVIDERS.OPENAI]: [
-    // { id: 'gpt-4o', name: 'GPT-4o (Smartest)' },
-    // { id: 'gpt-3.5-turbo', name: 'GPT-3.5 (Fast)' },
-  ],
-  [AI_PROVIDERS.GOOGLE]: [
-    { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash (Fast & Smart)' },
-    { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash (Fast & Smart)' },
-    { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro (Advanced)' },
-  ],
+// Seed data and offline fallback — NOT the source of truth. The ChatModel table
+// is, and src/server/ai/registry reads it. These values are only used to seed an
+// empty database and to keep AI features working when Postgres is unreachable.
+export const FALLBACK_CHAT_MODELS: readonly {
+  provider: AiProviderKey;
+  modelId: string;
+  displayName: string;
+  isDefault: boolean;
+  sortOrder: number;
+}[] = [
+  {
+    provider: 'GOOGLE',
+    modelId: 'gemini-3.8-flash',
+    displayName: 'Gemini 3.8 Flash (Fast & Smart)',
+    isDefault: true,
+    sortOrder: 0,
+  },
+  {
+    provider: 'GOOGLE',
+    modelId: 'gemini-3-flash-preview',
+    displayName: 'Gemini 3 Flash (Fast & Smart)',
+    isDefault: false,
+    sortOrder: 1,
+  },
+  {
+    provider: 'GOOGLE',
+    modelId: 'gemini-3-pro-preview',
+    displayName: 'Gemini 3 Pro (Advanced)',
+    isDefault: false,
+    sortOrder: 2,
+  },
+];
+
+// Inherited (model-agnostic) coin cost per action, used to seed the ActionCost
+// rows whose chatModelId is NULL and as the last-resort value when the registry
+// cannot be read at all.
+export const FALLBACK_ACTION_COSTS: Readonly<Record<AiActionKey, number>> = {
+  PARSE_RESUME: 1,
+  REFINE_RESUME: 1,
+  EVALUATE_RESUME: 2,
+  // One whole interview: up to 30 turns of speech-to-text, extraction and
+  // spoken output, charged once at session start. Materially more expensive to
+  // serve than the single-shot actions above, priced to stay affordable to the
+  // entry-level job seeker the basic CV exists for.
+  VOICE_INTERVIEW: 5,
+};
+
+export const DEFAULT_ACTION_COIN_COST = 1;
+
+// --- Voice interview -------------------------------------------------------
+
+// Speech-to-text and speech-out model ids live here as constants rather than
+// as admin-editable ChatModel rows, unlike every other model this app uses.
+// That is a deliberate, bounded exception: the registry resolves exactly one
+// model per action and cannot express a multi-model pipeline, and making these
+// editable would let an admin point speech at a model that returns no audio and
+// break the product with nothing to validate it. The env overrides below
+// keep a model rename a config change rather than a deploy.
+export const VOICE_MODEL_IDS = {
+  // Audio in, text out. Any current flash model handles this.
+  STT: 'gemini-3.8-flash',
+  // Audio OUT, through the Gemini Live API (a one-shot session per spoken
+  // question). Audio output is the capability the legacy SDK cannot reach at all
+  // and the reason @google/genai is installed alongside it.
+  LIVE: 'gemini-3.8-live',
+} as const;
+
+// Every one of these is enforced server-side, before any model call. Client-side
+// equivalents are UX; these are the cost control. A single VOICE_INTERVIEW debit
+// covers a whole session, so the session has to be bounded or the charge is
+// unbounded.
+export const VOICE_INTERVIEW_LIMITS = {
+  // A turn is one model extraction. Press-to-talk needs at most 8 (four sections,
+  // one follow-up each); a live conversation uses one per call, when it ends, so
+  // a few at most. Each answer covers a whole section, so a turn may run longer --
+  // but total spoken audio per session is bounded by the product of the two
+  // (12 x 120s = 24 min, down from 30 x 60s = 30 min), so one debit buys no more
+  // audio than it did when the interview was field by field.
+  MAX_TURNS: 12,
+  MAX_AUDIO_SECONDS: 120,
+  MAX_AUDIO_BYTES: 5 * 1024 * 1024,
+  SESSION_TTL_SECONDS: 30 * 60,
+} as const;
+
+export const VOICE_AUDIO = {
+  // MediaRecorder gives webm/opus on Chrome and Firefox and mp4 on Safari, so
+  // both are accepted and the type is read off the blob, never assumed.
+  ACCEPTED_MIME_PREFIXES: ['audio/webm', 'audio/mp4', 'audio/ogg', 'audio/wav', 'audio/mpeg'],
+  // What Gemini TTS actually returns: raw headerless PCM, which no browser will
+  // play. gemini-voice.ts wraps it before it leaves the server.
+  TTS_SAMPLE_RATE: 24000,
+  TTS_BITS_PER_SAMPLE: 16,
+  TTS_CHANNELS: 1,
+  // A warm, neutral prebuilt voice. Gemini's voice list is not locale-specific;
+  // the spoken language follows the text it is given.
+  TTS_VOICE: 'Kore',
+  // A question is a sentence or two and takes ~5s end to end on a good
+  // connection (socket handshake included), so a session still silent after this
+  // long is stuck, not slow. Bounded so a hung socket cannot hold the turn route
+  // open.
+  LIVE_TIMEOUT_MS: 30_000,
+  // ~48 KB/s of 24 kHz PCM, so this is well over a minute of speech -- far past
+  // any prompt. A ceiling on a misbehaving model, not a tuning value.
+  LIVE_MAX_AUDIO_BYTES: 4 * 1024 * 1024,
+  // A live-conversation token must be used to open its socket within this long,
+  // or it is dead. The client connects the moment it receives the token.
+  LIVE_TOKEN_START_WINDOW_SECONDS: 60,
+  // What the microphone is streamed to Gemini as. The model's reply comes back
+  // at TTS_SAMPLE_RATE.
+  LIVE_INPUT_SAMPLE_RATE: 16000,
 } as const;
 
 export const GEMINI_MODEL_IDS = {

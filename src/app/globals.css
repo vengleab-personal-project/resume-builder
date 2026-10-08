@@ -53,9 +53,17 @@ html[lang="km"] body {
 }
 /* Print styles for pixel-perfect PDF export */
 @media print {
+  /* Breathing room above and below the content on every page. Sides stay at 0
+     so the sidebar colour remains full-bleed; the first page keeps no top
+     margin so the header banner touches the top edge. The sidebar background
+     layer extends into these margins (see ResumePreview). */
   @page {
-    margin: 0;
+    margin: 12mm 0;
     size: A4 portrait;
+  }
+
+  @page :first {
+    margin-top: 0;
   }
   
   /* Force exact colors to print (backgrounds, etc.) */
@@ -80,6 +88,14 @@ html[lang="km"] body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
+    /* Sidebar-coloured strip down the left 32% of every sheet, including the
+       top/bottom page margins (--resume-sidebar-bg is set by ResumePreview and
+       absent elsewhere, so other pages print on plain white). */
+    background: linear-gradient(
+      to right,
+      var(--resume-sidebar-bg, transparent) 32%,
+      transparent 32%
+    ) !important;
   }
   
   body {
@@ -124,6 +140,56 @@ html[lang="km"] body {
     position: relative !important;
   }
   
+  /* The basic CV is a single-column typed page, so none of the two-column
+     rules above apply to it. It gets its own id and its own handful of rules:
+     fill the sheet, keep its own margins, and never let a section heading be
+     orphaned at the foot of a page. */
+  #basic-resume-preview {
+    display: block !important;
+    width: 100% !important;
+    min-height: 297mm !important;
+    height: auto !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    background: white !important;
+    overflow: visible !important;
+  }
+
+  #basic-resume-preview section {
+    break-inside: auto;
+  }
+
+  #basic-resume-preview h1,
+  #basic-resume-preview h2 {
+    break-after: avoid;
+    break-inside: avoid;
+  }
+
+  /* Page breaks: fall between blocks, never through a line of text.
+     Sidebar sections move whole; headings stay with what follows them; a
+     bullet, paragraph or entry header is never split across two pages. Long
+     experience/education entries may still split, but only between bullets. */
+  #resume-preview aside section {
+    break-inside: avoid;
+  }
+
+  #resume-preview h2,
+  #resume-preview h3 {
+    break-after: avoid;
+    break-inside: avoid;
+  }
+
+  #resume-preview li,
+  #resume-preview p {
+    break-inside: avoid;
+    orphans: 3;
+    widows: 3;
+  }
+
+  #resume-preview [data-print-keep] {
+    break-inside: avoid;
+  }
+
   /* Ensure white background extends for multi-page prints (below header) */
   #resume-preview main > div:last-child {
     position: fixed !important;

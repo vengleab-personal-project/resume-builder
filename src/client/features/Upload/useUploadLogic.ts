@@ -1,11 +1,68 @@
 "use client";
 
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { useResumeStore } from '@/client/store/resume-store';
-import { parseResume } from '@/server/services/resumeService';
-import { AIProvider, AIModel, ViewMode } from '@/shared/types';
+import { useChatModels } from '@/client/hooks/useChatModels';
+import { handleInsufficientCoins, useCoinStore } from '@/client/store/coin-store';
+import { AIConfig, AIProvider, AIModel, ResumeData, ViewMode } from '@/shared/types';
+import { REQUEST_TIMEOUTS, API_ENDPOINTS } from '@/shared/config/constants';
+
+const parseResume = async (
+  input: File | string,
+  config: AIConfig,
+  abortSignal?: AbortSignal
+): Promise<ResumeData> => {
+  const formData = new FormData();
+
+  if (typeof input === 'string') {
+    formData.append('text', input);
+  } else {
+    formData.append('file', input);
+  }
+
+  formData.append('provider', config.provider);
+  formData.append('model', config.model);
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUTS.PARSE_RESUME);
+
+  if (abortSignal) {
+    abortSignal.addEventListener('abort', () => controller.abort());
+  }
+
+  try {
+    const res = await fetch(API_ENDPOINTS.PARSE_RESUME, {
+      method: 'POST',
+      body: formData,
+      signal: controller.signal,
+    });
+
+    // A 402 opens the top-up modal; the thrown error still stops the caller,
+    // but the user gets a way to act on it rather than a dead end.
+    if (await handleInsufficientCoins(res)) {
+      throw new Error('INSUFFICIENT_COINS');
+    }
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(errorText || 'Failed to parse resume');
+    }
+
+    useCoinStore.getState().applyResponseHeaders(res);
+
+    return res.json();
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Request timed out or was cancelled. Please try again.');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
 
 export const useUploadLogic = () => {
+  const { models, providers, modelsForProvider, isLoading: isLoadingModels } = useChatModels();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const { 
@@ -20,6 +77,22 @@ export const useUploadLogic = () => {
 
   const [isDragging, setIsDragging] = useState(false);
   const [pastedText, setPastedText] = useState('');
+
+  // A persisted localStorage aiConfig can point at a model an admin has since
+  // deactivated. The server would silently substitute its default; snap the
+  // selection back so the UI never claims a model that will not run.
+  useEffect(() => {
+    if (isLoadingModels || models.length === 0) return;
+    if (models.some((model) => model.modelId === aiConfig.model)) return;
+
+    const preferred =
+      models.find((model) => model.provider === aiConfig.provider && model.isDefault) ??
+      models.find((model) => model.provider === aiConfig.provider) ??
+      models.find((model) => model.isDefault) ??
+      models[0];
+
+    setAIConfig({ provider: preferred.provider, model: preferred.modelId });
+  }, [isLoadingModels, models, aiConfig.model, aiConfig.provider, setAIConfig]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -94,11 +167,9 @@ export const useUploadLogic = () => {
   };
 
   const handleProviderChange = (provider: AIProvider) => {
-    const defaultModels: Record<AIProvider, AIModel> = {
-      openai: 'gpt-4o',
-      google: 'gemini-3.8-flash'
-    };
-    setAIConfig({ provider, model: defaultModels[provider] });
+    const available = modelsForProvider(provider);
+    const next = available.find((model) => model.isDefault) ?? available[0];
+    setAIConfig(next ? { provider, model: next.modelId } : { provider });
   };
 
   const handleModelChange = (model: AIModel) => {
@@ -128,5 +199,9 @@ export const useUploadLogic = () => {
     setPastedText,
     handlePasteSubmit,
     cancelParsing,
+    models,
+    providers,
+    modelsForProvider,
+    isLoadingModels,
   };
 };

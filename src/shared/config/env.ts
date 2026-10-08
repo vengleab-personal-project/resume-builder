@@ -1,14 +1,10 @@
+// Public configuration only. Anything here is inlined into the client bundle,
+// so secrets must live in src/server/config/env.server.ts instead.
+// NEXT_PUBLIC_* values must be referenced as full literal property accesses on
+// `process.env` for Next.js to statically replace them at build time.
 
 export const ENV = {
-  OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
-  GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
   NODE_ENV: process.env.NODE_ENV || 'development',
-  MAX_AI_TOKENS: process.env.MAX_AI_TOKENS ? parseInt(process.env.MAX_AI_TOKENS, 10) : 5000,
+  TELEGRAM_BOT_USERNAME: process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || '',
+  APP_URL: process.env.NEXT_PUBLIC_APP_URL || '',
 } as const;
-
-// Validate environment variables
-Object.entries(ENV).forEach(([key, value]) => {
-  if (!value && ENV.NODE_ENV === 'production') {
-    console.warn(`Environment variable ${key} is missing!`);
-  }
-});

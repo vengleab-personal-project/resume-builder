@@ -1,0 +1,62 @@
+// Workstream B — chat model registry and coin-consumption configuration.
+//
+// The DB enum is uppercase (GOOGLE) while the wire/localStorage format stays
+// lowercase ('google'). Mapping happens at the service boundary in
+// src/server/ai/registry so the persisted client aiConfig never has to change.
+
+enum AiProvider {
+  GOOGLE
+  OPENAI
+}
+
+enum AiAction {
+  PARSE_RESUME
+  REFINE_RESUME
+  EVALUATE_RESUME
+  // One voice interview session, charged once at session start. The session is
+  // bounded server-side (turn/duration/size caps) so a single debit can cover a
+  // variable number of model calls without the price moving under the user.
+  VOICE_INTERVIEW
+}
+
+model ChatModel {
+  id String @id @default(cuid())
+
+  provider    AiProvider
+  // Vendor wire id, e.g. "gemini-3.8-flash". Sent verbatim to the provider SDK.
+  modelId     String
+  displayName String
+
+  isActive  Boolean @default(true)
+  isDefault Boolean @default(false)
+  sortOrder Int     @default(0)
+
+  actionCosts ActionCost[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // "Only one row may have isDefault = true" is a partial unique index, which
+  // Prisma cannot express; it is hand-appended to the migration instead.
+  @@unique([provider, modelId])
+  @@index([isActive, sortOrder])
+}
+
+model ActionCost {
+  id String @id @default(cuid())
+
+  action AiAction
+
+  // NULL = the inherited default for this action, applying to every model.
+  chatModelId String?
+  chatModel   ChatModel? @relation(fields: [chatModelId], references: [id], onDelete: Cascade)
+
+  coinCost Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Likewise partial: at most one NULL-model row per action. Hand-appended.
+  @@unique([action, chatModelId])
+  @@index([action])
+}

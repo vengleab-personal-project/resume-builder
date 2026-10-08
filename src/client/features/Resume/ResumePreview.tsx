@@ -3,6 +3,7 @@
 import React, { memo, useMemo } from 'react';
 import { useResumeStore } from '@/client/store/resume-store';
 import { useTranslations } from '@/client/hooks/useTranslations';
+import { usePrintSidebarBackground } from './usePrintSidebarBackground';
 
 import {
   ResumeHeader,
@@ -23,6 +24,7 @@ const hasData = (arr: unknown[] | undefined) => Array.isArray(arr) && arr.filter
 
 const ResumePreviewComponent = () => {
   const { resumeData, theme, sectionOrder } = useResumeStore();
+  usePrintSidebarBackground(theme.backgroundColor);
   const {
     personalInfo,
     education,
@@ -157,7 +159,7 @@ const ResumePreviewComponent = () => {
 
           {/* Sidebar Background Extension for Print */}
           <div
-            className="absolute inset-y-0 left-0 w-full bg-inherit print:fixed print:left-0 print:h-screen print:w-[32%] pointer-events-none"
+            className="absolute inset-y-0 left-0 w-full bg-inherit print:fixed print:left-0 print:top-[-12mm] print:bottom-[-12mm] print:w-[32%] pointer-events-none"
             style={{ 
               backgroundColor: theme.backgroundColor,
               boxShadow: `inset 0 0 0 2000px ${theme.backgroundColor}`,
