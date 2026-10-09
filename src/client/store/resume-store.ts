@@ -45,6 +45,7 @@ interface ResumeState extends SyncMeta {
   setViewMode: (mode: ViewMode) => void;
   resetData: () => void;
   applyServerSnapshot: (snapshot: ServerResumeSnapshot) => void;
+  setTitle: (title: string) => void;
   setSyncMeta: (meta: Partial<SyncMeta & { isApplyingRemote: boolean; title: string }>) => void;
   resetForUser: (userId: string | null) => void;
 }
@@ -100,6 +101,7 @@ export const useResumeStore = create<ResumeState>()(
         syncStatus: 'saved',
         isApplyingRemote: true,
       }),
+      setTitle: (title) => set({ title }),
       setSyncMeta: (meta) => set(meta),
       // A shared browser must never let user B inherit user A's cached resume:
       // a different owner wipes the local document back to a blank one.

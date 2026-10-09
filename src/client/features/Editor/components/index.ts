@@ -12,3 +12,7 @@ export * from './LanguagesSection';
 export * from './OtherTrainingSection';
 export * from './ReferencesSection';
 export * from './AIPersonalInfoModal';
+export * from './ResumeStrengthCard';
+export * from './SectionNavigator';
+export * from './InlineAiToolbar';
+

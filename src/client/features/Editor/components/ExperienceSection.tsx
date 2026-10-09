@@ -17,6 +17,7 @@ import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { Plus, Trash2, Scissors, Briefcase } from "lucide-react";
 import { Section, Input, RichTextEditor } from "@/client/components/ui/FormElements";
 import { SortableItem } from "./SortableItem";
+import { InlineAiToolbar } from "./InlineAiToolbar";
 import { useTranslations } from "@/client/hooks/useTranslations";
 import { cn } from "@/shared/lib/utils";
 import { EDITOR_CONFIG } from "@/shared/config/constants";
@@ -171,6 +172,15 @@ const ExperienceSectionComponent = ({
                     minHeight={EDITOR_CONFIG.MIN_HEIGHT_BULLETS}
                     readOnly={readOnly}
                   />
+                  {!readOnly && (
+                    <div className="mt-2">
+                      <InlineAiToolbar
+                        content={exp.description || ""}
+                        onApply={(newText: string) => onUpdate(idx, "description", newText)}
+                        onRefine={onAiGenerateDescription}
+                      />
+                    </div>
+                  )}
                 </div>
               </SortableItem>
             );

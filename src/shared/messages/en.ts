@@ -805,6 +805,119 @@ const en = {
     language: {
         en: "English",
         km: "ភាសាខ្មែរ"
+    },
+    pathway: {
+        title: "Choose Your Creation Pathway",
+        subtitle: "Select how you would like to build your resume today",
+        skipToEditor: "Or start with a blank document",
+        pathways: {
+            ingest: {
+                title: "AI Smart Ingest & Transform",
+                description: "Upload existing PDF/DOCX. AI extracts all 11 sections in seconds.",
+                badge: "Fastest",
+                action: "Upload Document"
+            },
+            wizard: {
+                title: "Progressive Starter Wizard",
+                description: "Build step-by-step with pre-written industry bullet points and action verbs.",
+                badge: "Guided",
+                action: "Start Step-by-Step"
+            },
+            spoken: {
+                title: "Khmer / Spoken Basic CV",
+                description: "4-question spoken interview in Khmer or English. Formats an official Cambodian CV.",
+                badge: "Voice-First",
+                action: "Open Voice Interview"
+            },
+            tailor: {
+                title: "Job-Match Tailoring Studio",
+                description: "Paste a target job posting to benchmark and optimize your bullet points for ATS match.",
+                badge: "ATS Optimized",
+                action: "Tailor for a Job"
+            }
+        }
+    },
+    strength: {
+        title: "Resume Strength",
+        completeness: "Completeness",
+        scoreLabel: "Score",
+        tasksTitle: "Actionable Recommendations",
+        allGood: "Your resume is comprehensive, quantified, and ready for ATS export!",
+        tasks: {
+            personalName: "Add your full name and job title",
+            contactInfo: "Include your email and phone number",
+            summary: "Write a 2-3 sentence professional summary",
+            experience: "Add at least 1 work experience entry",
+            experienceBullets: "Add 3+ bullet points for each work experience",
+            metrics: "Add measurable metrics (numbers, %, or $) to your achievements",
+            education: "Add your education or academic degree",
+            skills: "Add at least 5 relevant professional skills",
+            linkedin: "Include your LinkedIn profile link"
+        }
+    },
+    inlineAi: {
+        polish: "Polish & Refine",
+        star: "STAR Method",
+        metrics: "Add Metrics",
+        shorten: "Shorten / Fit Line",
+        polishing: "Polishing tone...",
+        convertingStar: "Structuring STAR...",
+        addingMetrics: "Adding metrics...",
+        shortening: "Condensing...",
+        applied: "Applied!",
+        tooltip: "AI Quick Bullet Actions"
+    },
+    templates: {
+        title: "Template & Design",
+        modern: "Modern Tech",
+        modernDesc: "Two-column layout with sidebar accent and skills tags.",
+        executive: "Executive ATS",
+        executiveDesc: "Timeless single-column layout optimized for ATS parsers.",
+        compact: "Compact Minimal",
+        compactDesc: "High data density layout for senior professionals.",
+        cambodia: "Cambodian Formal",
+        cambodiaDesc: "Traditional Cambodian biodata and standard ordering.",
+        selectTemplate: "Select Template",
+        chooseLayout: "Choose a layout tailored to your industry"
+    },
+    density: {
+        title: "Page Budget & Density",
+        compact: "Compact",
+        standard: "Standard",
+        spacious: "Spacious",
+        fitToOnePage: "Auto-Fit 1 Page",
+        fitToOnePageDesc: "Automatically tunes line heights and padding to fit on 1 sheet.",
+        pageBreakWarning: "Content overflows onto Page 2. Try 'Fit to 1 Page' or shorten bullets.",
+        pageBreak: "Page {page} End",
+        pageBoundary: "Page {page} Boundary"
+    },
+    jobCopilot: {
+        title: "Job Match Copilot",
+        subtitle: "Analyze and tailor your CV against any job description",
+        tailorButton: "Tailor to Job",
+        overallMatch: "ATS Match Score",
+        matchedKeywords: "Matched Keywords",
+        missingKeywords: "Missing Required Skills",
+        addSkill: "Add to Skills",
+        addedSkill: "Added",
+        recommendations: "Bullet Point Improvements",
+        forkResume: "Fork & Save as Tailored Copy",
+        forking: "Creating Tailored Copy...",
+        forkSuccess: "Created tailored copy: {title}",
+        enterJdPrompt: "Paste the target job description or job posting requirements below.",
+        placeholder: "Paste target job description (e.g. Senior Frontend Developer with React, TypeScript, GraphQL...)",
+        evaluateButton: "Analyze Job Match",
+        analyzing: "Analyzing Job Match...",
+        noSkillsGap: "Great match! All key required skills found in your CV.",
+        closeDrawer: "Close drawer"
+    },
+    sectionNav: {
+        title: "Section Navigator",
+        addSection: "Add Section",
+        reorder: "Drag to reorder sections",
+        jumpTo: "Jump to section",
+        itemCount: "{count} items",
+        empty: "Empty"
     }
 };
 

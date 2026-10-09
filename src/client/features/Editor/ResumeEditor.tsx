@@ -518,21 +518,25 @@ export const ResumeEditor = () => {
     if (readOnly) return sectionContent;
 
     return (
-      <SortableSection id={sectionId} key={sectionId}>
-        {sectionContent}
-      </SortableSection>
+      <div id={`section-${sectionId}`} className="scroll-mt-4">
+        <SortableSection id={sectionId} key={sectionId}>
+          {sectionContent}
+        </SortableSection>
+      </div>
     );
   };
 
   return (
-    <div className="flex flex-col gap-2 pb-10">
-      <PersonalInfoSection
-        personalInfo={resumeData.personalInfo}
-        onUpdateField={updatePersonalInfo}
-        onPhotoChange={handlePhotoChange}
-        onAiGenerate={() => setIsPersonalInfoAiModalOpen(true)}
-        aiLoading={false}
-      />
+    <div className="flex flex-col gap-3 pb-10">
+      <div id="section-personalInfo" className="scroll-mt-4">
+        <PersonalInfoSection
+          personalInfo={resumeData.personalInfo}
+          onUpdateField={updatePersonalInfo}
+          onPhotoChange={handlePhotoChange}
+          onAiGenerate={() => setIsPersonalInfoAiModalOpen(true)}
+          aiLoading={false}
+        />
+      </div>
 
       <DndContext
         id={dndId}
@@ -545,7 +549,7 @@ export const ResumeEditor = () => {
           items={sectionOrder || []}
           strategy={verticalListSortingStrategy}
         >
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             {(sectionOrder || []).map((sectionId) => renderSection(sectionId))}
           </div>
         </SortableContext>

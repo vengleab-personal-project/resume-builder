@@ -133,20 +133,33 @@ export const FILE_LIMITS = {
   MAX_SIZE_MB: 10,
 } as const;
 
+export const THEME_TEMPLATES = [
+  { id: 'modern', name: 'Modern Tech', description: '2-column with sidebar accent, contact badges, and skills chips' },
+  { id: 'executive', name: 'Executive ATS', description: 'Single-column timeless elegance, horizontal dividers, maximum ATS parsing' },
+  { id: 'compact', name: 'Compact Minimal', description: 'High data density hybrid for senior professionals' },
+  { id: 'cambodia', name: 'Cambodian Formal', description: 'Traditional biodata & standard ordering for Cambodian market' },
+] as const;
+
+export const THEME_DENSITIES = [
+  { id: 'compact', name: 'Compact', label: 'Tight spacing, 9pt body' },
+  { id: 'standard', name: 'Standard', label: 'Balanced spacing, 10pt body' },
+  { id: 'spacious', name: 'Spacious', label: 'Relaxed spacing, 11pt body' },
+] as const;
+
 export const THEME_COLORS = [
-  { name: 'Slate', value: '#1e293b' },
-  { name: 'Blue', value: '#1e40af' },
-  { name: 'Indigo', value: '#3730a3' },
-  { name: 'Emerald', value: '#064e3b' },
-  { name: 'Red', value: '#991b1b' },
-  { name: 'Purple', value: '#6b21a8' },
-  { name: 'Black', value: '#000000' },
+  { name: 'Navy & Slate', value: '#1e40af', bg: '#f1f5f9' },
+  { name: 'Emerald & Forest', value: '#047857', bg: '#f0fdf4' },
+  { name: 'Indigo & Violet', value: '#4338ca', bg: '#f5f3ff' },
+  { name: 'Charcoal & Amber', value: '#334155', bg: '#f8fafc' },
+  { name: 'Ruby & Rose', value: '#b91c1c', bg: '#fff1f2' },
+  { name: 'Pure Obsidian', value: '#0f172a', bg: '#f8fafc' },
 ];
 
 export const THEME_FONTS = [
-  { name: 'Sans', value: 'var(--font-sans)' },
-  { name: 'Serif', value: 'var(--font-serif)' },
-  { name: 'Mono', value: 'var(--font-mono)' },
+  { name: 'Inter / Sans', value: 'var(--font-sans)' },
+  { name: 'Merriweather / Serif', value: 'var(--font-serif)' },
+  { name: 'JetBrains / Mono', value: 'var(--font-mono)' },
+  { name: 'Khmer OS / Formal', value: 'var(--font-khmer)' },
 ];
 
 export const RESUME_SECTIONS = {
@@ -178,10 +191,13 @@ export const INITIAL_RESUME_DATA = {
 export const INITIAL_SECTION_ORDER = ['summary', 'experience', 'education', 'skills', 'certifications', 'publications', 'volunteering', 'languages', 'otherTraining', 'references'];
 
 export const INITIAL_THEME = {
-  primaryColor: "#1e40af", // Blue
-  backgroundColor: "#f3f4f6", // Light Gray for Sidebar
+  primaryColor: "#1e40af", // Navy Blue
+  backgroundColor: "#f1f5f9", // Slate
   fontFamily: "var(--font-sans)",
-} as const;
+  templateId: "modern" as const,
+  density: "standard" as const,
+  fitToOnePage: false,
+};
 
 export const INITIAL_AI_CONFIG = {
   provider: AI_PROVIDERS.GOOGLE,

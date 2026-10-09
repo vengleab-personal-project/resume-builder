@@ -125,8 +125,15 @@ export type AiActionKey =
   | 'VOICE_INTERVIEW';
 export type AiProviderKey = 'GOOGLE' | 'OPENAI';
 
+export type ResumeTemplateId = 'modern' | 'executive' | 'compact' | 'cambodia';
+export type ResumeDensity = 'compact' | 'standard' | 'spacious';
+
 export interface ThemeConfig {
   primaryColor: string; // Hex or Tailwind class
   fontFamily: string;
   backgroundColor: string; // For Sidebar
+  templateId?: ResumeTemplateId;
+  density?: ResumeDensity;
+  fitToOnePage?: boolean;
 }
+
