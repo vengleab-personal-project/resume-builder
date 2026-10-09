@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from 'react';
-import { useResumeStore } from '@/client/store/resume-store';
+import { toServerSnapshot, useResumeStore } from '@/client/store/resume-store';
 import { useSession } from '@/client/features/Auth/useSession';
+import { useProfileStore } from '@/client/store/profile-store';
+import { profileHasContent, seedResumeData } from '@/shared/lib/profile';
 import type { ResumeDTO, ResumeSummary } from '@/shared/types/persistence';
 import type { ResumeData } from '@/shared/types';
 
@@ -23,17 +25,7 @@ function hasRealContent(data: ResumeData): boolean {
   );
 }
 
-function snapshotFromDTO(resume: ResumeDTO) {
-  return {
-    id: resume.id,
-    version: resume.version,
-    title: resume.title,
-    data: resume.data,
-    sectionOrder: resume.sectionOrder,
-    theme: resume.theme,
-    updatedAt: resume.updatedAt,
-  };
-}
+const snapshotFromDTO = toServerSnapshot;
 
 export function useResumeSync(): void {
   const { user, isLoading } = useSession();
@@ -153,9 +145,13 @@ export function useResumeSync(): void {
 
     if (!user) {
       hydratedForUserRef.current = null;
+      // The profile is the previous user's identity; nothing may seed from it now.
+      useProfileStore.getState().reset();
       store.setSyncMeta({ syncStatus: 'idle' });
       return;
     }
+
+    if (hydratedForUserRef.current !== user.id) useProfileStore.getState().reset();
 
     // Shared-browser guard: a different owner means the cached document belongs
     // to somebody else and must not be adopted, let alone uploaded.
@@ -208,8 +204,24 @@ export function useResumeSync(): void {
         // Nothing on the server. A local document with real content is this
         // user's work from before they had an account, so it is uploaded once.
         const local = useResumeStore.getState();
-        if (!hasRealContent(local.resumeData)) {
-          if (!cancelled) local.setSyncMeta({ syncStatus: 'idle' });
+        // A document that is only the profile's identity (an earlier seed, persisted
+        // with the store) is not the user's work: uploading it would create a resume
+        // nobody asked for and carry a stale identity back over the current profile.
+        if (local.isProfileSeed || !hasRealContent(local.resumeData)) {
+          // A blank start is not blank for someone with a profile: begin from it, so
+          // their name and contact details are already on the page. It stays local
+          // (`isApplyingRemote` skips the autosave) until they actually edit - an
+          // untouched seed is no more worth a row than the placeholder document was.
+          const profile = await useProfileStore.getState().load();
+          if (cancelled) return;
+          if (profileHasContent(profile)) {
+            useResumeStore.setState({
+              resumeData: seedResumeData(profile),
+              isProfileSeed: true,
+              isApplyingRemote: true,
+            });
+          }
+          useResumeStore.getState().setSyncMeta({ syncStatus: 'idle' });
           return;
         }
 

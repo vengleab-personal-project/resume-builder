@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { ResumeData, ThemeConfig, AIConfig, ViewMode } from '@/shared/types';
-import type { SyncStatus } from '@/shared/types/persistence';
+import type { ResumeDTO, SyncStatus } from '@/shared/types/persistence';
+import { profileHasContent, seedResumeData, type ProfileFields } from '@/shared/lib/profile';
 import { INITIAL_RESUME_DATA, INITIAL_THEME, INITIAL_AI_CONFIG, INITIAL_SECTION_ORDER } from '@/shared/config/constants';
 
 export const DEFAULT_RESUME_TITLE = 'Untitled Resume';
@@ -15,6 +16,17 @@ export interface ServerResumeSnapshot {
   theme: ThemeConfig;
   updatedAt: string;
 }
+
+/** A server resume in the shape `applyServerSnapshot` takes. */
+export const toServerSnapshot = (resume: ResumeDTO): ServerResumeSnapshot => ({
+  id: resume.id,
+  version: resume.version,
+  title: resume.title,
+  data: resume.data,
+  sectionOrder: resume.sectionOrder,
+  theme: resume.theme,
+  updatedAt: resume.updatedAt,
+});
 
 export interface SyncMeta {
   remoteResumeId: string | null;
@@ -36,6 +48,11 @@ interface ResumeState extends SyncMeta {
   // autosave subscription can tell "the server told us this" apart from "the
   // user typed this" and not immediately echo it back.
   isApplyingRemote: boolean;
+  // True while `resumeData` is just the profile's identity written into a blank
+  // document and nothing else. Persisted with the document, so a later page load can
+  // tell an untouched seed (re-seed it from the current profile) from the user's own
+  // work (upload it); the first edit to the document clears it.
+  isProfileSeed: boolean;
   setResumeData: (data: ResumeData | ((prev: ResumeData) => ResumeData)) => void;
   setSectionOrder: (order: string[] | ((prev: string[]) => string[])) => void;
   updateNestedResumeData: (path: string, value: unknown) => void; // Helper for deep updates
@@ -43,7 +60,8 @@ interface ResumeState extends SyncMeta {
   setAIConfig: (config: Partial<AIConfig>) => void;
   setIsParsing: (isParsing: boolean) => void;
   setViewMode: (mode: ViewMode) => void;
-  resetData: () => void;
+  /** Back to a blank resume - keeping the user's profile identity, when one is given. */
+  resetData: (profile?: Partial<ProfileFields> | null) => void;
   applyServerSnapshot: (snapshot: ServerResumeSnapshot) => void;
   setTitle: (title: string) => void;
   setSyncMeta: (meta: Partial<SyncMeta & { isApplyingRemote: boolean; title: string }>) => void;
@@ -69,9 +87,11 @@ export const useResumeStore = create<ResumeState>()(
       isParsing: false,
       viewMode: ViewMode.EDITOR,
       isApplyingRemote: false,
+      isProfileSeed: false,
       ...INITIAL_SYNC_META,
       setResumeData: (data) => set((state) => ({
-        resumeData: typeof data === 'function' ? data(state.resumeData) : data
+        resumeData: typeof data === 'function' ? data(state.resumeData) : data,
+        isProfileSeed: false,
       })),
       setSectionOrder: (order) => set((state) => ({
         sectionOrder: typeof order === 'function' ? order(state.sectionOrder) : order
@@ -84,8 +104,9 @@ export const useResumeStore = create<ResumeState>()(
       setAIConfig: (newConfig) => set((state) => ({ aiConfig: { ...state.aiConfig, ...newConfig } })),
       setIsParsing: (isParsing) => set({ isParsing }),
       setViewMode: (mode) => set({ viewMode: mode }),
-      resetData: () => set({
-        resumeData: INITIAL_RESUME_DATA as unknown as ResumeData,
+      resetData: (profile) => set({
+        resumeData: seedResumeData(profile),
+        isProfileSeed: profileHasContent(profile),
         sectionOrder: INITIAL_SECTION_ORDER as unknown as string[],
         theme: INITIAL_THEME as unknown as ThemeConfig,
         aiConfig: INITIAL_AI_CONFIG as unknown as AIConfig,
@@ -100,6 +121,7 @@ export const useResumeStore = create<ResumeState>()(
         lastSyncedAt: snapshot.updatedAt,
         syncStatus: 'saved',
         isApplyingRemote: true,
+        isProfileSeed: false,
       }),
       setTitle: (title) => set({ title }),
       setSyncMeta: (meta) => set(meta),
@@ -108,6 +130,7 @@ export const useResumeStore = create<ResumeState>()(
       resetForUser: (userId) => set({
         title: DEFAULT_RESUME_TITLE,
         resumeData: INITIAL_RESUME_DATA as unknown as ResumeData,
+        isProfileSeed: false,
         sectionOrder: INITIAL_SECTION_ORDER as unknown as string[],
         theme: INITIAL_THEME as unknown as ThemeConfig,
         ...INITIAL_SYNC_META,
@@ -117,7 +140,7 @@ export const useResumeStore = create<ResumeState>()(
     {
       name: 'resume-storage',
       storage: createJSONStorage(() => localStorage),
-      version: 3,
+      version: 4,
       // v1 had no sync metadata at all, v2 had no title. Everything else
       // persisted is still valid, so each step only needs to seed the fields
       // that version introduced -- leaving remoteResumeId null makes the sync
@@ -126,11 +149,14 @@ export const useResumeStore = create<ResumeState>()(
         let next = persisted as Partial<ResumeState>;
         if (version < 2) next = { ...next, ...INITIAL_SYNC_META };
         if (version < 3) next = { ...next, title: DEFAULT_RESUME_TITLE };
+        // v4 added isProfileSeed. A document saved before it existed was never a seed.
+        if (version < 4) next = { ...next, isProfileSeed: false };
         return next;
       },
       partialize: (state) => ({
         title: state.title,
         resumeData: state.resumeData,
+        isProfileSeed: state.isProfileSeed,
         sectionOrder: state.sectionOrder,
         theme: state.theme,
         aiConfig: state.aiConfig,

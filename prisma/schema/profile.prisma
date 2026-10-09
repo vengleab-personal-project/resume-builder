@@ -1,0 +1,29 @@
+// The user's general profile: the identity details every resume repeats.
+//
+// 1:1 with User and created lazily (profileService.getOrCreateProfile), so there is
+// no backfill. `userId` is the primary key: there is never a second profile.
+//
+// It mirrors Resume.data.personalInfo for the user's *default* FULL resume, and
+// profileService keeps the two in step inside the same transaction as either write.
+// Everything is optional text: an unset field is null, never a placeholder string.
+model UserProfile {
+  userId String @id
+
+  fullName String?
+  title    String?
+  email    String?
+  phone    String?
+  address  String?
+  linkedin String?
+  website  String?
+  // A downscaled data URL (see client/lib/image.ts); capped by profileSchemas.
+  photoUrl String?
+
+  // Optimistic-concurrency token, the same compare-and-swap contract as Resume.version.
+  version Int @default(1)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

@@ -29,7 +29,16 @@ import { usePreviewScale } from './usePreviewScale';
 import { useTranslations } from '@/client/hooks/useTranslations';
 import { useResumeStore } from '@/client/store/resume-store';
 import { useCoinStore } from '@/client/store/coin-store';
+import { useProfileStore } from '@/client/store/profile-store';
+import { isUnsetIdentity } from '@/shared/lib/profile';
 import { ViewMode } from '@/shared/types';
+
+// A name that is blank, still the placeholder, or just the profile's own name seeded
+// into a new resume says nothing about whether the user has started this CV - so the
+// "how do you want to begin" pathway still opens for a profile-seeded blank resume.
+const isUnsetName = (name?: string): boolean =>
+  isUnsetIdentity('fullName', name) ||
+  name?.trim() === useProfileStore.getState().profile?.fullName;
 
 export default function CvBuilder() {
   const { handleExportPDF, handleExportDocx, isExporting, isExportingDocx } = useCvBuilderLogic();
@@ -78,9 +87,7 @@ export default function CvBuilder() {
       (!resumeData.education || resumeData.education.length === 0) &&
       (!resumeData.skills || resumeData.skills.length === 0) &&
       (!resumeData.summary || resumeData.summary.trim() === '') &&
-      (!resumeData.personalInfo?.name ||
-        resumeData.personalInfo.name === 'Your Name' ||
-        resumeData.personalInfo.name.trim() === '');
+      isUnsetName(resumeData.personalInfo?.name);
 
     if (isEmpty) {
       setIsPathwayModalOpen(true);
@@ -105,7 +112,7 @@ export default function CvBuilder() {
 
   const handleClearData = () => {
     if (window.confirm(tCommon.confirmClearData)) {
-      resetData();
+      resetData(useProfileStore.getState().profile);
       setIsPathwayModalOpen(true);
     }
   };

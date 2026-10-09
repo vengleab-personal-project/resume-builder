@@ -69,6 +69,7 @@ export const PROTECTED_PATH_PREFIXES: readonly string[] = [
   '/builder',
   '/basic-resume',
   '/resumes',
+  '/profile',
   '/evaluation',
   '/account',
   '/billing',

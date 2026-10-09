@@ -2,26 +2,14 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useResumeStore, type ServerResumeSnapshot } from '@/client/store/resume-store';
+import { toServerSnapshot, useResumeStore } from '@/client/store/resume-store';
 import type { ResumeDTO, ResumeSummary } from '@/shared/types/persistence';
-import {
-  INITIAL_RESUME_DATA,
-  INITIAL_SECTION_ORDER,
-  INITIAL_THEME,
-} from '@/shared/config/constants';
-import type { ResumeData, ThemeConfig } from '@/shared/types';
+import { useProfileStore } from '@/client/store/profile-store';
+import { seedResumeData } from '@/shared/lib/profile';
+import { INITIAL_SECTION_ORDER, INITIAL_THEME } from '@/shared/config/constants';
+import type { ThemeConfig } from '@/shared/types';
 
-function snapshotFromDTO(resume: ResumeDTO): ServerResumeSnapshot {
-  return {
-    id: resume.id,
-    version: resume.version,
-    title: resume.title,
-    data: resume.data,
-    sectionOrder: resume.sectionOrder,
-    theme: resume.theme,
-    updatedAt: resume.updatedAt,
-  };
-}
+const snapshotFromDTO = toServerSnapshot;
 
 async function fetchResume(id: string): Promise<ResumeDTO | null> {
   const res = await fetch(`/api/resumes/${id}`, { credentials: 'same-origin' });
@@ -88,12 +76,15 @@ export function useResumeListLogic() {
   const createResume = useCallback(async () => {
     setPendingId('new');
     try {
+      // A new resume starts from the user's profile, not from "Your Name". If the
+      // profile cannot be loaded the placeholder document is the safe fallback.
+      const profile = await useProfileStore.getState().load();
       const res = await fetch('/api/resumes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: 'Untitled Resume',
-          data: INITIAL_RESUME_DATA as unknown as ResumeData,
+          data: seedResumeData(profile),
           sectionOrder: INITIAL_SECTION_ORDER,
           theme: INITIAL_THEME as unknown as ThemeConfig,
         }),

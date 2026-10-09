@@ -4,6 +4,8 @@ import { useRef, useState, useCallback, useEffect } from 'react';
 import { useResumeStore } from '@/client/store/resume-store';
 import { useChatModels } from '@/client/hooks/useChatModels';
 import { handleInsufficientCoins, useCoinStore } from '@/client/store/coin-store';
+import { useProfileStore } from '@/client/store/profile-store';
+import { fillPersonalInfoFromProfile } from '@/shared/lib/profile';
 import { AIConfig, AIProvider, AIModel, ResumeData, ViewMode } from '@/shared/types';
 import { REQUEST_TIMEOUTS, API_ENDPOINTS } from '@/shared/config/constants';
 
@@ -129,7 +131,14 @@ export const useUploadLogic = () => {
 
     try {
       const data = await parseResume(input, aiConfig, abortControllerRef.current.signal);
-      setResumeData(data);
+      // The import replaces the whole document, so whatever the file left blank
+      // (typically the photo, which a PDF/DOCX parse never recovers) is filled from
+      // the profile instead of being lost.
+      const profile = await useProfileStore.getState().load();
+      setResumeData({
+        ...data,
+        personalInfo: fillPersonalInfoFromProfile(data.personalInfo, profile),
+      });
     } catch (err) {
       console.error(err);
       const message = err instanceof Error ? err.message : "Failed to parse resume. Please try again.";

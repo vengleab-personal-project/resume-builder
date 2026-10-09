@@ -58,6 +58,7 @@ src/
 │   ├── features/         # Reusable feature modules with their own logic
 │   ├── components/       # Generic reusable UI + layouts (GlobalSidebar, AppSessionProvider)
 │   ├── hooks/             # Common cross-cutting hooks (useTranslations, useChatModels)
+│   ├── lib/               # Browser-only helpers with no React state (image.ts: photo downscaling)
 │   └── store/             # Zustand, one file per domain
 ├── server/               # Backend only — never shipped to the browser
 │   ├── db/                 # Prisma client singleton; db/generated/prisma is gitignored
@@ -102,7 +103,7 @@ One file per domain in `src/client/store/` (`<domain>-store.ts`), exporting a si
 hook (`useResumeStore`, `useCoinStore`, `useLocaleStore`). Components should destructure only
 the fields they need from one domain's store — never reach across domains in one call.
 `useResumeStore` additionally persists to `localStorage` (`zustand/persist`) and carries a
-schema `version` + `migrate()` — bump both together whenever the persisted shape changes.
+schema `version` + `migrate()` — bump both together whenever the persisted shape changes. (Currently v4: `isProfileSeed`.)
 
 ### Resume persistence & sync (`client/features/Resume/useResumeSync.ts`)
 
@@ -119,6 +120,45 @@ schema `version` + `migrate()` — bump both together whenever the persisted sha
   `applyServerSnapshot` to swap the active document in the store before navigating to `/builder`.
 - Resumes are soft-deleted (`deletedAt`), never hard-deleted, because `EvaluationResult` rows
   reference them and a resume being scored later must not silently disappear.
+
+### User profile — identity shared by every resume (`UserProfile`, `/profile`)
+
+One `UserProfile` row per user (created lazily, `shared/lib/profile.ts` is the single definition
+of its fields) holds the identity every resume repeats: name, title, email, phone, address,
+LinkedIn, website, photo. It is kept in step with the user's **default FULL resume's
+`personalInfo`** in both directions, **on the server, inside the resume write transactions** —
+never by patching client stores:
+
+- **Resume → profile.** `runVersionedUpdate` and `createResume` (`resumePersistenceService.ts`)
+  call `syncProfileFromResume` (`server/modules/profile/profileSync.ts`) whenever a FULL resume
+  that is, or is becoming, the default is written. Autosave, the sendBeacon twin, set-default
+  and creation all pass through those two functions, so one hook covers all of them. Only
+  fields carrying a real value are copied: a blank or placeholder ("Your Name") never erases the
+  profile, and nothing is written (no version bump) when nothing changed. Only an *existing*
+  profile row is updated; `getOrCreateProfile` seeds a missing one from the default resume.
+- **Profile → resume.** `updateProfile` (`profileService.ts`) compare-and-swaps the profile on
+  `version` and, in the same transaction, merges the changed fields into the default resume via a
+  version-guarded, retried `updateMany` (it must not overwrite an autosave that landed meanwhile).
+  `mergeProfileIntoPersonalInfo` also fills fields the resume has *never set* (placeholder or
+  missing) from the profile, but leaves a field the user blanked (`''`) alone. The response
+  carries the updated resume; the profile page hands it to `applyServerSnapshot` when the builder
+  holds that resume, so its next autosave does not 409.
+- **Only the default resume syncs.** Other resumes are independent copies, seeded from the profile
+  at creation and never written back. BASIC resumes are not involved (different `data` shape).
+- **Seeding.** New resumes (`ResumeList` create, first-login hydration, `resetData`) start from
+  `seedResumeData(profile)`; an AI import fills its blanks (notably the photo) with
+  `fillPersonalInfoFromProfile`. `useProfileStore` is not persisted and is reset whenever the
+  signed-in user changes (`useResumeSync`).
+- **The seed trap.** A profile-seeded blank document is persisted with the resume store like any
+  other, and has a real-looking name — so on the next load it looked like user work and was
+  uploaded as a resume, carrying a stale identity back over the profile. `isProfileSeed`
+  (persisted, cleared by any `setResumeData`) marks it; hydration re-seeds such a document from the
+  current profile instead of uploading it. Keep that flag honest if you add another writer of
+  `resumeData` that is not a user edit.
+- **Photos** are downscaled in the browser (`client/lib/image.ts`) to a JPEG data URL under
+  `PROFILE_PHOTO_MAX_LENGTH`; the profile schema accepts only `data:image/(png|jpeg|webp)` URLs or
+  `''`, since the value is written into resume JSON and rendered by the templates. A legacy
+  oversize photo already on a resume is skipped by the sync rather than failing the save.
 
 ### PDF export is the browser's print engine — the print contract
 

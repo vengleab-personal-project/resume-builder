@@ -3,6 +3,7 @@
 import React, { useId, useState, useCallback } from "react";
 import { useResumeEditorLogic } from "./useResumeEditorLogic";
 import { useTranslations } from "@/client/hooks/useTranslations";
+import { resizeImageToDataUrl } from "@/client/lib/image";
 import { EDITOR_CONFIG } from "@/shared/config/constants";
 import {
   DndContext,
@@ -187,6 +188,7 @@ export const ResumeEditor = () => {
   }, [aiModalConfig, resumeData, setResumeData]);
 
   const { t } = useTranslations("editor");
+  const { t: tProfile } = useTranslations("profile");
   const dndId = useId();
 
   const sensors = useSensors(
@@ -214,14 +216,19 @@ export const ResumeEditor = () => {
     }
   };
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        updatePersonalInfo("photoUrl", reader.result as string);
-      };
-      reader.readAsDataURL(file);
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    const file = input.files?.[0];
+    if (!file) return;
+    try {
+      // Downscaled first: the raw file used to go straight into localStorage and every
+      // autosave body, and the profile only accepts a small photo.
+      updatePersonalInfo("photoUrl", await resizeImageToDataUrl(file));
+    } catch {
+      window.alert(tProfile.photoError);
+    } finally {
+      // Lets the same file be chosen again after a failure.
+      input.value = "";
     }
   };
 

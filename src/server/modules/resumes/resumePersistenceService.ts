@@ -4,6 +4,7 @@ import { prisma } from '@/server/db/prisma';
 import type { BasicResumeDTO, ResumeDTO, ResumeSummary } from '@/shared/types/persistence';
 import type { ResumeData, ThemeConfig } from '@/shared/types';
 import type { BasicResumeData } from '@/shared/types/basic-resume';
+import { syncProfileFromResume } from '@/server/modules/profile/profileSync';
 
 export const RESUME_SUMMARY_SELECT = {
   id: true,
@@ -156,10 +157,18 @@ export async function createResume(
       });
     }
 
-    return tx.resume.create({
+    const created = await tx.resume.create({
       data: { userId, title, kind, data, sectionOrder, theme, isDefault: shouldBeDefault },
       select: RESUME_FULL_SELECT,
     });
+
+    // A new default is the resume the profile follows from now on, so the profile
+    // adopts its identity fields (the same re-link as promoting an existing resume).
+    if (shouldBeDefault && kind === 'FULL') {
+      await syncProfileFromResume(tx, userId, (data as { personalInfo?: unknown } | null)?.personalInfo);
+    }
+
+    return created;
   });
 }
 
@@ -216,6 +225,25 @@ async function runVersionedUpdate(
       where: { id, userId, kind, deletedAt: null, version: expectedVersion },
       data: { ...rest, ...(isDefault !== undefined ? { isDefault } : {}), version: { increment: 1 } },
     });
+
+    // The default FULL resume and the user's profile mirror each other's identity
+    // fields. Syncing here, in the same transaction, is what makes it hold for every
+    // writer at once: autosave, the sendBeacon twin, and promoting a resume to default.
+    // Only a write that changes the document or the default needs it.
+    if (result.count === 1 && kind === 'FULL' && (patch.data !== undefined || isDefault === true)) {
+      const current = await tx.resume.findFirst({
+        where: { id, userId, isDefault: true, deletedAt: null },
+        select: { data: true },
+      });
+      if (current) {
+        await syncProfileFromResume(
+          tx,
+          userId,
+          (current.data as { personalInfo?: unknown } | null)?.personalInfo
+        );
+      }
+    }
+
     return result.count;
   });
 }
