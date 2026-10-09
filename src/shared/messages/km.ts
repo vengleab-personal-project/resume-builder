@@ -245,7 +245,13 @@ const km: typeof en = {
             otherTraining: "វគ្គបណ្តុះបណ្តាលផ្សេងៗ",
             references: "បុគ្គលយោង",
             view: "មើល",
-            yourName: "ឈ្មោះរបស់អ្នក"
+            yourName: "ឈ្មោះរបស់អ្នក",
+            expire: "ផុតកំណត់",
+            year: "ឆ្នាំ",
+            topic: "ប្រធានបទ",
+            phone: "ទូរស័ព្ទ",
+            email: "អ៊ីមែល",
+            photoPlaceholder: "រូបថត ៤x៦"
         }
     },
     landing: {

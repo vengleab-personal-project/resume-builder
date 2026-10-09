@@ -1,48 +1,37 @@
 import { Certification } from '@/shared/types'
+import { certificationDetail, ResumeViewLabels } from '@/shared/lib/resume-view'
 
 import { SidebarSectionHeading } from './SectionHeading'
 
 type CertificationsSectionProps = {
-  certifications: (string | Certification)[]
+  certifications: Certification[]
   primaryColor: string
   title: string
-}
-
-const normalizeCertification = (cert: string | Certification): Certification => {
-  if (typeof cert === 'string') {
-    return { name: cert }
-  }
-  return cert
+  labels: ResumeViewLabels
 }
 
 export const CertificationsSection = ({
   certifications,
   primaryColor,
   title,
+  labels,
 }: CertificationsSectionProps) => (
   <section>
     <SidebarSectionHeading title={title} />
     <div className="text-xs space-y-4 text-slate-700">
-      {certifications.filter(Boolean).map((cert, idx) => {
-        const normalized = normalizeCertification(cert)
-        return (
+      {certifications.map((cert, idx) => (
           <div key={idx}>
             <p className="font-bold text-sm mb-0.5" style={{ color: primaryColor }}>
-              {normalized.name}
+              {cert.name}
             </p>
-            {normalized.issuer && (
-              <p className="opacity-90 italic mb-0.5">{normalized.issuer}</p>
+            {cert.issuer && (
+              <p className="opacity-90 italic mb-0.5">{cert.issuer}</p>
             )}
             <p className="opacity-75 text-[10px]">
-              {normalized.expireDate
-                ? `Expire: ${normalized.expireDate}`
-                : normalized.year
-                  ? `Year: ${normalized.year}`
-                  : ''}
+              {certificationDetail(cert, labels)}
             </p>
           </div>
-        )
-      })}
+      ))}
     </div>
   </section>
 )

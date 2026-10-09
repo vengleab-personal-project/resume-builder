@@ -5,13 +5,15 @@ import { SidebarSectionHeading } from './SectionHeading'
 type ReferencesSectionProps = {
   references: Reference[]
   title: string
+  phoneLabel: string
+  emailLabel: string
 }
 
-export const ReferencesSection = ({ references, title }: ReferencesSectionProps) => (
+export const ReferencesSection = ({ references, title, phoneLabel, emailLabel }: ReferencesSectionProps) => (
   <section>
     <SidebarSectionHeading title={title} />
     <div className="text-xs space-y-4 text-slate-700">
-      {references.filter(Boolean).map((ref, idx) => (
+      {references.map((ref, idx) => (
         <div key={idx}>
           <p className="font-bold text-sm mb-0.5">{ref.name}</p>
           {(ref.title || ref.company) && (
@@ -20,8 +22,8 @@ export const ReferencesSection = ({ references, title }: ReferencesSectionProps)
             </p>
           )}
           <div className="space-y-0.5 opacity-80 text-[11px]">
-            {ref.phone && <p><span className="font-semibold">Phone:</span> {ref.phone}</p>}
-            {ref.email && <p><span className="font-semibold">Email:</span> {ref.email}</p>}
+            {ref.phone && <p><span className="font-semibold">{phoneLabel}:</span> {ref.phone}</p>}
+            {ref.email && <p><span className="font-semibold">{emailLabel}:</span> {ref.email}</p>}
           </div>
         </div>
       ))}

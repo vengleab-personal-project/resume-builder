@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useResumeStore } from '@/client/store/resume-store';
 import { useTranslations } from '@/client/hooks/useTranslations';
-import { generateResumeDocx } from './generateResumeDocx';
+import { generateResumeDocx } from '@/client/features/Resume/docx';
+import { buildResumeView } from '@/shared/lib/resume-view';
 
 export const useCvBuilderLogic = () => {
   const [isExporting, setIsExporting] = useState(false);
@@ -46,7 +47,10 @@ export const useCvBuilderLogic = () => {
     setIsExportingDocx(true);
 
     try {
-      const blob = await generateResumeDocx(resumeData, theme, sectionOrder, t.preview);
+      // The same view model the preview renders, so Word gets the same sections,
+      // order, titles and labels the user is looking at.
+      const view = buildResumeView(resumeData, sectionOrder, t.preview);
+      const blob = await generateResumeDocx(view, theme);
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;

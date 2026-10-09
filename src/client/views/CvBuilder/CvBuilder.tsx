@@ -25,6 +25,7 @@ import { PathwayModal } from '@/client/components/ui/PathwayModal';
 import { IngestModal } from '@/client/components/ui/IngestModal';
 import { LanguageSwitcher } from '@/client/components/ui/LanguageSwitcher';
 import { useCvBuilderLogic } from './useCvBuilderLogic';
+import { usePreviewScale } from './usePreviewScale';
 import { useTranslations } from '@/client/hooks/useTranslations';
 import { useResumeStore } from '@/client/store/resume-store';
 import { useCoinStore } from '@/client/store/coin-store';
@@ -55,7 +56,7 @@ export default function CvBuilder() {
   const [isJobMatchDrawerOpen, setIsJobMatchDrawerOpen] = useState(false);
   const [showCustomize, setShowCustomize] = useState(false);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
-  const [zoom, setZoom] = useState(1.0);
+  const { viewportRef, canvasRef, zoom, setZoom, frame } = usePreviewScale();
   const [activeSectionId, setActiveSectionId] = useState<string>('personalInfo');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState(title);
@@ -367,7 +368,9 @@ export default function CvBuilder() {
 
         {/* Tier 3 (Right Column): True-to-Scale Canvas & Controls */}
         <main
-          className={`flex-1 bg-slate-200/50 flex flex-col h-[calc(100vh-64px)] overflow-hidden relative print:p-0 print:h-auto print:bg-white print:overflow-visible ${
+          // `print:flex`: the printed page is ~794px wide, below `xl`, so without it the
+          // editor view's `hidden xl:flex` would hide the preview and print a blank page.
+          className={`flex-1 bg-slate-200/50 flex flex-col h-[calc(100vh-64px)] overflow-hidden relative print:flex print:p-0 print:h-auto print:bg-white print:overflow-visible ${
             viewMode === ViewMode.EDITOR ? 'hidden xl:flex' : 'flex'
           }`}
         >
@@ -380,16 +383,25 @@ export default function CvBuilder() {
           </div>
 
           {/* Centered A4 Canvas */}
-          <div className="flex-1 p-6 sm:p-8 overflow-y-auto flex justify-center items-start print:p-0 print:h-auto print:overflow-visible">
+          {/* Laid out at the true 210mm print width and scaled to fit (usePreviewScale),
+              so lines and pages wrap exactly where the PDF and DOCX put them. The
+              frame/transform are inline styles, hence the `!` print overrides. */}
+          <div
+            ref={viewportRef}
+            className="flex-1 p-6 sm:p-8 overflow-auto flex justify-center-safe items-start print:block print:p-0 print:h-auto print:overflow-visible"
+          >
             <div
-              className="print:w-full print:h-full w-[210mm] min-h-[297mm] shadow-2xl bg-white origin-top items-center justify-center flex transition-transform print:shadow-none print:transform-none"
-              style={{
-                transform: zoom !== 1.0 ? `scale(${zoom})` : undefined,
-                transformOrigin: 'top center',
-              }}
+              className="relative shrink-0 print:static print:w-auto! print:h-auto!"
+              style={{ width: frame.width, height: frame.height }}
             >
-              <div className="w-full h-full"> 
-                <ResumePreview />
+              <div
+                ref={canvasRef}
+                className="absolute top-0 left-0 origin-top-left w-[210mm] min-h-[297mm] shadow-2xl bg-white items-center justify-center flex print:static print:w-full print:h-full print:shadow-none print:transform-none!"
+                style={{ transform: `scale(${zoom})` }}
+              >
+                <div className="w-full h-full">
+                  <ResumePreview />
+                </div>
               </div>
             </div>
           </div>
