@@ -43,7 +43,7 @@ export const CambodiaFormalTemplate = ({ view, theme, density, printable }: Resu
                   key={exp.id || idx}
                   className={`space-y-1.5 ${exp.breakPage ? 'print:break-after-page' : ''}`}
                 >
-                  <div className="flex justify-between items-baseline flex-wrap gap-1" data-print-keep>
+                  <div className="flex justify-between items-baseline flex-wrap gap-1 print:break-after-avoid" data-print-keep>
                     <div>
                       <span className="font-bold text-slate-900 text-sm">{exp.role}</span>
                       {exp.company && <span className="font-semibold text-slate-700"> — {exp.company}</span>}

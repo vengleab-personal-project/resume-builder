@@ -190,6 +190,16 @@ html[lang="km"] body {
     break-inside: avoid;
   }
 
+  /* Where the preview decided each page starts (client/features/Resume/pagination.ts).
+     Forcing the break makes the PDF end its pages exactly at the preview's markers
+     instead of re-deriving them; the rules above still apply within a page. The
+     preview already counted the gap above this block against the next page, so the
+     margin is dropped rather than pushing the page's first line down. */
+  #resume-preview [data-print-break-before] {
+    break-before: page;
+    margin-top: 0 !important;
+  }
+
   /* Ensure white background extends for multi-page prints (below header) */
   #resume-preview main > div:last-child {
     position: fixed !important;

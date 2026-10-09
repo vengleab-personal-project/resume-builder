@@ -141,6 +141,17 @@ test for it, and it has broken three separate ways, so treat these as invariants
   entries may split, but only between bullets. `exp.breakPage` (`print:break-after-page`) is a
   user-set manual break and must keep working. New section components inherit this for free if
   they use `section`/`li`/`p`/`h2`/`h3`; a bare `div` of text lines does not.
+- **The preview decides where pages break; print is forced to agree.** `usePrintPagination`
+  (`features/Resume/pagination.ts`) packs the laid-out preview's unbreakable blocks into pages
+  using the same rules (a `break-inside: avoid` box or a heading moves whole), draws the page
+  markers there, and stamps `data-print-break-before` on each page's first block; `globals.css`
+  turns that into `break-before: page`. Before this, markers were "every 285mm of content" and
+  routinely ended a page somewhere print didn't. Keep three things true: a block the print
+  rules treat as unbreakable must be unbreakable to `isUnbreakable` too; a two-column layout
+  marks its column row `data-print-columns` (each column paginates alone); and only update
+  pagination state when it changed - a re-render re-applies `dangerouslySetInnerHTML`, which
+  drops the marker on a bullet and re-fires the observer, so an unconditional update loops.
+  Never measure while print media is active (the guard in the hook).
 - **Page margins and the sidebar colour.** `@page` is `12mm 0` (`:first` has `margin-top: 0` so
   the header banner stays full-bleed). Nothing inside the document — not even `position:
   fixed` — paints into the top/bottom margins, so the grey sidebar would show white bands
