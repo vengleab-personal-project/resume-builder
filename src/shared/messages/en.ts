@@ -243,7 +243,13 @@ const en = {
             otherTraining: "Other Training",
             references: "Reference",
             view: "View",
-            yourName: "Your Name"
+            yourName: "Your Name",
+            expire: "Expire",
+            year: "Year",
+            topic: "Topic",
+            phone: "Phone",
+            email: "Email",
+            photoPlaceholder: "Photo 4x6"
         }
     },
     landing: {

@@ -1,13 +1,13 @@
 import { ReactNode } from 'react';
 
-const isKhmer = (str?: string) => Boolean(str && /[\u1780-\u17FF\u19E0-\u19FF]/.test(str));
+import { isKhmerText } from '@/shared/lib/resume-view';
 
 type SidebarSectionHeadingProps = {
   title: string;
 };
 
 export const SidebarSectionHeading = ({ title }: SidebarSectionHeadingProps) => {
-  const khmer = isKhmer(title);
+  const khmer = isKhmerText(title);
   return (
     <h3
       className={`text-sm font-bold ${
@@ -30,7 +30,7 @@ export const MainSectionHeading = ({
   icon,
   primaryColor,
 }: MainSectionHeadingProps) => {
-  const khmer = isKhmer(title);
+  const khmer = isKhmerText(title);
   return (
     <h2
       className={`text-lg font-bold ${

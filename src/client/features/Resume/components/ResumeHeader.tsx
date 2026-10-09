@@ -1,3 +1,5 @@
+import { isKhmerText } from '@/shared/lib/resume-view'
+
 type ResumeHeaderProps = {
   name: string
   title?: string
@@ -5,8 +7,6 @@ type ResumeHeaderProps = {
   primaryColor: string
   namePlaceholder: string
 }
-
-const isKhmer = (str?: string) => Boolean(str && /[\u1780-\u17FF\u19E0-\u19FF]/.test(str));
 
 export const ResumeHeader = ({
   name,
@@ -16,7 +16,7 @@ export const ResumeHeader = ({
   namePlaceholder,
 }: ResumeHeaderProps) => {
   const displayName = name || namePlaceholder;
-  const khmer = isKhmer(displayName);
+  const khmer = isKhmerText(displayName);
 
   return (
     <header

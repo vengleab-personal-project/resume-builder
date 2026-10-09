@@ -1,71 +1,43 @@
 "use client";
 
-import React from 'react';
-import type { ResumeData, ThemeConfig, ResumeDensity } from '@/shared/types';
-import { useTranslations } from '@/client/hooks/useTranslations';
+import { certificationDate, ResumeViewSection } from '@/shared/lib/resume-view';
+import { STACKED_LAYOUT, STACKED_SECTION_GAP, stackedLayoutVars } from '@/shared/config/resume-layout';
+import { RichText } from '../components';
+import type { ResumeTemplateProps } from './types';
 
-export interface ResumeTemplateProps {
-  resumeData: ResumeData;
-  theme: ThemeConfig;
-  sectionOrder: string[];
-  density?: ResumeDensity;
-}
+/**
+ * Dense single-column layout. Mirrored for Word by `docx/stacked.ts` (`COMPACT`):
+ * a class change here needs the matching change there.
+ */
+export const CompactTemplate = ({ view, theme, density, printable }: ResumeTemplateProps) => {
+  const { personalInfo, displayName } = view;
 
-const hasData = (arr: unknown[] | undefined) => Array.isArray(arr) && arr.filter(Boolean).length > 0;
+  const heading = (title: string) => (
+    <h2
+      className="text-xs font-black uppercase tracking-wider flex items-center gap-2 mb-2 pb-1 border-b"
+      style={{ color: theme.primaryColor, borderColor: '#e2e8f0' }}
+    >
+      <span className="w-2 h-2 rounded-xs" style={{ backgroundColor: theme.primaryColor }} />
+      {title}
+    </h2>
+  );
 
-export const CompactTemplate: React.FC<ResumeTemplateProps> = ({
-  resumeData,
-  theme,
-  sectionOrder,
-  density = 'compact',
-}) => {
-  const { t } = useTranslations('editor');
-  const {
-    personalInfo,
-    education = [],
-    experience = [],
-    skills = [],
-    certifications = [],
-    publications = [],
-    summary,
-    volunteering = [],
-    languages = [],
-    otherTraining = [],
-    references = [],
-  } = resumeData;
-
-  const densitySpacing = {
-    compact: 'p-6 space-y-3.5 text-xs leading-snug',
-    standard: 'p-8 space-y-5 text-xs leading-normal',
-    spacious: 'p-10 space-y-6 text-sm leading-relaxed',
-  }[density];
-
-  const sectionHeaderClass = "text-xs font-black uppercase tracking-wider flex items-center gap-2 mb-2 pb-1 border-b";
-
-  const renderSection = (sectionId: string) => {
-    switch (sectionId) {
+  const renderSection = (section: ResumeViewSection) => {
+    switch (section.id) {
       case 'summary':
-        if (!summary) return null;
         return (
-          <section key="summary" className="break-inside-avoid">
-            <h2 className={sectionHeaderClass} style={{ color: theme.primaryColor, borderColor: '#e2e8f0' }}>
-              <span className="w-2 h-2 rounded-xs" style={{ backgroundColor: theme.primaryColor }} />
-              {t.preview.profile}
-            </h2>
-            <p className="text-slate-700 text-xs">{summary}</p>
+          <section key={section.id} className="break-inside-avoid">
+            {heading(section.title)}
+            <RichText html={section.content} className="text-slate-700 text-xs" />
           </section>
         );
 
       case 'experience':
-        if (!hasData(experience)) return null;
         return (
-          <section key="experience">
-            <h2 className={sectionHeaderClass} style={{ color: theme.primaryColor, borderColor: '#e2e8f0' }}>
-              <span className="w-2 h-2 rounded-xs" style={{ backgroundColor: theme.primaryColor }} />
-              {t.preview.experience}
-            </h2>
+          <section key={section.id}>
+            {heading(section.title)}
             <div className="space-y-3">
-              {experience.map((exp, idx) => (
+              {section.content.map((exp, idx) => (
                 <div
                   key={exp.id || idx}
                   className={`space-y-1 ${exp.breakPage ? 'print:break-after-page' : ''}`}
@@ -80,9 +52,9 @@ export const CompactTemplate: React.FC<ResumeTemplateProps> = ({
                     </span>
                   </div>
                   {exp.description && (
-                    <div
+                    <RichText
+                      html={exp.description}
                       className="text-slate-700 text-xs prose prose-sm max-w-none [&>ul]:list-disc [&>ul]:pl-4 [&>ul]:space-y-0.5"
-                      dangerouslySetInnerHTML={{ __html: exp.description }}
                     />
                   )}
                 </div>
@@ -92,15 +64,11 @@ export const CompactTemplate: React.FC<ResumeTemplateProps> = ({
         );
 
       case 'skills':
-        if (!hasData(skills)) return null;
         return (
-          <section key="skills" className="break-inside-avoid">
-            <h2 className={sectionHeaderClass} style={{ color: theme.primaryColor, borderColor: '#e2e8f0' }}>
-              <span className="w-2 h-2 rounded-xs" style={{ backgroundColor: theme.primaryColor }} />
-              {t.preview.skills}
-            </h2>
+          <section key={section.id} className="break-inside-avoid">
+            {heading(section.title)}
             <div className="flex flex-wrap gap-1.5">
-              {skills.map((skill, idx) => (
+              {section.content.map((skill, idx) => (
                 <span
                   key={idx}
                   className="px-2 py-0.5 text-[11px] font-medium rounded bg-slate-100 text-slate-800 border border-slate-200"
@@ -113,15 +81,11 @@ export const CompactTemplate: React.FC<ResumeTemplateProps> = ({
         );
 
       case 'education':
-        if (!hasData(education)) return null;
         return (
-          <section key="education" className="break-inside-avoid">
-            <h2 className={sectionHeaderClass} style={{ color: theme.primaryColor, borderColor: '#e2e8f0' }}>
-              <span className="w-2 h-2 rounded-xs" style={{ backgroundColor: theme.primaryColor }} />
-              {t.preview.education}
-            </h2>
+          <section key={section.id} className="break-inside-avoid">
+            {heading(section.title)}
             <div className="space-y-2">
-              {education.map((edu, idx) => (
+              {section.content.map((edu, idx) => (
                 <div key={edu.id || idx} className="flex justify-between items-baseline flex-wrap gap-1">
                   <div>
                     <span className="font-bold text-slate-900">{edu.degree}</span>
@@ -135,18 +99,14 @@ export const CompactTemplate: React.FC<ResumeTemplateProps> = ({
         );
 
       case 'certifications':
-        if (!hasData(certifications)) return null;
         return (
-          <section key="certifications" className="break-inside-avoid">
-            <h2 className={sectionHeaderClass} style={{ color: theme.primaryColor, borderColor: '#e2e8f0' }}>
-              <span className="w-2 h-2 rounded-xs" style={{ backgroundColor: theme.primaryColor }} />
-              {t.preview.certifications}
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
-              {certifications.map((c, idx) => (
-                <div key={c.id || idx} className="flex justify-between text-[11px]">
-                  <span className="font-medium text-slate-800 truncate">{c.name}</span>
-                  <span className="text-slate-500 shrink-0 ml-2">{c.year || c.expireDate}</span>
+          <section key={section.id} className="break-inside-avoid">
+            {heading(section.title)}
+            <div className="grid grid-cols-2 gap-1.5 text-xs">
+              {section.content.map((cert, idx) => (
+                <div key={cert.id || idx} className="flex justify-between text-[11px]">
+                  <span className="font-medium text-slate-800 truncate">{cert.name}</span>
+                  <span className="text-slate-500 shrink-0 ml-2">{certificationDate(cert)}</span>
                 </div>
               ))}
             </div>
@@ -154,16 +114,12 @@ export const CompactTemplate: React.FC<ResumeTemplateProps> = ({
         );
 
       case 'publications':
-        if (!hasData(publications)) return null;
         return (
-          <section key="publications" className="break-inside-avoid">
-            <h2 className={sectionHeaderClass} style={{ color: theme.primaryColor, borderColor: '#e2e8f0' }}>
-              <span className="w-2 h-2 rounded-xs" style={{ backgroundColor: theme.primaryColor }} />
-              {t.preview.publications}
-            </h2>
+          <section key={section.id} className="break-inside-avoid">
+            {heading(section.title)}
             <div className="space-y-1 text-xs">
-              {publications.map((pub, idx) => (
-                <div key={pub.id || idx} className="flex justify-between">
+              {section.content.map((pub, idx) => (
+                <div key={pub.id || idx} className="flex justify-between gap-2">
                   <span className="font-medium text-slate-800">{pub.title}</span>
                   <span className="text-slate-500 font-mono text-[11px]">{pub.date}</span>
                 </div>
@@ -173,17 +129,13 @@ export const CompactTemplate: React.FC<ResumeTemplateProps> = ({
         );
 
       case 'languages':
-        if (!hasData(languages)) return null;
         return (
-          <section key="languages" className="break-inside-avoid">
-            <h2 className={sectionHeaderClass} style={{ color: theme.primaryColor, borderColor: '#e2e8f0' }}>
-              <span className="w-2 h-2 rounded-xs" style={{ backgroundColor: theme.primaryColor }} />
-              {t.preview.languages}
-            </h2>
+          <section key={section.id} className="break-inside-avoid">
+            {heading(section.title)}
             <div className="flex flex-wrap gap-3 text-xs">
-              {languages.map((l, idx) => (
-                <span key={idx} className="text-slate-700">
-                  <strong className="font-semibold">{l.name}:</strong> {l.proficiency}
+              {section.content.map((lang, idx) => (
+                <span key={lang.id || idx} className="text-slate-700">
+                  <strong className="font-semibold">{lang.name}:</strong> {lang.proficiency}
                 </span>
               ))}
             </div>
@@ -191,18 +143,17 @@ export const CompactTemplate: React.FC<ResumeTemplateProps> = ({
         );
 
       case 'volunteering':
-        if (!hasData(volunteering)) return null;
         return (
-          <section key="volunteering" className="break-inside-avoid">
-            <h2 className={sectionHeaderClass} style={{ color: theme.primaryColor, borderColor: '#e2e8f0' }}>
-              <span className="w-2 h-2 rounded-xs" style={{ backgroundColor: theme.primaryColor }} />
-              {t.preview.volunteering}
-            </h2>
+          <section key={section.id} className="break-inside-avoid">
+            {heading(section.title)}
             <div className="space-y-1 text-xs">
-              {volunteering.map((v, idx) => (
-                <div key={v.id || idx} className="flex justify-between">
-                  <span className="font-medium">{v.role} ({v.organization})</span>
-                  <span className="text-slate-500 text-[11px]">{v.topic}</span>
+              {section.content.map((vol, idx) => (
+                <div key={vol.id || idx} className="flex justify-between gap-2">
+                  <span className="font-medium">
+                    {vol.role}
+                    {vol.organization && ` (${vol.organization})`}
+                  </span>
+                  <span className="text-slate-500 text-[11px]">{vol.topic}</span>
                 </div>
               ))}
             </div>
@@ -210,77 +161,74 @@ export const CompactTemplate: React.FC<ResumeTemplateProps> = ({
         );
 
       case 'otherTraining':
-        if (!hasData(otherTraining)) return null;
         return (
-          <section key="otherTraining" className="break-inside-avoid">
-            <h2 className={sectionHeaderClass} style={{ color: theme.primaryColor, borderColor: '#e2e8f0' }}>
-              <span className="w-2 h-2 rounded-xs" style={{ backgroundColor: theme.primaryColor }} />
-              {t.preview.otherTraining}
-            </h2>
+          <section key={section.id} className="break-inside-avoid">
+            {heading(section.title)}
             <div className="space-y-0.5 text-xs text-slate-700">
-              {otherTraining.map((tr, idx) => (
-                <div key={tr.id || idx}>• {tr.name}</div>
-              ))}
-            </div>
-          </section>
-        );
-
-      case 'references':
-        if (!hasData(references)) return null;
-        return (
-          <section key="references" className="break-inside-avoid">
-            <h2 className={sectionHeaderClass} style={{ color: theme.primaryColor, borderColor: '#e2e8f0' }}>
-              <span className="w-2 h-2 rounded-xs" style={{ backgroundColor: theme.primaryColor }} />
-              {t.preview.references}
-            </h2>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              {references.map((r, idx) => (
-                <div key={r.id || idx} className="p-1.5 bg-slate-50 rounded border border-slate-200">
-                  <p className="font-bold text-slate-900">{r.name}</p>
-                  <p className="text-slate-600 text-[11px]">{r.title} • {r.company}</p>
+              {section.content.map((tr, idx) => (
+                <div key={tr.id || idx}>
+                  • <RichText inline html={tr.name} />
                 </div>
               ))}
             </div>
           </section>
         );
 
-      default:
-        return null;
+      case 'references':
+        return (
+          <section key={section.id} className="break-inside-avoid">
+            {heading(section.title)}
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              {section.content.map((ref, idx) => (
+                <div key={ref.id || idx} className="p-1.5 bg-slate-50 rounded border border-slate-200">
+                  <p className="font-bold text-slate-900">{ref.name}</p>
+                  {(ref.title || ref.company) && (
+                    <p className="text-slate-600 text-[11px]">{[ref.title, ref.company].filter(Boolean).join(' • ')}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        );
     }
   };
+
+  const contacts = [personalInfo.email, personalInfo.phone, personalInfo.address, personalInfo.linkedin].filter(
+    Boolean
+  );
 
   return (
     <div
       className="w-full h-full min-h-[1122px] bg-white flex flex-col overflow-visible print:shadow-none print:w-full print:h-auto"
-      id="resume-preview"
-      style={{ fontFamily: theme.fontFamily }}
+      id={printable ? 'resume-preview' : undefined}
+      style={{
+        fontFamily: theme.fontFamily,
+        ...stackedLayoutVars(STACKED_LAYOUT.compact[density], STACKED_SECTION_GAP.compact),
+      }}
     >
-      <div className={`w-full max-w-4xl mx-auto ${densitySpacing}`}>
-        
+      <div className="w-full max-w-4xl mx-auto p-[var(--rv-pad)] space-y-[var(--rv-gap)] text-[length:var(--rv-font)] leading-[var(--rv-leading)]">
+
         {/* Compact Header */}
-        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b-2 break-inside-avoid" style={{ borderColor: theme.primaryColor }}>
+        <header className="flex flex-row justify-between items-center gap-3 pb-3 border-b-2 break-inside-avoid" style={{ borderColor: theme.primaryColor }}>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight" style={{ color: theme.primaryColor }}>
-              {personalInfo?.name || t.preview.yourName}
+            <h1 className="text-3xl font-black tracking-tight" style={{ color: theme.primaryColor }}>
+              {displayName}
             </h1>
-            {personalInfo?.title && (
+            {personalInfo.title && (
               <p className="text-xs font-bold uppercase tracking-wider text-slate-700 mt-0.5">
                 {personalInfo.title}
               </p>
             )}
           </div>
 
-          <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-medium text-slate-600 sm:text-right">
-            {personalInfo?.email && <span>{personalInfo.email}</span>}
-            {personalInfo?.phone && <span>• {personalInfo.phone}</span>}
-            {personalInfo?.address && <span>• {personalInfo.address}</span>}
-            {personalInfo?.linkedin && <span>• {personalInfo.linkedin}</span>}
+          <div className="text-[11px] font-medium text-slate-600 text-right">
+            {contacts.join(' • ')}
           </div>
         </header>
 
         {/* Stacked Sections */}
-        <div className="space-y-4">
-          {sectionOrder.map(renderSection)}
+        <div className="space-y-[var(--rv-section-gap)]">
+          {view.sections.map(renderSection)}
         </div>
 
       </div>

@@ -149,6 +149,40 @@ test for it, and it has broken three separate ways, so treat these as invariants
   mounted (the theme colour is user-chosen, so it cannot be hard-coded). If you change the
   margin, change the `@page` rule and the `-12mm` offsets in `ResumePreview` together.
 - Browser print dialog Margins must stay on "Default"; "None"/"Minimum" override `@page`.
+- **The printed page is ~794px wide, so viewport breakpoints evaluate as a narrow screen in
+  print.** A panel that is `hidden xl:flex` on screen is hidden in print unless it also says
+  `print:flex` (the preview panel in `CvBuilder` does; without it Export PDF was a blank
+  page). Don't use `sm:`/`md:` classes inside a template either: the A4 page is the same
+  width everywhere, and a viewport breakpoint only makes a phone preview differ from the PDF.
+- **The preview canvas is laid out at exactly 210mm and only ever scaled.**
+  `usePreviewScale` fits it to the panel with a `transform` plus a sized frame. A flex item
+  that shrinks instead (as it once did, to ~500px beside the editor) reflows the text, so
+  lines and pages break in places the PDF/DOCX never do. The no-`zoom` rule above is about
+  the printed document; scaling the on-screen canvas is fine because print resets it.
+
+### Preview, print and DOCX — one view model, one template id
+
+The full resume has three outputs: the live preview, the PDF (which *is* the preview, via
+print) and the DOCX, plus the resume-list thumbnail. They stay consistent by construction:
+
+- **What** to show is decided once by `buildResumeView` (`shared/lib/resume-view.ts`): which
+  sections appear (empty ones omitted), in what order, under which title, with normalised
+  entries (legacy string certifications/trainings) and translated labels (`ResumeViewLabels`,
+  satisfied by `t.preview`). Renderers decide only how a section looks. Don't re-derive
+  section visibility or labels in a template or DOCX renderer.
+- **Which layout** is `resolveTemplateId(theme)` / `resolveDensity(theme)`
+  (`shared/config/resume-layout.ts`). `TEMPLATE_COMPONENTS` (`features/Resume/templates`) and
+  `DOCX_RENDERERS` (`features/Resume/docx`) are both `Record<ResumeTemplateId, …>`, so a
+  template without a Word renderer does not compile. `ResumeDocument` is the one place a
+  template is rendered (preview with `printable`, thumbnails without).
+- **Density spacing** lives in `MODERN_LAYOUT` / `STACKED_LAYOUT` (px). Templates read it
+  through `--rv-*` custom properties (`p-[var(--rv-pad)]`), DOCX renderers read the numbers.
+  Change spacing there, never as a literal class in one output only.
+- Fixed per-element styling (a heading's `text-sm`) is still mirrored by hand: each DOCX
+  renderer's constants carry a comment naming the class they copy. Change both together.
+- DOCX page geometry reproduces `@page` (`printSection` in `docx/common.ts`): 12mm top/bottom,
+  0 at the top of page one, done with exact-height headers because Word has one top margin
+  per section. The Modern sidebar tint is anchored in those headers so it reaches every page.
 
 ### Two resume kinds — `Resume.kind` (in progress: the Basic Resume product line)
 

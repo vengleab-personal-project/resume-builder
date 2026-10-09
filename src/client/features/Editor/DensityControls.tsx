@@ -79,7 +79,7 @@ export const DensityControls: React.FC<DensityControlsProps> = ({
       <div className="flex items-center gap-1 ml-auto">
         <button
           type="button"
-          onClick={() => onZoomChange(Math.max(0.6, zoom - 0.1))}
+          onClick={() => onZoomChange(Math.max(0.3, zoom - 0.1))}
           className="p-1 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-md transition-colors"
           title="Zoom Out"
         >

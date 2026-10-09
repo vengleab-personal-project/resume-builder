@@ -4,7 +4,7 @@
  *
  * The preview draws these with SVG/CSS, which .docx has no equivalent for, so the
  * export paints them onto a canvas at 4x and ships the bitmap instead. Everything
- * here is browser-only - `generateResumeDocx` already runs client-side.
+ * here is browser-only - the DOCX renderers already run client-side.
  */
 
 /** [tag, attributes] pairs, copied from lucide-react's `__iconNode` for each icon. */
@@ -46,6 +46,10 @@ const ICON_NODES: Record<string, IconNode> = {
     ['path', { d: 'M10 14 21 3' }],
     ['path', { d: 'M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6' }],
   ],
+  user: [
+    ['path', { d: 'M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2' }],
+    ['circle', { cx: '12', cy: '7', r: '4' }],
+  ],
 };
 
 export type IconName = keyof typeof ICON_NODES;
@@ -61,6 +65,7 @@ export type PngAsset = {
 const SCALE = 4;
 
 const SLATE_100 = '#f1f5f9';
+const SLATE_300 = '#cbd5e1';
 const SLATE_400 = '#94a3b8';
 
 const attrsToString = (attrs: Record<string, string>) =>
@@ -274,5 +279,105 @@ export const renderAvatar = async (
   } catch {
     // A cross-origin photo taints the canvas and toDataURL throws - fall back to the initial.
     return paintAvatar(undefined, initial, fontFamily);
+  }
+};
+
+/**
+ * A section-heading marker: Compact's `w-2 h-2 rounded-xs` square or Cambodia's
+ * `w-2.5 h-2.5 rounded-full` dot, filled with the accent colour.
+ */
+export const renderMarker = (shape: 'square' | 'circle', size: number, color: string): PngAsset => {
+  const { canvas, ctx } = createCanvas(size, size);
+  ctx.fillStyle = color;
+  if (shape === 'circle') {
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    roundedRect(ctx, 0, 0, size, size, 2); // rounded-xs
+    ctx.fill();
+  }
+  return toPng(canvas, size, size);
+};
+
+const PHOTO_FRAME_WIDTH = 112; // w-28
+const PHOTO_FRAME_HEIGHT = 144; // h-36
+
+const paintPhotoFrame = async (
+  photoUrl: string | undefined,
+  placeholder: string,
+  color: string,
+  fontFamily: string
+): Promise<PngAsset> => {
+  const W = PHOTO_FRAME_WIDTH;
+  const H = PHOTO_FRAME_HEIGHT;
+  const BORDER = 2; // border-2
+  const INSET = BORDER + 4; // + p-1
+  const { canvas, ctx } = createCanvas(W, H);
+
+  ctx.fillStyle = '#ffffff';
+  roundedRect(ctx, 0, 0, W, H, 6); // rounded-md
+  ctx.fill();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = BORDER;
+  roundedRect(ctx, BORDER / 2, BORDER / 2, W - BORDER, H - BORDER, 6);
+  ctx.stroke();
+
+  const innerW = W - 2 * INSET;
+  const innerH = H - 2 * INSET;
+
+  let photo: HTMLImageElement | null = null;
+  if (photoUrl) {
+    try {
+      photo = await loadImage(photoUrl, !photoUrl.startsWith('data:'));
+    } catch {
+      photo = null;
+    }
+  }
+
+  ctx.save();
+  roundedRect(ctx, INSET, INSET, innerW, innerH, 4); // rounded
+  ctx.clip();
+  if (photo) {
+    // object-cover
+    const cover = Math.max(innerW / photo.width, innerH / photo.height);
+    const drawWidth = photo.width * cover;
+    const drawHeight = photo.height * cover;
+    ctx.drawImage(photo, INSET + (innerW - drawWidth) / 2, INSET + (innerH - drawHeight) / 2, drawWidth, drawHeight);
+  } else {
+    ctx.fillStyle = SLATE_100;
+    ctx.fillRect(INSET, INSET, innerW, innerH);
+    const ICON = 28;
+    const svg = iconSvg('user', ICON, SLATE_300, false);
+    const icon = await loadImage(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`);
+    // flex-col centred: 28px icon, mb-1, one 16px line of text-xs
+    const top = INSET + (innerH - (ICON + 4 + 16)) / 2;
+    ctx.drawImage(icon, INSET + (innerW - ICON) / 2, top, ICON, ICON);
+    ctx.fillStyle = SLATE_400;
+    ctx.font = `12px ${fontFamily}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(placeholder, W / 2, top + ICON + 4 + 8);
+  }
+  ctx.restore();
+
+  return toPng(canvas, W, H);
+};
+
+/**
+ * The Cambodia template's 4x6 photo frame: `w-28 h-36 rounded-md border-2 p-1` in the
+ * accent colour, holding the photo cropped like `object-cover`, or the placeholder.
+ */
+export const renderPhotoFrame = async (
+  photoUrl: string | undefined,
+  placeholder: string,
+  color: string,
+  fontFamily: string
+): Promise<PngAsset> => {
+  try {
+    return await paintPhotoFrame(photoUrl, placeholder, color, fontFamily);
+  } catch {
+    // A cross-origin photo taints the canvas - fall back to the placeholder.
+    return paintPhotoFrame(undefined, placeholder, color, fontFamily);
   }
 };
