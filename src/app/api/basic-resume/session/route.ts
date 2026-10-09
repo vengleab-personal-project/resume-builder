@@ -20,6 +20,7 @@ import {
   createSession,
   currentQuestion,
   findActiveSession,
+  setCursor,
 } from '@/server/modules/resumes/voiceInterviewService';
 import {
   BASIC_INTERVIEW_SCRIPT,
@@ -39,6 +40,7 @@ const startSchema = z.object({
   // browser tokens; otherwise the response says `live: null` and the client runs
   // press-to-talk, so asking never fails the start.
   live: z.boolean().optional(),
+  fresh: z.boolean().optional(),
 });
 
 /** A live grant, or null when live was not asked for, is not possible, or failed. */
@@ -70,12 +72,20 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
   if (!parsed.success) {
     throw new HttpError(400, 'INVALID_INPUT', 'Invalid session request');
   }
-  const { locale, resumeId, live: wantsLive } = parsed.data;
+  const { locale, resumeId, live: wantsLive, fresh } = parsed.data;
 
   // Resuming rather than starting: return the live session untouched and,
   // crucially, do not debit again.
-  const existing = await findActiveSession(user.id);
+  const existing = await findActiveSession(user.id, resumeId);
   if (existing) {
+    if (fresh) {
+      const first = nextInterviewQuestion(null);
+      if (first) {
+        await setCursor(existing.id, first.id);
+        existing.questionId = first.id;
+        existing.followUpUsed = false;
+      }
+    }
     const question = currentQuestion(existing) ?? nextInterviewQuestion(null);
     const resume = await findOwnedBasicResume(user.id, existing.resumeId);
     const text = question ? promptFor(question.id, existing.locale as 'en' | 'km', false) : '';
@@ -86,7 +96,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     return NextResponse.json({
       sessionId: existing.id,
       resumeId: existing.resumeId,
-      resumed: true,
+      resumed: !fresh,
       locale: existing.locale,
       question: question && { id: question.id, text, optional: question.optional },
       position: question ? BASIC_INTERVIEW_SCRIPT.findIndex((q) => q.id === question.id) + 1 : 0,

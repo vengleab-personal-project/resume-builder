@@ -9,6 +9,8 @@ export const ThemeSwitcher: React.FC = () => {
   const { theme, setTheme } = useResumeStore();
   const { t } = useTranslations('editor');
 
+  const isCustomColor = !THEME_COLORS.some(c => c.value === theme.primaryColor);
+
   return (
     <div className="grid grid-cols-2 gap-6">
       {/* Color Column */}
@@ -27,16 +29,20 @@ export const ThemeSwitcher: React.FC = () => {
             />
           ))}
           {/* Custom Color Picker */}
-          <div 
-            className="relative w-8 h-8 overflow-hidden rounded-full border-2 border-slate-200 transition-transform hover:scale-110"
-            style={{ background: 'linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet)' }}
+          <div
+            className={`relative w-8 h-8 overflow-hidden rounded-full border-2 transition-transform hover:scale-110 ${isCustomColor ? 'border-slate-800 ring-2 ring-slate-200' : 'border-slate-200'}`}
+            style={
+              isCustomColor
+                ? { backgroundColor: theme.primaryColor }
+                : { background: 'linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet)' }
+            }
+            title={t.theme.customColor}
           >
-            <input 
-              type="color" 
+            <input
+              type="color"
               className="absolute -top-1 -left-1 w-10 h-10 p-0 border-0 cursor-pointer opacity-0"
               value={theme.primaryColor}
               onChange={(e) => setTheme({ primaryColor: e.target.value })}
-              title={t.theme.customColor}
             />
           </div>
         </div>

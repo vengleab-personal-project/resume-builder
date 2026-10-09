@@ -85,14 +85,19 @@ interface FinishResponse {
 }
 
 /** What the live model is told when a call picks up where an earlier one left off. */
-function resumeBriefing(data: BasicResumeData): string {
+function resumeBriefing(data: BasicResumeData, locale: 'en' | 'km'): string {
   const missing = missingTopics(data);
   const needed = [...missing.required, ...missing.optional.filter((topic) => !topic.sensitive)];
   // A fresh CV needs the brief and nothing more.
-  if (countFilledTopics(data) === 0) return 'Begin the interview now.';
+  if (countFilledTopics(data) === 0) {
+    return locale === 'km'
+      ? 'សូមចាប់ផ្តើមការសម្ភាសន៍ឥឡូវនេះ។ ស្វាគមន៍ដោយកក់ក្តៅមួយឃ្លាខ្លី ហើយសួររកឈ្មោះពេញរបស់គាត់ជាមុនសិន។ កុំទាន់សួរពីចំណង់ចំណូលចិត្ត ឬអ្វីដែលគាត់ចូលចិត្តធ្វើនៅពេលនេះឡើយ។'
+      : 'Begin the interview now. Greet the person warmly in one short sentence, and ask for their full name first to start their CV. Do NOT start by asking what they like to do or about hobbies.';
+  }
   return (
     'Begin now. Some details are already known, so do not ask for those again. ' +
-    `Greet the person briefly, say you only need to fill in a few gaps, and ask about: ${JSON.stringify(needed.map((t) => t.ask))}.`
+    `Greet the person briefly, say you only need to fill in a few gaps, and ask about: ${JSON.stringify(needed.map((t) => t.ask))}. ` +
+    'Prioritize work, education, and contact gaps first; do not ask about hobbies or free time first.'
   );
 }
 
@@ -327,7 +332,7 @@ export const useVoiceInterviewLogic = (onResume: (resume: BasicResumeDTO) => voi
   );
 
   const beginLive = useCallback(
-    async (grant: LiveGrant) => {
+    async (grant: LiveGrant, isContinue = false) => {
       const outcome = await live.connect(grant, {
         onEnd: (dialogue, reason) => {
           setLiveActive(false);
@@ -340,7 +345,15 @@ export const useVoiceInterviewLogic = (onResume: (resume: BasicResumeDTO) => voi
       if (outcome === 'ok') {
         setLiveActive(true);
         setCanContinueLive(true);
-        live.tell(resumeBriefing(resumeRef.current?.data ?? ({} as BasicResumeData)));
+        if (isContinue) {
+          live.tell(resumeBriefing(resumeRef.current?.data ?? ({} as BasicResumeData), localeRef.current));
+        } else {
+          live.tell(
+            localeRef.current === 'km'
+              ? 'សូមចាប់ផ្តើមការសម្ភាសន៍ឥឡូវនេះ។ ស្វាគមន៍ដោយកក់ក្តៅមួយឃ្លាខ្លី ហើយសួររកឈ្មោះពេញរបស់គាត់ជាមុនសិនដើម្បីរៀបចំប្រវត្តិរូបសង្ខេប។ កុំទាន់សួរពីចំណង់ចំណូលចិត្ត ឬអ្វីដែលគាត់ចូលចិត្តធ្វើនៅពេលនេះឡើយ។'
+              : 'Begin the interview now. Greet the person warmly in one short sentence, and ask for their full name first to start their CV. Do NOT ask about hobbies or what they like to do at the start.'
+          );
+        }
         return;
       }
       // A refused microphone already has its own message; anything else is the
@@ -352,7 +365,7 @@ export const useVoiceInterviewLogic = (onResume: (resume: BasicResumeDTO) => voi
   );
 
   const start = useCallback(
-    async (locale: 'en' | 'km', resumeId?: string) => {
+    async (locale: 'en' | 'km', resumeId?: string, isContinue = false) => {
       // Inside the click, before any await: browsers only start audio from a
       // user gesture, and the gesture is gone once the server has answered.
       live.prime();
@@ -367,7 +380,7 @@ export const useVoiceInterviewLogic = (onResume: (resume: BasicResumeDTO) => voi
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ locale, resumeId, live: true }),
+          body: JSON.stringify({ locale, resumeId, live: true, fresh: !isContinue }),
           signal,
         });
 
@@ -391,7 +404,7 @@ export const useVoiceInterviewLogic = (onResume: (resume: BasicResumeDTO) => voi
         if (body.resume) adopt(body.resume);
         applyStep(body);
 
-        if (body.live) await beginLive(body.live);
+        if (body.live) await beginLive(body.live, isContinue);
       } catch {
         if (signal.aborted) return;
         setProblem('network');
@@ -403,7 +416,7 @@ export const useVoiceInterviewLogic = (onResume: (resume: BasicResumeDTO) => voi
 
   /** Picks the conversation back up to fill what is missing. Same session, no new charge. */
   const continueLive = useCallback(
-    () => start(localeRef.current, resumeRef.current?.id),
+    () => start(localeRef.current, resumeRef.current?.id, true),
     [start]
   );
 

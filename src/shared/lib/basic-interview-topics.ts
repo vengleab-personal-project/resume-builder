@@ -27,7 +27,7 @@ import type { BasicResumeData } from '@/shared/types/basic-resume';
  */
 export const FIELD_TOPICS: Record<BasicFieldPath, { ask: string; sensitive?: boolean }> = {
   fullName: { ask: 'their full name' },
-  positionSought: { ask: 'the job or kind of work they are applying for' },
+  positionSought: { ask: 'the specific job title or position they are applying for' },
   'contact.phone': { ask: 'their phone number' },
   'contact.address': { ask: 'where they live (village, commune, district, province)' },
   'personal.dateOfBirth': { ask: 'their date of birth' },
@@ -39,7 +39,7 @@ export const FIELD_TOPICS: Record<BasicFieldPath, { ask: string; sensitive?: boo
   education: { ask: 'their education: each school or course, with the year' },
   experience: { ask: 'their work experience: each job, with the year' },
   languages: { ask: 'the languages they speak, and what they can do in each (speak, listen, read, translate)' },
-  interests: { ask: 'what they like to do in their free time' },
+  interests: { ask: 'their hobbies or personal interests outside of work' },
   personalStatement: { ask: 'how they would describe themselves as a worker' },
 };
 

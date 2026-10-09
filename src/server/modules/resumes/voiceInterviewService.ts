@@ -32,9 +32,16 @@ export function isSessionUsable(session: VoiceInterviewSession): boolean {
  * charging again -- a user who reloads the page mid-interview must not be
  * billed twice for the same CV.
  */
-export async function findActiveSession(userId: string): Promise<VoiceInterviewSession | null> {
+export async function findActiveSession(
+  userId: string,
+  resumeId?: string
+): Promise<VoiceInterviewSession | null> {
   const session = await prisma.voiceInterviewSession.findFirst({
-    where: { userId, status: 'ACTIVE' },
+    where: {
+      userId,
+      ...(resumeId ? { resumeId } : {}),
+      status: 'ACTIVE',
+    },
     orderBy: { createdAt: 'desc' },
   });
 

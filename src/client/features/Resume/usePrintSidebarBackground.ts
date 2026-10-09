@@ -10,6 +10,8 @@ export const usePrintSidebarBackground = (color: string) => {
   useEffect(() => {
     const root = document.documentElement;
     root.style.setProperty(SIDEBAR_BG_VAR, color);
-    return () => root.style.removeProperty(SIDEBAR_BG_VAR);
+    return () => {
+      root.style.removeProperty(SIDEBAR_BG_VAR);
+    };
   }, [color]);
 };
