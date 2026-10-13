@@ -5,6 +5,7 @@ import {
   PROTECTED_PATH_PREFIXES,
   SESSION_COOKIE_NAME,
 } from '@/shared/config/auth';
+import { isBlockedCrawler, SHARE_PATH_PREFIX, SHARE_ROBOTS_HEADER } from '@/shared/config/share';
 import {
   claimsToSubject,
   getSessionTtlSeconds,
@@ -32,6 +33,20 @@ function redirectToLogin(req: NextRequest): NextResponse {
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // Share links are public, but not to crawlers: a known search or AI crawler (or a
+  // request with no user agent at all) gets the same bare 404 as a link that does not
+  // exist - for the page, the unlock and the content routes alike. One layer of
+  // several; see the "Share links" section of CLAUDE.md.
+  if (matchesPrefix(pathname, SHARE_PATH_PREFIX)) {
+    if (isBlockedCrawler(req.headers.get('user-agent'))) {
+      return new NextResponse('Not found', {
+        status: 404,
+        headers: { 'X-Robots-Tag': SHARE_ROBOTS_HEADER, 'Cache-Control': 'private, no-store' },
+      });
+    }
+    return NextResponse.next();
+  }
 
   const isProtected = PROTECTED_PATH_PREFIXES.some((prefix) => matchesPrefix(pathname, prefix));
   const isAdminPath = matchesPrefix(pathname, ADMIN_PATH_PREFIX);
@@ -87,6 +102,9 @@ export const config = {
     '/evaluation/:path*',
     '/account/:path*',
     '/billing/:path*',
+    '/profile/:path*',
     '/admin/:path*',
+    // Public share links: not auth-gated, only screened for crawlers above.
+    '/s/:path*',
   ],
 };

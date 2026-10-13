@@ -1,16 +1,18 @@
 "use client";
 
 import React from 'react';
-import { FilePlus2, FileText, Star, Pencil, Copy, Trash2, Loader2 } from 'lucide-react';
+import { FilePlus2, FileText, Star, Pencil, Copy, Trash2, Loader2, Share2 } from 'lucide-react';
 import { useResumeListLogic } from './useResumeListLogic';
 import { ResumeThumbnail } from './ResumeThumbnail';
 import { useTranslations } from '@/client/hooks/useTranslations';
 import { LanguageSwitcher } from '@/client/components/ui/LanguageSwitcher';
+import { ShareDialog } from '@/client/features/Share';
 import type { ResumeSummary } from '@/shared/types/persistence';
 
 export default function ResumeList() {
   const vm = useResumeListLogic();
   const { t } = useTranslations('resumeList');
+  const { t: tShare } = useTranslations('share');
 
   return (
     <div className="h-full flex flex-col font-sans text-slate-900 bg-slate-100">
@@ -79,6 +81,8 @@ export default function ResumeList() {
                     if (next !== null) void vm.renameResume(resume, next);
                   }}
                   onDuplicate={() => void vm.duplicateResume(resume)}
+                  onShare={() => vm.openShare(resume)}
+                  shareLabel={tShare.button}
                   onSetDefault={() => void vm.setDefaultResume(resume)}
                   onDelete={() => {
                     if (window.confirm(t.deleteConfirm)) void vm.deleteResume(resume.id);
@@ -89,6 +93,13 @@ export default function ResumeList() {
           )}
         </div>
       </div>
+
+      <ShareDialog
+        resumeId={vm.shareTarget?.id ?? null}
+        resumeTitle={vm.shareTarget?.title ?? ''}
+        open={vm.shareTarget !== null}
+        onClose={vm.closeShare}
+      />
     </div>
   );
 }
@@ -101,6 +112,8 @@ interface ResumeCardProps {
   onOpen: () => void;
   onRename: () => void;
   onDuplicate: () => void;
+  onShare: () => void;
+  shareLabel: string;
   onSetDefault: () => void;
   onDelete: () => void;
 }
@@ -113,6 +126,8 @@ function ResumeCard({
   onOpen,
   onRename,
   onDuplicate,
+  onShare,
+  shareLabel,
   onSetDefault,
   onDelete,
 }: ResumeCardProps) {
@@ -171,6 +186,15 @@ function ResumeCard({
             className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
           >
             <Copy size={14} />
+          </button>
+          <button
+            type="button"
+            onClick={onShare}
+            title={shareLabel}
+            aria-label={shareLabel}
+            className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
+          >
+            <Share2 size={14} />
           </button>
           {!resume.isDefault && (
             <button

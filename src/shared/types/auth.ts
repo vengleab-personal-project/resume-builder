@@ -45,6 +45,7 @@ export type AuthErrorCode =
   | 'LAST_CREDENTIAL'
   | 'CROSS_ORIGIN'
   | 'NOT_FOUND'
+  | 'LIMIT_REACHED'
   // Voice interview. These reach the client as designed UI states rather than
   // as generic failures -- see §8.2 -- so each one has to be distinguishable.
   | 'AUDIO_TOO_LARGE'

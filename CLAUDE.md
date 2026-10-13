@@ -57,7 +57,7 @@ src/
 │   ├── views/            # Page-level assemblies, one per route (e.g. CvBuilder, ResumeList)
 │   ├── features/         # Reusable feature modules with their own logic
 │   ├── components/       # Generic reusable UI + layouts (GlobalSidebar, AppSessionProvider)
-│   ├── hooks/             # Common cross-cutting hooks (useTranslations, useChatModels)
+│   ├── hooks/             # Common cross-cutting hooks (useTranslations, useChatModels, usePreviewScale)
 │   ├── lib/               # Browser-only helpers with no React state (image.ts: photo downscaling)
 │   └── store/             # Zustand, one file per domain
 ├── server/               # Backend only — never shipped to the browser
@@ -160,6 +160,36 @@ never by patching client stores:
   `''`, since the value is written into resume JSON and rendered by the templates. A legacy
   oversize photo already on a resume is skipped by the sync rather than failing the save.
 
+### Share links — public, per-link on/off, code or passcode (`ResumeShareLink`, `/s/<code>`)
+
+A FULL resume can have up to `SHARE_LINKS_PER_RESUME_MAX` links, managed in `features/Share`
+(the Share button on resume cards and in the builder header). Each link is **CODE** (a 24-char
+random code is the only key) or **PASSCODE** (a short typeable code + an argon2-hashed passcode),
+and **LIVE** (current resume) or **SNAPSHOT** (copy taken at creation, refreshed on demand).
+
+- **One definition of "this link works"**: `liveLinkWhere` in `server/modules/share/publicShare.ts`
+  — active, resume FULL and not soft-deleted, owner not disabled. Resumes are soft-deleted, so the
+  FK cascade never fires; every public read must go through that filter. Unknown, disabled and
+  deleted all answer the same 404.
+- **The CV is never in the page HTML.** `app/s/[code]/page.tsx` only resolves "works / needs
+  passcode" with a minimal select; the client fetches `/s/<code>/content`, which requires the
+  `X-Share-Client` header and a same-origin Fetch-Metadata request. Keep the page's query
+  minimal: Next's **dev** server embeds server-side query results in the HTML for its tooling,
+  so selecting the resume there put the CV (and the passcode hash) in the page source.
+- **Passcodes**: `/s/<code>/unlock` sets `rb_share_unlock`, a jose JWT with `aud: share-unlock`
+  (`signShareUnlock` in `auth/session.ts`), `httpOnly`, `sameSite=strict`, **path `/s/<code>`** so
+  it opens that link only. It carries `passcodeVersion`; changing the passcode bumps it and kills
+  old unlocks. Wrong attempts are throttled on the `AuthAttempt` table (`share:<linkId>`): per IP
+  per link and per link overall.
+- **Crawlers**: `isBlockedCrawler` (`shared/config/share.ts`, Edge-safe) makes middleware 404 known
+  AI/search agents and empty user agents on `/s/*`; `next.config.ts` adds `X-Robots-Tag`
+  (noindex/noai), `no-store`, `Referrer-Policy: no-referrer` (the code must not leak via Referer
+  when a viewer clicks a link in the CV) and `X-Frame-Options`; `app/robots.ts` disallows `/s/`.
+  None of this stops someone who has a CODE link from reading it — that is what PASSCODE is for.
+- The shared page renders through `ResumeDocument` with the link's `locale` (headings in the CV's
+  language) and the same scale-to-fit canvas and `usePrintPagination`, so its PDF matches the
+  owner's.
+
 ### PDF export is the browser's print engine — the print contract
 
 "Export PDF" is `window.print()` (`useCvBuilderLogic.handleExportPDF`) styled by the
@@ -200,6 +230,10 @@ test for it, and it has broken three separate ways, so treat these as invariants
   mounted (the theme colour is user-chosen, so it cannot be hard-coded). If you change the
   margin, change the `@page` rule and the `-12mm` offsets in `ResumePreview` together.
 - Browser print dialog Margins must stay on "Default"; "None"/"Minimum" override `@page`.
+- **Nothing in the print path may be taller than the first sheet's printable height.**
+  `#resume-preview` gets `min-height: calc(297mm - 12mm)` in print, and the A4-tall wrappers
+  above it (`min-h-[297mm]`, `min-h-[1122px]`) carry `print:min-h-0`. A full 297mm overflowed
+  page one's 285mm, so every one-page resume printed with a blank second page.
 - **The printed page is ~794px wide, so viewport breakpoints evaluate as a narrow screen in
   print.** A panel that is `hidden xl:flex` on screen is hidden in print unless it also says
   `print:flex` (the preview panel in `CvBuilder` does; without it Export PDF was a blank

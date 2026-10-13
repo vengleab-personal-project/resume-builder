@@ -10,6 +10,14 @@ const dictionaries: Record<SupportedLocale, Translations> = {
   km,
 };
 
+/**
+ * A dictionary for a fixed locale, regardless of the UI's. For text that belongs to a
+ * document rather than to the viewer - a shared CV's section headings follow the
+ * language the owner wrote it in.
+ */
+export const getDictionary = (locale: SupportedLocale): Translations =>
+  dictionaries[locale] || dictionaries.en;
+
 export const useTranslations = <N extends keyof Translations | undefined = undefined>(
   namespace?: N,
 ) => {

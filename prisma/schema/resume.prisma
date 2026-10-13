@@ -39,6 +39,7 @@ model Resume {
 
   evaluations EvaluationResult[]
   voiceSessions VoiceInterviewSession[]
+  shareLinks    ResumeShareLink[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

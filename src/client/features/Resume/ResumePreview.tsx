@@ -12,7 +12,7 @@ const ResumePreviewComponent = () => {
   const { flows, nearlyFits } = usePrintPagination(containerRef);
 
   return (
-    <div ref={containerRef} className="relative w-full h-full min-h-[1122px]">
+    <div ref={containerRef} className="relative w-full h-full min-h-[1122px] print:h-auto print:min-h-0">
       {/* Visual Page Boundary Indicators (Screen only, hidden in print) */}
       <PageBreakIndicator flows={flows} nearlyFits={nearlyFits} />
 

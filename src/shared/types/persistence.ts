@@ -1,4 +1,4 @@
-import type { ResumeData, ThemeConfig } from './index';
+import type { ResumeData, SupportedLocale, ThemeConfig } from './index';
 import type { BasicResumeData, ResumeKindKey } from './basic-resume';
 import type { ProfileFields } from '@/shared/lib/profile';
 
@@ -106,6 +106,35 @@ export interface ProfileUpdateResponse {
 export interface ProfileConflictResponse {
   error: 'VERSION_CONFLICT';
   profile: ProfileDTO;
+}
+
+// A share link as its owner sees it. The passcode hash never leaves the server.
+export type ShareAccessKey = 'CODE' | 'PASSCODE';
+export type ShareContentKey = 'LIVE' | 'SNAPSHOT';
+
+export interface ShareLinkDTO {
+  id: string;
+  resumeId: string;
+  code: string;
+  label: string;
+  access: ShareAccessKey;
+  content: ShareContentKey;
+  locale: SupportedLocale;
+  isActive: boolean;
+  viewCount: number;
+  lastViewedAt: string | null;
+  snapshotAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// GET /s/<code>/content: what the public viewer page renders, and nothing else
+// (no ids, no owner, no title).
+export interface SharedResumeContent {
+  data: ResumeData;
+  sectionOrder: string[];
+  theme: ThemeConfig;
+  locale: SupportedLocale;
 }
 
 export type SyncStatus = 'idle' | 'syncing' | 'saved' | 'error' | 'conflict';

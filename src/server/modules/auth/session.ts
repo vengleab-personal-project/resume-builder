@@ -103,3 +103,51 @@ export function claimsToSubject(claims: SessionClaims): SessionSubject {
     tokenVersion: claims.tv,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Share-link unlock tokens
+// ---------------------------------------------------------------------------
+//
+// Proof that a viewer entered a share link's passcode. Signed with the session key,
+// but with its own audience, so neither token can ever be accepted as the other: a
+// session JWT has no `aud`, and verifySession would reject this one's claims anyway.
+
+const SHARE_UNLOCK_AUDIENCE = 'share-unlock';
+
+export interface ShareUnlockClaims {
+  /** The link this unlocks - never another link, even of the same resume. */
+  linkId: string;
+  /** The link's passcodeVersion when unlocked; a passcode change invalidates it. */
+  passcodeVersion: number;
+}
+
+export async function signShareUnlock(
+  claims: ShareUnlockClaims,
+  ttlSeconds: number
+): Promise<string> {
+  const issuedAt = Math.floor(Date.now() / 1000);
+  return new SignJWT({ pv: claims.passcodeVersion })
+    .setProtectedHeader({ alg: JWT_ALGORITHM })
+    .setAudience(SHARE_UNLOCK_AUDIENCE)
+    .setSubject(claims.linkId)
+    .setIssuedAt(issuedAt)
+    .setExpirationTime(issuedAt + ttlSeconds)
+    .sign(getSigningKey());
+}
+
+export async function verifyShareUnlock(
+  token: string | undefined | null
+): Promise<ShareUnlockClaims | null> {
+  if (!token) return null;
+  try {
+    const { payload } = await jwtVerify(token, getSigningKey(), {
+      algorithms: [JWT_ALGORITHM],
+      audience: SHARE_UNLOCK_AUDIENCE,
+    });
+    const { sub, pv } = payload as Record<string, unknown>;
+    if (typeof sub !== 'string' || typeof pv !== 'number') return null;
+    return { linkId: sub, passcodeVersion: pv };
+  } catch {
+    return null;
+  }
+}

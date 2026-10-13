@@ -39,6 +39,7 @@ model User {
   evaluations EvaluationResult[]
   voiceSessions VoiceInterviewSession[]
   profile       UserProfile?
+  shareLinks    ResumeShareLink[]
 
   // --- Relation extension point -------------------------------------------
   // Workstream B (chat model registry) and Workstream C (coins/payments) each

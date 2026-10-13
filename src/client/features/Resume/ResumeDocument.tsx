@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo } from 'react';
-import type { ResumeData, ThemeConfig } from '@/shared/types';
+import type { ResumeData, SupportedLocale, ThemeConfig } from '@/shared/types';
 import { buildResumeView } from '@/shared/lib/resume-view';
 import { resolveDensity, resolveTemplateId } from '@/shared/config/resume-layout';
-import { useTranslations } from '@/client/hooks/useTranslations';
+import { getDictionary, useTranslations } from '@/client/hooks/useTranslations';
 import { TEMPLATE_COMPONENTS } from './templates';
 
 export type ResumeDocumentProps = {
@@ -13,6 +13,11 @@ export type ResumeDocumentProps = {
   sectionOrder: string[];
   /** See `ResumeTemplateProps.printable`. */
   printable: boolean;
+  /**
+   * Language for the section headings. Defaults to the viewer's UI language; a shared
+   * link pins it to the owner's, so a Khmer CV is not shown with English headings.
+   */
+  locale?: SupportedLocale;
 };
 
 /**
@@ -20,11 +25,18 @@ export type ResumeDocumentProps = {
  * the live preview (and so the print/PDF) and the resume-list thumbnails. The DOCX
  * export reads the same `buildResumeView` result and the same template id/density.
  */
-export const ResumeDocument = ({ resumeData, theme, sectionOrder, printable }: ResumeDocumentProps) => {
+export const ResumeDocument = ({
+  resumeData,
+  theme,
+  sectionOrder,
+  printable,
+  locale,
+}: ResumeDocumentProps) => {
   const { t } = useTranslations('editor');
+  const labels = locale ? getDictionary(locale).editor.preview : t.preview;
   const view = useMemo(
-    () => buildResumeView(resumeData, sectionOrder, t.preview),
-    [resumeData, sectionOrder, t.preview]
+    () => buildResumeView(resumeData, sectionOrder, labels),
+    [resumeData, sectionOrder, labels]
   );
   const Template = TEMPLATE_COMPONENTS[resolveTemplateId(theme)];
 

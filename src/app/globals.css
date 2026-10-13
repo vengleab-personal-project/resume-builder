@@ -115,7 +115,10 @@ html[lang="km"] body {
   #resume-preview {
     display: flex !important;
     width: 100% !important;
-    min-height: 297mm !important;
+    /* Fill the first sheet, but no further: page one holds 297mm less its 12mm bottom
+       margin (@page above). A full 297mm overflowed it, so every one-page resume
+       printed with a blank second page. */
+    min-height: calc(297mm - 12mm) !important;
     height: auto !important;
     margin: 0 !important;
     padding: 0 !important;

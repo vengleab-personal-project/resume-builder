@@ -219,6 +219,10 @@ export function useResumeListLogic() {
     [load, openResume]
   );
 
+  // The resume whose share dialog is open, if any.
+  const [shareTarget, setShareTarget] = useState<ResumeSummary | null>(null);
+  const closeShare = useCallback(() => setShareTarget(null), []);
+
   return {
     resumes,
     isLoading,
@@ -232,5 +236,8 @@ export function useResumeListLogic() {
     renameResume,
     setDefaultResume,
     deleteResume,
+    shareTarget,
+    openShare: setShareTarget,
+    closeShare,
   };
 }
