@@ -368,6 +368,22 @@ through the same route.
   real job application is a serious harm.
 - **Never charge for a pipeline that isn't working.** Speaking the first question is the
   liveness check that decides whether to debit. A key being merely *present* is not enough.
+- **A turn is claimed before any model runs** (`claimTurn` in `/turn`, as `/finish` does), not
+  counted after: counting afterwards let N simultaneous requests all pass the cap check and each run
+  a paid transcription. `advanceSession` therefore does not increment `turnCount`. A request rejected
+  before a model ran (oversize audio or text) calls `releaseTurn`. The loser of a race gets 429,
+  which the client treats as retryable — **not** 409, which it reads as "interview exhausted".
+- **Voice grants are capped per session** (`voiceGrantsIssued`, `MAX_VOICE_GRANTS`): one debit buys
+  one interview, but resuming is free and mints a fresh token or renders speech each time, so
+  without the cap one debit bought unlimited tokens for the 30-minute TTL. Past the cap the resume
+  answers typed-only (`voice: false`); a grant that produced nothing is given back
+  (`releaseVoiceGrant`) so an outage does not use the cap up.
+- **One active session per user** (a database index), so `findActiveSession` looks up by user, not by
+  resume, after retiring expired rows. Starting on a different CV while one is active is
+  `409 SESSION_ACTIVE_ELSEWHERE`. The CV for a start with no `resumeId` is created *inside* the debit
+  callback, after the balance check, and soft-deleted again if the session cannot be created — a user
+  with no coins used to leave an empty CV behind on every refused attempt. The route uses
+  `withBillingErrors` so insufficient coins is the `402` the client turns into "top up" (it was a 500).
 - **No audio or transcripts are ever stored or logged**, anywhere. Recordings are biometric
   data with no consent flow, retention policy or deletion path here.
 - The caps in `VOICE_INTERVIEW_LIMITS` are the cost control for a single per-session debit, so
@@ -429,7 +445,27 @@ a provider abstraction (`billing/payments/registry.ts`): Bakong KHQR is the real
 `providers/mock` is dev-only (dynamically imported so it never reaches a production bundle; it
 throws at load if `NODE_ENV === 'production'`). A Vercel Cron (`vercel.json`,
 `/api/cron/payments-reconcile`, guarded by `CRON_SECRET`) reconciles orders that missed a
-webhook/status callback.
+webhook/status callback. Rules that exist because they were each once wrong:
+
+- **An order is only EXPIRED by the provider's answer** (`applyProviderState`), never by "its time
+  is up". A blanket expiry sweep turned a payment made just before the deadline, by someone who then
+  closed the tab, into a terminal EXPIRED order nobody had checked. Reconcile checks overdue,
+  never-verified orders first, a few at a time (`RECONCILE_CHUNK_SIZE`) under a time budget below the
+  route's 60s; `expireStaleOrders` only retires orders *verified* unpaid long ago. When a provider is
+  unreachable `syncPaymentOrder` gives `lastCheckedAt` back for an overdue order, so an outage is never
+  recorded as "checked, unpaid".
+- **Settlement needs the amount and the currency** (`decideSettlement`, pure and tested). Missing,
+  short or wrong-currency → the order is parked `FAILED` with `AMOUNT_UNVERIFIED` /
+  `AMOUNT_MISMATCH` / `CURRENCY_MISMATCH`, never credited. A `paidCurrency` must be passed through
+  from the provider result by every caller of `settlePaidOrder`.
+- A user may have `MAX_OPEN_ORDERS_PER_USER` unpaid orders (each is a live, payable QR, so none is
+  auto-cancelled); past it `createPaymentOrder` answers `TOO_MANY_OPEN_ORDERS`.
+- **AI calls run under `withDeadline`** (`ai/clients/deadline.ts`, `AI_REQUEST_LIMITS.DEADLINE_MS`
+  50s, under the 60s `maxDuration`): a call still running when the platform kills the function never
+  reaches `withCoinDeduction`'s refund. It aborts the SDK call *and* rejects (the Vertex SDK ignores
+  the signal), throwing `AiTimeoutError`. Request bodies on the AI routes are bounded
+  (`AI_REQUEST_LIMITS`, `413`); a FULL resume's `data` is capped at `RESUME_DATA_MAX_BYTES` excluding
+  the photo (a legacy multi-MB photo must not make every autosave fail).
 
 ### i18n
 

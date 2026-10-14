@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { extractTextFromFile } from '@/server/modules/ai/workflows/parsingService';
 import { getGeminiModel } from '@/server/modules/ai/clients/gemini';
 import { serverEnv } from '@/server/config/env.server';
-import { HTTP_STATUS } from '@/shared/config/constants';
+import { AI_REQUEST_LIMITS, HTTP_STATUS } from '@/shared/config/constants';
+import { AiTimeoutError, withDeadline } from '@/server/modules/ai/clients/deadline';
+import { JOB_DESCRIPTION_MAX_LENGTH } from '@/shared/lib/validation/resumeSchemas';
 import { assertSameOrigin, requireUser } from '@/server/modules/auth/guards';
 import { errorResponse } from '@/server/errors';
 import { resolveAiRequest } from '@/server/modules/ai/registry';
@@ -301,6 +303,9 @@ export async function POST(req: NextRequest) {
       resumeId = (formData.get('resumeId') as string) || null;
 
       const file = formData.get('file') as File | null;
+      if (file && file.size > AI_REQUEST_LIMITS.MAX_UPLOAD_BYTES) {
+        return NextResponse.json({ error: 'File is too large' }, { status: HTTP_STATUS.PAYLOAD_TOO_LARGE });
+      }
       if (file && file.size > 0) {
         const buffer = Buffer.from(await file.arrayBuffer());
         const extractedText = await extractTextFromFile(buffer, file.type);
@@ -324,6 +329,16 @@ export async function POST(req: NextRequest) {
 
     if (!jobDescription.trim()) {
       return NextResponse.json({ error: 'Job description is required' }, { status: HTTP_STATUS.BAD_REQUEST });
+    }
+
+    // The whole description and a snapshot of the resume are stored with the result, and the
+    // resume is client-supplied JSON of any shape: bound both before anything is spent.
+    if (
+      typeof jobDescription !== 'string' ||
+      jobDescription.length > JOB_DESCRIPTION_MAX_LENGTH ||
+      JSON.stringify(resumeData).length > AI_REQUEST_LIMITS.MAX_RESUME_JSON_BYTES
+    ) {
+      return NextResponse.json({ error: 'Input is too large' }, { status: HTTP_STATUS.PAYLOAD_TOO_LARGE });
     }
 
     const isKhmer = locale === 'km';
@@ -463,13 +478,21 @@ Provide a comprehensive evaluation in strictly valid JSON matching this schema:
   "interviewQuestions": [<string>, <string>, <string>]
 }`;
 
-        const result = await gemini.generateContent({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          generationConfig: {
-            responseMimeType: 'application/json',
-            temperature: 0.2,
-          },
-        });
+        // A timeout lands in the catch below like any other model failure: the heuristic
+        // evaluation is returned (and the charge refunded) instead of the platform killing
+        // the request with the coins still taken.
+        const result = await withDeadline('Gemini', (signal) =>
+          gemini.generateContent(
+            {
+              contents: [{ role: 'user', parts: [{ text: prompt }] }],
+              generationConfig: {
+                responseMimeType: 'application/json',
+                temperature: 0.2,
+              },
+            },
+            { signal }
+          )
+        );
 
         const responseText = result.response.text();
         const parsed = JSON.parse(responseText);
@@ -498,6 +521,9 @@ Provide a comprehensive evaluation in strictly valid JSON matching this schema:
     if (billingResponse) return billingResponse;
 
     console.error('Evaluate API Error:', err);
+    if (err instanceof AiTimeoutError) {
+      return NextResponse.json({ error: 'The request timed out. Please try again.' }, { status: 504 });
+    }
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Internal server error during evaluation' },
       { status: HTTP_STATUS.INTERNAL_SERVER_ERROR }

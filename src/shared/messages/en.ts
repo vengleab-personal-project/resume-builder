@@ -738,6 +738,7 @@ const en = {
         errors: {
             loadFailed: "Could not load billing information. Please try again.",
             createFailed: "Could not start the payment. Please try again.",
+            tooManyOrders: "You have several unpaid payment requests open. Cancel one or wait for it to expire, then try again.",
             noProvider: "No payment method is available right now.",
             orderStatus: {
                 PENDING: "This order is still pending.",

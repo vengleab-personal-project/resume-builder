@@ -19,9 +19,11 @@ import {
 } from '@/server/modules/resumes/resumePersistenceService';
 import {
   advanceSession,
+  claimTurn,
   currentQuestion,
   decideTurn,
   loadOwnedSession,
+  releaseTurn,
 } from '@/server/modules/resumes/voiceInterviewService';
 import { VOICE_INTERVIEW_LIMITS } from '@/shared/config/constants';
 import { BASIC_INTERVIEW_SCRIPT } from '@/shared/lib/basic-interview-script';
@@ -68,15 +70,34 @@ export const POST = withErrorHandling(async (req: NextRequest, context: RouteCon
   }
 
   const locale = session.locale === 'km' ? 'km' : 'en';
-  const form = await req.formData();
-  const transcript = await readAnswer(form, locale);
 
-  // Extraction is the one call that consumes a real, admin-tunable model choice,
-  // so it is the one that goes through the registry seam as normal.
-  const { chatModel } = await resolveAiRequest({ action: 'VOICE_INTERVIEW' });
-  const result = transcript
-    ? await extractAnswer(chatModel, question, transcript, locale)
-    : ({ ok: true, value: null } as const);
+  // The turn is taken here, atomically, before the first paid call. Checking the count above
+  // and incrementing it after the model ran let any number of simultaneous requests all pass
+  // the check and each run a paid transcription and extraction; the conditional update lets
+  // exactly one through per count. (The same 429 `/finish` uses: the client retries it.)
+  if (!(await claimTurn(session))) {
+    throw new HttpError(429, 'RATE_LIMITED', 'Another answer for this interview is still being processed');
+  }
+
+  let form: FormData;
+  let transcript: string;
+  let result: Awaited<ReturnType<typeof extractAnswer>>;
+  try {
+    form = await req.formData();
+    transcript = await readAnswer(form, locale);
+
+    // Extraction is the one call that consumes a real, admin-tunable model choice,
+    // so it is the one that goes through the registry seam as normal.
+    const { chatModel } = await resolveAiRequest({ action: 'VOICE_INTERVIEW' });
+    result = transcript
+      ? await extractAnswer(chatModel, question, transcript, locale)
+      : ({ ok: true, value: null } as const);
+  } catch (error) {
+    // Rejected before it cost anything (an oversize upload, a malformed body): the turn is
+    // given back, so a bad request cannot use up the interview.
+    await releaseTurn(session.id);
+    throw error;
+  }
 
   // A model outage must not cost the user their answer. When extraction is
   // unreachable the transcript is recorded as spoken, deterministically parsed
@@ -142,6 +163,9 @@ export const POST = withErrorHandling(async (req: NextRequest, context: RouteCon
  */
 async function readAnswer(form: FormData, locale: 'en' | 'km'): Promise<string> {
   const typed = form.get('text');
+  if (typeof typed === 'string' && typed.length > VOICE_INTERVIEW_LIMITS.MAX_TYPED_ANSWER_CHARS) {
+    throw new HttpError(400, 'INVALID_INPUT', 'That answer is too long');
+  }
   if (typeof typed === 'string' && typed.trim()) {
     return typed.trim();
   }

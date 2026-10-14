@@ -60,6 +60,7 @@ export type AuthErrorCode =
   | 'AUDIO_UNSUPPORTED'
   | 'SESSION_EXPIRED'
   | 'SESSION_EXHAUSTED'
+  | 'SESSION_ACTIVE_ELSEWHERE'
   | 'INTERNAL_ERROR';
 
 export interface AuthErrorResponse {

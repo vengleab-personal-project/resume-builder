@@ -91,6 +91,11 @@ export function useTopUpLogic() {
 
         if (!res.ok) {
           const body = (await res.json().catch(() => ({}))) as { error?: string };
+          if (body.error === 'TOO_MANY_OPEN_ORDERS') {
+            setError(t.errors.tooManyOrders);
+            setStep('error');
+            return;
+          }
           throw new Error(body.error ?? String(res.status));
         }
 

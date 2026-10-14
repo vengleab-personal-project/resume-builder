@@ -87,6 +87,11 @@ model VoiceInterviewSession {
   followUpUsed Boolean @default(false)
   turnCount    Int     @default(0)
 
+  // Live tokens and rendered speech handed out for this session (the start counts as one).
+  // The debit buys one interview, not an unlimited supply of tokens for the session's
+  // lifetime, so resuming spends from this (VOICE_INTERVIEW_LIMITS.MAX_VOICE_GRANTS).
+  voiceGrantsIssued Int @default(1)
+
   status VoiceSessionStatus @default(ACTIVE)
 
   // The CoinTransaction this session was charged on, so a session that dies

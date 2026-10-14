@@ -7,6 +7,7 @@ import { getGeminiModel } from '@/server/modules/ai/clients/gemini';
 import { validateTokenLimit, truncateToTokenLimit } from '@/shared/lib/tokenCounter';
 import { validatePromptSafety, sanitizePromptInput } from '@/shared/lib/promptGuard';
 import { serverEnv } from '@/server/config/env.server';
+import { withDeadline } from '@/server/modules/ai/clients/deadline';
 
 /**
  * Extract text from uploaded file based on file type
@@ -55,7 +56,7 @@ export const parseResumeWithOpenAI = async (
 
   const sanitizedText = sanitizePromptInput(processedText);
 
-  const completion = await openaiClient.chat.completions.create({
+  const completion = await withDeadline('OpenAI', (signal) => openaiClient.chat.completions.create({
     model,
     messages: [
       { role: "system", content: SYSTEM_PROMPT },
@@ -64,7 +65,7 @@ export const parseResumeWithOpenAI = async (
     temperature: AI_CONFIG.TEMPERATURE_PARSING,
     response_format: { type: AI_CONFIG.RESPONSE_FORMAT_JSON },
     max_tokens: OPENAI_CONFIG.MAX_TOKENS,
-  });
+  }, { signal }));
 
   const content = completion.choices[0].message.content;
   if (!content) throw new Error(API_ERROR_MESSAGES.NO_CONTENT_FROM_AI);
@@ -94,14 +95,14 @@ export const parseResumeWithGemini = async (
   const geminiModel = await getGeminiModel(model);
   const prompt = `${SYSTEM_PROMPT}\n\nHere is the resume text:\n\n${sanitizedText}`;
 
-  const result = await geminiModel.generateContent({
+  const result = await withDeadline('Gemini', (signal) => geminiModel.generateContent({
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
     generationConfig: {
       temperature: AI_CONFIG.TEMPERATURE_PARSING,
       responseMimeType: "application/json",
       maxOutputTokens: AI_CONFIG.MAX_OUTPUT_TOKENS,
     },
-  });
+  }, { signal }));
 
   const response = await result.response;
   let text = response.text();

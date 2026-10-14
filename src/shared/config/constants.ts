@@ -87,6 +87,12 @@ export const VOICE_INTERVIEW_LIMITS = {
   MAX_AUDIO_SECONDS: 120,
   MAX_AUDIO_BYTES: 5 * 1024 * 1024,
   SESSION_TTL_SECONDS: 30 * 60,
+  // Live tokens / spoken questions one session may be given, counting the start. Resuming
+  // is free, so without this a single 5-coin debit bought unlimited tokens until the
+  // session expired. Past the cap the interview carries on typed, which is free and always works.
+  MAX_VOICE_GRANTS: 4,
+  // A typed answer covers one section of the CV; anything near this is not an answer.
+  MAX_TYPED_ANSWER_CHARS: 4000,
 } as const;
 
 export const VOICE_AUDIO = {
@@ -126,6 +132,25 @@ export const GEMINI_MODEL_IDS = {
 export const DEFAULT_AI_CONFIG = {
   PROVIDER: AI_PROVIDERS.GOOGLE,
   MODEL: GEMINI_MODEL_IDS.FLASH_PREVIEW_3_8,
+} as const;
+
+/**
+ * Bounds on what the AI routes accept and how long they wait. Each paid call is charged
+ * up front, so an unbounded body or an unbounded wait is a cost (or a lost refund), not
+ * just a resource, problem.
+ */
+export const AI_REQUEST_LIMITS = {
+  // Under the 60s `maxDuration` in vercel.json, leaving room for the refund and the response.
+  DEADLINE_MS: 50_000,
+  MAX_UPLOAD_BYTES: 10 * 1024 * 1024,
+  // Pasted resume / job-description text. Far above any real CV; the model input is
+  // token-limited separately (MAX_AI_TOKENS).
+  MAX_TEXT_CHARS: 200_000,
+  // A resume sent for evaluation, and stored with the result as a snapshot.
+  MAX_RESUME_JSON_BYTES: 512 * 1024,
+  MAX_INSTRUCTION_CHARS: 4_000,
+  MAX_REFINE_CONTENT_CHARS: 100_000,
+  MAX_SCHEMA_CHARS: 20_000,
 } as const;
 
 export const FILE_LIMITS = {
@@ -253,6 +278,7 @@ export const API_ERROR_MESSAGES = {
 export const HTTP_STATUS = {
   OK: 200,
   BAD_REQUEST: 400,
+  PAYLOAD_TOO_LARGE: 413,
   INTERNAL_SERVER_ERROR: 500,
 } as const;
 

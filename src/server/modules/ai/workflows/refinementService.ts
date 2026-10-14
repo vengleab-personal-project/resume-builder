@@ -5,6 +5,7 @@ import { getGeminiModel } from '@/server/modules/ai/clients/gemini';
 import { validateTokenLimit, truncateToTokenLimit } from '@/shared/lib/tokenCounter';
 import { validatePromptSafety, sanitizePromptInput } from '@/shared/lib/promptGuard';
 import { serverEnv } from '@/server/config/env.server';
+import { withDeadline } from '@/server/modules/ai/clients/deadline';
 
 interface RefinementRequest {
   instruction: string;
@@ -16,19 +17,6 @@ interface RefinementResponse {
   result?: string;
   [key: string]: any;
 }
-
-// Deliberately under vercel.json's 60s maxDuration for this route. At 60s there
-// was no headroom: a timing-out AI call would be killed by the platform before
-// withCoinDeduction's compensating refund could be written, silently keeping the
-// user's coins.
-const AI_TIMEOUT_MS = 50_000;
-
-const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number, providerName: string): Promise<T> => {
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(() => reject(new Error(`${providerName} request timed out after ${timeoutMs}ms`)), timeoutMs);
-  });
-  return Promise.race([promise, timeoutPromise]);
-};
 
 /**
  * Refine content using Gemini
@@ -60,7 +48,7 @@ export const refineWithGemini = async (
   }`;
 
   const startTime = Date.now();
-  const result = await withTimeout(model.generateContent(prompt), AI_TIMEOUT_MS, "Gemini");
+  const result = await withDeadline("Gemini", (signal) => model.generateContent(prompt, { signal }));
   const response = await result.response;
   const text = response.text();
   console.log(`Gemini Response received in ${Date.now() - startTime}ms`);
@@ -104,7 +92,7 @@ export const refineWithOpenAI = async (
 
   console.log(`OpenAI Request: model=${modelId} isJson=${isJson}`);
   const startTime = Date.now();
-  const completion = await withTimeout(openaiClient.chat.completions.create({
+  const completion = await withDeadline("OpenAI", (signal) => openaiClient.chat.completions.create({
     model: modelId,
     messages: [
       { role: "system", content: sanitizedPrompt },
@@ -120,7 +108,7 @@ export const refineWithOpenAI = async (
       ? { type: AI_CONFIG.RESPONSE_FORMAT_JSON } 
       : { type: AI_CONFIG.RESPONSE_FORMAT_TEXT },
     max_tokens: OPENAI_CONFIG.MAX_TOKENS,
-  }), 30000, "OpenAI");
+  }, { signal }));
 
   const result = completion.choices[0].message.content;
   console.log(`OpenAI Response received in ${Date.now() - startTime}ms`);
