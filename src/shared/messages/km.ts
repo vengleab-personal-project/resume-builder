@@ -379,6 +379,7 @@ const km: typeof en = {
             RATE_LIMITED: "ព្យាយាមច្រើនដងពេក។ សូមព្យាយាមម្តងទៀតក្នុងពេលបន្តិចទៀត។",
             ACCOUNT_DISABLED: "គណនីនេះត្រូវបានផ្អាក។",
             PASSWORD_ALREADY_SET: "គណនីនេះមានពាក្យសម្ងាត់រួចហើយ។",
+            REAUTH_REQUIRED: "ដើម្បីសុវត្ថិភាព សូមចេញ ហើយចូលម្ដងទៀត រួចកំណត់ពាក្យសម្ងាត់ភ្លាមៗ។",
             TELEGRAM_NOT_CONFIGURED: "ការចូលដោយ Telegram មិនអាចប្រើបានឥឡូវនេះទេ។",
             TELEGRAM_INVALID_SIGNATURE: "យើងមិនអាចផ្ទៀងផ្ទាត់ការចូល Telegram នោះបានទេ។ សូមព្យាយាមម្តងទៀត។",
             TELEGRAM_EXPIRED: "ការចូល Telegram នោះបានផុតកំណត់។ សូមព្យាយាមម្តងទៀត។",

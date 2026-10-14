@@ -56,6 +56,16 @@ export const RESERVED_USERNAMES: readonly string[] = [
 export const LOGIN_RATE_LIMIT_MAX_FAILURES = 5;
 export const LOGIN_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 
+// Signup hashes a password with argon2 and grants free coins, so it is throttled per IP.
+// Generous, because many people share one address behind a mobile carrier's NAT.
+export const SIGNUP_RATE_LIMIT_MAX = 10;
+export const SIGNUP_RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
+export const SIGNUP_ATTEMPT_IDENTIFIER = 'signup';
+
+// A first password (an account with none, i.e. Telegram-only) can only be set by a session
+// that signed in recently: it is proof of the sign-in itself, not just of a cookie.
+export const FIRST_PASSWORD_MAX_SESSION_AGE_SECONDS = 10 * 60;
+
 // Telegram's auth_date replay window.
 export const TELEGRAM_AUTH_MAX_AGE_SECONDS = 300;
 

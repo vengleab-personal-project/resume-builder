@@ -43,6 +43,8 @@ export interface SessionSubject {
   username: string;
   role: Role;
   tokenVersion: number;
+  /** Unix seconds of the real sign-in. Defaults to now; a refresh passes the original. */
+  authenticatedAt?: number;
 }
 
 export async function signSession(subject: SessionSubject): Promise<string> {
@@ -53,6 +55,7 @@ export async function signSession(subject: SessionSubject): Promise<string> {
     usr: subject.username,
     rol: subject.role,
     tv: subject.tokenVersion,
+    aat: subject.authenticatedAt ?? issuedAt,
   })
     .setProtectedHeader({ alg: JWT_ALGORITHM })
     .setSubject(subject.id)
@@ -69,7 +72,7 @@ export async function verifySession(token: string | undefined | null): Promise<S
       algorithms: [JWT_ALGORITHM],
     });
 
-    const { sub, usr, rol, tv, iat, exp } = payload as Record<string, unknown>;
+    const { sub, usr, rol, tv, iat, exp, aat } = payload as Record<string, unknown>;
 
     if (
       typeof sub !== 'string' ||
@@ -82,7 +85,7 @@ export async function verifySession(token: string | undefined | null): Promise<S
       return null;
     }
 
-    return { sub, usr, rol, tv, iat, exp };
+    return { sub, usr, rol, tv, iat, exp, aat: typeof aat === 'number' ? aat : undefined };
   } catch {
     return null;
   }
@@ -101,6 +104,9 @@ export function claimsToSubject(claims: SessionClaims): SessionSubject {
     username: claims.usr,
     role: claims.rol,
     tokenVersion: claims.tv,
+    // A cookie from before `aat` existed keeps reading as "signed in long ago": a refresh
+    // must never turn it into a fresh sign-in.
+    authenticatedAt: claims.aat ?? 0,
   };
 }
 

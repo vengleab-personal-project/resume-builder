@@ -23,6 +23,19 @@ export const SHARE_PASSCODE_MAX_LENGTH = 64;
 export const SHARE_UNLOCK_MAX_FAILURES_PER_IP = 5;
 export const SHARE_UNLOCK_MAX_FAILURES_PER_LINK = 30;
 export const SHARE_UNLOCK_WINDOW_MS = 15 * 60 * 1000;
+/**
+ * Wrong guesses one visitor may make across ALL links in the window. The per-link limit
+ * only covers a link that exists; this one also covers probing for codes, which is why an
+ * unknown code is recorded as a failure too.
+ */
+export const SHARE_UNLOCK_MAX_FAILURES_PER_IP_ANY_LINK = 20;
+/**
+ * Share attempts live on the login limiter's table under `share:<linkId>`. Login's own
+ * counters must never include them, and a login must never clear them.
+ */
+export const SHARE_ATTEMPT_PREFIX = 'share:';
+/** Identifier for an unlock attempt on a code that is not a live passcode link. */
+export const SHARE_UNKNOWN_ATTEMPT = `${SHARE_ATTEMPT_PREFIX}unknown`;
 
 /** Sent on every /s/ response (next.config.ts) and asserted by the page metadata. */
 export const SHARE_ROBOTS_HEADER =

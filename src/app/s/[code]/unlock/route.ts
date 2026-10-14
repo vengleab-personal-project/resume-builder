@@ -6,6 +6,8 @@ import { getClientIp, hashIp } from '@/server/modules/auth/rateLimit';
 import { signShareUnlock } from '@/server/modules/auth/session';
 import {
   assertUnlockAllowed,
+  assertUnlockProbeAllowed,
+  recordUnknownUnlockAttempt,
   recordUnlockAttempt,
   resolveShareLink,
 } from '@/server/modules/share/publicShare';
@@ -31,15 +33,19 @@ export const POST = withErrorHandling(async (req: NextRequest, context: RouteCon
   const parsed = unlockShareSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) throw new HttpError(400, 'INVALID_INPUT', 'Invalid passcode');
 
+  // First, before any hashing: this endpoint is public, and argon2 is the expensive part.
+  const ipHash = hashIp(getClientIp(req));
+  await assertUnlockProbeAllowed(ipHash);
+
   const link = await resolveShareLink(code);
   if (!link || link.access !== 'PASSCODE') {
     // Same cost and same answer as a real link, so the endpoint cannot be used to
-    // find out which codes exist.
+    // find out which codes exist - and counted, so it cannot be used to search for them.
     await fakeVerify(parsed.data.passcode);
+    await recordUnknownUnlockAttempt(ipHash);
     throw new HttpError(404, 'NOT_FOUND', 'Not found');
   }
 
-  const ipHash = hashIp(getClientIp(req));
   await assertUnlockAllowed(link.id, ipHash);
 
   const ok = await verifyPassword(parsed.data.passcode, link.passcodeHash);

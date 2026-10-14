@@ -1,3 +1,4 @@
+import { sanitizeResumeData } from '@/server/modules/resumes/resumeSanitizer';
 import 'server-only';
 import { Prisma, type ResumeShareLink } from '@/server/db/generated/prisma';
 import { prisma } from '@/server/db/prisma';
@@ -72,6 +73,11 @@ export async function listShareLinks(userId: string, resumeId: string): Promise<
 const isUniqueViolation = (error: unknown) =>
   error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002';
 
+// A frozen copy outlives later edits and cleaning rules, so it is cleaned as it is taken
+// (a resume saved before write-side cleaning existed may still hold markup).
+const snapshotDataOf = (data: unknown) =>
+  sanitizeResumeData(data as Record<string, unknown>) as Prisma.InputJsonValue;
+
 export async function createShareLink(
   userId: string,
   resumeId: string,
@@ -89,7 +95,7 @@ export async function createShareLink(
   const snapshot =
     input.content === 'SNAPSHOT'
       ? {
-          snapshotData: resume.data as Prisma.InputJsonValue,
+          snapshotData: snapshotDataOf(resume.data),
           snapshotSectionOrder: resume.sectionOrder as Prisma.InputJsonValue,
           snapshotTheme: resume.theme as Prisma.InputJsonValue,
           snapshotAt: new Date(),
@@ -146,7 +152,7 @@ export async function updateShareLink(
       throw new HttpError(400, 'INVALID_INPUT', 'This link shows the live resume');
     }
     const resume = await requireOwnedResume(userId, link.resumeId);
-    data.snapshotData = resume.data as Prisma.InputJsonValue;
+    data.snapshotData = snapshotDataOf(resume.data);
     data.snapshotSectionOrder = resume.sectionOrder as Prisma.InputJsonValue;
     data.snapshotTheme = resume.theme as Prisma.InputJsonValue;
     data.snapshotAt = new Date();

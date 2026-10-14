@@ -26,6 +26,12 @@ export interface SessionClaims {
   tv: number;
   iat: number;
   exp: number;
+  /**
+   * When the person actually signed in (login, signup, Telegram). Unlike `iat` it survives
+   * a silent refresh of the cookie, so it can answer "did they just prove who they are?".
+   * Absent on cookies issued before it existed, which reads as "not recently".
+   */
+  aat?: number;
 }
 
 export type AuthErrorCode =
@@ -37,6 +43,7 @@ export type AuthErrorCode =
   | 'RATE_LIMITED'
   | 'ACCOUNT_DISABLED'
   | 'PASSWORD_ALREADY_SET'
+  | 'REAUTH_REQUIRED'
   | 'TELEGRAM_NOT_CONFIGURED'
   | 'TELEGRAM_INVALID_SIGNATURE'
   | 'TELEGRAM_EXPIRED'

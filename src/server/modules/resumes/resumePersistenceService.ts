@@ -5,6 +5,7 @@ import type { BasicResumeDTO, ResumeDTO, ResumeSummary } from '@/shared/types/pe
 import type { ResumeData, ThemeConfig } from '@/shared/types';
 import type { BasicResumeData } from '@/shared/types/basic-resume';
 import { syncProfileFromResume } from '@/server/modules/profile/profileSync';
+import { sanitizeResumeData } from './resumeSanitizer';
 
 export const RESUME_SUMMARY_SELECT = {
   id: true,
@@ -116,6 +117,18 @@ export async function listOwnedResumes(
   return rows.map(toResumeSummary);
 }
 
+/**
+ * A FULL resume's `data` as it may be stored: its HTML and URL fields cleaned (see
+ * `resumeSanitizer`). A BASIC resume's `data` is a different shape, checked by its own
+ * schema, and is left alone.
+ */
+function storableData<T extends Prisma.InputJsonValue | undefined>(kind: ResumeKind, data: T): T {
+  if (kind !== 'FULL' || data === undefined || typeof data !== 'object' || data === null || Array.isArray(data)) {
+    return data;
+  }
+  return sanitizeResumeData(data as Record<string, unknown>) as T;
+}
+
 export interface ResumeCreateInput {
   title: string;
   kind: ResumeKind;
@@ -136,7 +149,8 @@ export async function createResume(
   userId: string,
   input: ResumeCreateInput
 ): Promise<ResumeFullRow> {
-  const { title, kind, data, sectionOrder, theme, isDefault } = input;
+  const { title, kind, sectionOrder, theme, isDefault } = input;
+  const data = storableData(kind, input.data);
 
   // The first resume of a kind a user ever creates is that kind's default, so
   // the sync hook always has something to hydrate from without a separate
@@ -205,7 +219,8 @@ async function runVersionedUpdate(
   expectedVersion: number,
   patch: ResumePatch
 ): Promise<number> {
-  const { isDefault, ...rest } = patch;
+  const { isDefault, ...unsafeRest } = patch;
+  const rest = { ...unsafeRest, data: storableData(kind, unsafeRest.data) };
 
   return prisma.$transaction(async (tx) => {
     // Promoting to default has to demote the previous one in the same

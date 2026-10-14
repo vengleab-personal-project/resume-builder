@@ -1,56 +1,68 @@
 import DOMPurify from 'dompurify';
 
-const ALLOWED_TAGS = [
-  'p', 'br', 'strong', 'em', 'u', 'ol', 'ul', 'li', 'span', 'div',
-  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'a', 'blockquote'
-];
+import {
+  RICH_TEXT_ALLOWED_ATTR,
+  RICH_TEXT_ALLOWED_TAGS,
+  RICH_TEXT_CLASS_PREFIX,
+  RICH_TEXT_LINK_SCHEMES,
+} from '@/shared/config/rich-text';
 
-const ALLOWED_ATTR = ['href', 'target', 'rel', 'class', 'style'];
+const ALLOWED_URI = new RegExp(`^(?:${RICH_TEXT_LINK_SCHEMES.join('|')}):`, 'i');
 
+let hooked = false;
+
+const installHooks = () => {
+  if (hooked) return;
+  hooked = true;
+
+  DOMPurify.addHook('uponSanitizeAttribute', (_node, data) => {
+    if (data.attrName !== 'class') return;
+    data.attrValue = data.attrValue
+      .split(/\s+/)
+      .filter((name) => name.startsWith(RICH_TEXT_CLASS_PREFIX))
+      .join(' ');
+    if (!data.attrValue) data.keepAttr = false;
+  });
+
+  // A link a viewer clicks must not be able to reach back into the page that opened it.
+  DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+    if (node.tagName === 'A' && node.hasAttribute('href')) {
+      node.setAttribute('target', '_blank');
+      node.setAttribute('rel', 'noopener noreferrer');
+    }
+  });
+};
+
+const hasDom = () => typeof window !== 'undefined';
+
+/**
+ * Editor HTML made safe to render with `dangerouslySetInnerHTML`.
+ *
+ * Without a DOM (a server render) it fails closed: tags are dropped and only the text
+ * is kept, never the input unchanged. User content is not server-rendered today (the
+ * share page fetches it in the browser), so this is the safe answer if that ever changes.
+ */
 export const sanitizeHTML = (dirty: string): string => {
-  if (typeof window === 'undefined') {
-    return dirty;
-  }
+  if (!hasDom()) return stripTags(dirty);
+  installHooks();
 
-  const clean = DOMPurify.sanitize(dirty, {
-    ALLOWED_TAGS,
-    ALLOWED_ATTR,
+  return DOMPurify.sanitize(dirty, {
+    ALLOWED_TAGS: RICH_TEXT_ALLOWED_TAGS,
+    ALLOWED_ATTR: RICH_TEXT_ALLOWED_ATTR,
+    ALLOWED_URI_REGEXP: ALLOWED_URI,
     KEEP_CONTENT: true,
     RETURN_TRUSTED_TYPE: false,
   });
-
-  return clean;
 };
+
+const stripTags = (html: string) => html.replace(/<[^>]*>/g, '');
 
 export const stripHTML = (html: string): string => {
-  if (typeof window === 'undefined') {
-    return html.replace(/<[^>]*>/g, '');
-  }
+  if (!hasDom()) return stripTags(html);
 
-  const clean = DOMPurify.sanitize(html, {
+  return DOMPurify.sanitize(html, {
     ALLOWED_TAGS: [],
     KEEP_CONTENT: true,
+    RETURN_TRUSTED_TYPE: false,
   });
-
-  return clean;
-};
-
-export const sanitizeResumeData = (data: unknown): unknown => {
-  if (typeof data === 'string') {
-    return sanitizeHTML(data);
-  }
-
-  if (Array.isArray(data)) {
-    return data.map(sanitizeResumeData);
-  }
-
-  if (typeof data === 'object' && data !== null) {
-    const sanitized: Record<string, unknown> = {};
-    for (const key in data) {
-      sanitized[key] = sanitizeResumeData((data as Record<string, unknown>)[key]);
-    }
-    return sanitized;
-  }
-
-  return data;
 };

@@ -377,6 +377,7 @@ const en = {
             RATE_LIMITED: "Too many attempts. Please try again in a few minutes.",
             ACCOUNT_DISABLED: "This account has been disabled.",
             PASSWORD_ALREADY_SET: "A password is already set for this account.",
+            REAUTH_REQUIRED: "For your security, sign out and sign in again, then set your password right away.",
             TELEGRAM_NOT_CONFIGURED: "Telegram sign-in is not available right now.",
             TELEGRAM_INVALID_SIGNATURE: "We could not verify that Telegram login. Please try again.",
             TELEGRAM_EXPIRED: "That Telegram login expired. Please try again.",

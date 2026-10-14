@@ -1,7 +1,7 @@
 import 'server-only';
 import { cookies } from 'next/headers';
 import { SESSION_COOKIE_NAME } from '@/shared/config/auth';
-import { getSessionTtlSeconds, signSession, type SessionSubject } from './session';
+import { getSessionTtlSeconds, signSession, verifySession, type SessionSubject } from './session';
 
 function baseCookieOptions() {
   return {
@@ -15,6 +15,12 @@ function baseCookieOptions() {
 export async function readSessionToken(): Promise<string | undefined> {
   const store = await cookies();
   return store.get(SESSION_COOKIE_NAME)?.value;
+}
+
+/** Unix seconds of this session's real sign-in; 0 when unknown (an older cookie). */
+export async function readSessionAuthenticatedAt(): Promise<number> {
+  const claims = await verifySession(await readSessionToken());
+  return claims?.aat ?? 0;
 }
 
 export async function issueSessionCookie(subject: SessionSubject): Promise<void> {

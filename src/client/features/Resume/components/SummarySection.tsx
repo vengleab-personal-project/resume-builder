@@ -1,4 +1,4 @@
-import { preserveHyphenatedWords } from "@/shared/lib/htmlUtils";
+import { RichText } from "./RichText";
 
 type SummarySectionProps = {
   summary: string;
@@ -10,9 +10,10 @@ export const SummarySection = ({ summary, title }: SummarySectionProps) => (
     <h2 className="text-lg font-bold uppercase tracking-[0.2em] mb-4 text-slate-800">
       {title}
     </h2>
-    <div
+    <RichText
+      html={summary}
+      preserveHyphens
       className="text-sm leading-7 text-slate-600 prose prose-sm max-w-none"
-      dangerouslySetInnerHTML={{ __html: preserveHyphenatedWords(summary) }}
     />
   </section>
 );

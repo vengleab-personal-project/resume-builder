@@ -2,7 +2,7 @@ import React from 'react'
 import { GraduationCap } from 'lucide-react';
 
 import { Education } from '@/shared/types'
-import { normalizeHtmlSpaces } from '@/shared/lib/htmlUtils'
+import { RichText } from './RichText'
 
 import { MainSectionHeading } from './SectionHeading'
 
@@ -43,7 +43,7 @@ export const EducationSection = ({ education, primaryColor, title }: EducationSe
 
             {edu.description && (
               <div className="text-sm text-slate-500 font-medium mt-1">
-                <span dangerouslySetInnerHTML={{ __html: normalizeHtmlSpaces(edu.description) }} />
+                <RichText inline html={edu.description} />
               </div>
             )}
           </div>

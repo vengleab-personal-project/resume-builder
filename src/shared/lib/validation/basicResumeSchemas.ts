@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { BASIC_RESUME_SCHEMA_VERSION } from '@/shared/lib/basic-resume';
+import { safePhotoUrl } from '@/shared/lib/safeUrl';
 import { resumeTitleSchema } from '@/shared/lib/validation/resumeSchemas';
 
 // Unlike ResumeData -- which is deliberately not re-declared in zod because it is
@@ -51,7 +52,8 @@ export const basicResumeSchema = z.object({
     phone: text,
     email: text.optional(),
   }),
-  photoUrl: text.optional(),
+  // Only a downscaled data URL is kept; a remote URL would report every view of the CV.
+  photoUrl: text.transform(safePhotoUrl).optional(),
   personal: basicPersonalDataSchema,
   education: z.array(basicEducationEntrySchema),
   experience: z.array(basicExperienceEntrySchema),

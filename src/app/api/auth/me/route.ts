@@ -21,6 +21,7 @@ export const GET = withErrorHandling(async () => {
       username: user.username,
       role: user.role,
       tokenVersion: claims.tv,
+      authenticatedAt: claims.aat ?? 0,
     });
   }
 

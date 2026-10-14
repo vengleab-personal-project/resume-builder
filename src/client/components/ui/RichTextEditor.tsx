@@ -131,7 +131,10 @@ const RichTextEditorComponent = ({
   }, []);
 
   const handleApply = useCallback(
-    (newValue: string, mode: "replace" | "amend") => {
+    (aiValue: string, mode: "replace" | "amend") => {
+      // Model output is untrusted (a prompt-injected upload can steer it), and unlike
+      // typing it does not pass through handleChange.
+      const newValue = sanitizeHTML(aiValue);
       if (mode === "replace") {
         setLocalValue(newValue);
         onChangeRef.current(newValue);

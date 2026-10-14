@@ -33,7 +33,8 @@ npm run db:studio             # prisma studio
 npm run db:seed               # prisma db seed -> tsx prisma/seed.ts (idempotent, seeds admin user + fallback AI config)
 ```
 
-There is no test suite/framework configured in this repo. `scripts/verify-coin-concurrency.ts`
+`npm test` runs Vitest over `tests/` — the pure modules only (sanitizers, URL rules); there is no
+CI yet and no component or API test harness. `scripts/verify-coin-concurrency.ts`
 is a standalone, manually-run script (not wired to `npm test`) that stress-tests
 coin-deduction and payment-settlement concurrency against a throwaway Postgres
 instance — see the header comment in that file for the exact run steps
@@ -157,7 +158,9 @@ never by patching client stores:
   `resumeData` that is not a user edit.
 - **Photos** are downscaled in the browser (`client/lib/image.ts`) to a JPEG data URL under
   `PROFILE_PHOTO_MAX_LENGTH`; the profile schema accepts only `data:image/(png|jpeg|webp)` URLs or
-  `''`, since the value is written into resume JSON and rendered by the templates. A legacy
+  `''`, since the value is written into resume JSON and rendered by the templates. Resume writes
+  enforce the same rule (`safePhotoUrl`; a non-data photo is blanked, not rejected, so an autosave
+  never fails over it) and so does the BASIC schema. A legacy
   oversize photo already on a resume is skipped by the sync rather than failing the save.
 
 ### Share links — public, per-link on/off, code or passcode (`ResumeShareLink`, `/s/<code>`)
@@ -176,11 +179,29 @@ and **LIVE** (current resume) or **SNAPSHOT** (copy taken at creation, refreshed
   `X-Share-Client` header and a same-origin Fetch-Metadata request. Keep the page's query
   minimal: Next's **dev** server embeds server-side query results in the HTML for its tooling,
   so selecting the resume there put the CV (and the passcode hash) in the page source.
+- **Stored resume HTML and URLs are untrusted.** `data` is an opaque JSON column and the API accepts
+  any string, so a CV can hold `<img onerror>` or a `javascript:` link no matter what the editor
+  produces — and the share page shows it to people who did not write it, on the app's origin
+  (`SameSite=Lax` cookies ride along). Two layers, one allow-list (`shared/config/rich-text.ts`):
+  `RichText` is the **only** place resume HTML reaches `dangerouslySetInnerHTML`, and it sanitizes at
+  render (`shared/lib/sanitize.ts`, DOMPurify; with no DOM it strips tags rather than pass input
+  through); and `storableData` in `resumePersistenceService` cleans FULL resume `data` on every
+  create/update (`server/modules/resumes/resumeSanitizer.ts`, `sanitize-html`) and share snapshots as
+  they are taken. Only HTML fields (summary, experience/education descriptions, trainings) are
+  sanitized — plain text such as "R&D" must not be HTML-escaped. Links go through `safeUrl`
+  (`http`, `https`, `mailto` only); photos must be `data:image/(png|jpeg|webp)` (`safePhotoUrl`),
+  because a remote `<img>` tells its host who opened the CV. No `style`, no non-`ql-` classes (a
+  `position: fixed` overlay is a phishing page). A new place that renders resume HTML must use
+  `RichText`; a new HTML or URL field must be added to `resumeSanitizer`.
 - **Passcodes**: `/s/<code>/unlock` sets `rb_share_unlock`, a jose JWT with `aud: share-unlock`
   (`signShareUnlock` in `auth/session.ts`), `httpOnly`, `sameSite=strict`, **path `/s/<code>`** so
   it opens that link only. It carries `passcodeVersion`; changing the passcode bumps it and kills
   old unlocks. Wrong attempts are throttled on the `AuthAttempt` table (`share:<linkId>`): per IP
-  per link and per link overall.
+  per link and per link overall, plus one visitor's failures across *all* links (an unknown code is
+  recorded as a failure too, so probing for codes is throttled) — all checked before any argon2
+  work. Login's counters exclude `share:` identifiers and `clearFailedAttempts` clears by identifier
+  only, never by IP: clearing by IP once let anyone with an account of their own reset the
+  counters every few guesses.
 - **Crawlers**: `isBlockedCrawler` (`shared/config/share.ts`, Edge-safe) makes middleware 404 known
   AI/search agents and empty user agents on `/s/*`; `next.config.ts` adds `X-Robots-Tag`
   (noindex/noai), `no-store`, `Referrer-Policy: no-referrer` (the code must not leak via Referer
@@ -375,6 +396,12 @@ Two more conventions worth keeping:
   Prisma or any `server-only` module. It only does a fast-path redirect for protected routes
   (`PROTECTED_PATH_PREFIXES` in `shared/config/auth.ts`) and a UX-only admin-path check from the
   JWT's stale `rol` claim.
+- The session JWT carries `aat` (the real sign-in time), which survives the silent cookie refresh
+  (`iat` does not). A Telegram-only account may set its first password only if `aat` is within
+  `FIRST_PASSWORD_MAX_SESSION_AGE_SECONDS` (`REAUTH_REQUIRED` otherwise): that route cannot ask for a
+  current password, and a cookie alone must not be enough to attach a permanent way in. A cookie with
+  no `aat` counts as "long ago", including after a refresh. Signup is throttled per IP before its
+  argon2 hash (it also grants coins). The cron route takes `Authorization: Bearer` only.
 - The real authorization gate is always `requireUser()` / `requireAdmin()`
   (`server/modules/auth/guards.ts`), which re-reads the role from Postgres on every call — a
   demoted admin loses access immediately, without waiting for their cookie to expire.

@@ -1,6 +1,7 @@
 import { ExternalLink } from 'lucide-react'
 
 import { Publication } from '@/shared/types'
+import { safeUrl } from '@/shared/lib/safeUrl'
 
 import { SidebarSectionHeading } from './SectionHeading'
 
@@ -18,9 +19,9 @@ export const PublicationsSection = ({ publications, title, viewLabel }: Publicat
         <li key={idx} className="flex flex-col">
           <span className="font-semibold">{pub.title}</span>
           {pub.date && <span className="text-[10px] opacity-75">{pub.date}</span>}
-          {pub.link && (
+          {safeUrl(pub.link) && (
             <a
-              href={pub.link}
+              href={safeUrl(pub.link)}
               target="_blank"
               className="text-[10px] underline opacity-80 flex items-center gap-1 mt-0.5 hover:text-blue-600"
               rel="noreferrer"

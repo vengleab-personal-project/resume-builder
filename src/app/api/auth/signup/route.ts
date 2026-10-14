@@ -5,6 +5,12 @@ import { PUBLIC_USER_SELECT, toPublicUser } from '@/server/modules/auth/getCurre
 import { assertSameOrigin } from '@/server/modules/auth/guards';
 import { HttpError, withErrorHandling } from '@/server/errors';
 import { hashPassword } from '@/server/modules/auth/password';
+import {
+  assertSignupAllowed,
+  getClientIp,
+  hashIp,
+  recordSignupAttempt,
+} from '@/server/modules/auth/rateLimit';
 import { isUniqueViolation } from '@/server/modules/auth/telegramAccount';
 import { signupSchema } from '@/shared/lib/validation/authSchemas';
 import { grantSignupBonus } from '@/server/modules/billing/coinService';
@@ -26,6 +32,11 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       })),
     });
   }
+
+  // Before the argon2 hash, which is the expensive part, and counted for every attempt.
+  const ipHash = hashIp(getClientIp(req));
+  await assertSignupAllowed(ipHash);
+  await recordSignupAttempt(ipHash);
 
   const { username, password, displayName } = parsed.data;
   const passwordHash = await hashPassword(password);

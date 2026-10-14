@@ -4,7 +4,10 @@ import { recordAuthAttempt } from '@/server/modules/auth/rateLimit';
 import { verifyShareUnlock } from '@/server/modules/auth/session';
 import { HttpError } from '@/server/errors';
 import {
+  SHARE_ATTEMPT_PREFIX,
+  SHARE_UNKNOWN_ATTEMPT,
   SHARE_UNLOCK_MAX_FAILURES_PER_IP,
+  SHARE_UNLOCK_MAX_FAILURES_PER_IP_ANY_LINK,
   SHARE_UNLOCK_MAX_FAILURES_PER_LINK,
   SHARE_UNLOCK_WINDOW_MS,
 } from '@/shared/config/share';
@@ -73,7 +76,7 @@ export async function recordShareView(linkId: string): Promise<void> {
   }
 }
 
-const attemptIdentifier = (linkId: string) => `share:${linkId}`;
+const attemptIdentifier = (linkId: string) => `${SHARE_ATTEMPT_PREFIX}${linkId}`;
 
 /**
  * Wrong-passcode throttling, on the login limiter's table. Two limits: one visitor
@@ -100,6 +103,34 @@ export async function assertUnlockAllowed(linkId: string, ipHash: string | null)
     console.error('Share unlock rate limit check failed, allowing request:', error);
   }
 }
+
+/**
+ * One visitor's wrong guesses across every link, checked before any password hashing so
+ * that probing for codes (or hammering a link) cannot be used to burn CPU for free.
+ */
+export async function assertUnlockProbeAllowed(ipHash: string | null): Promise<void> {
+  if (!ipHash) return;
+  try {
+    const failures = await prisma.authAttempt.count({
+      where: {
+        ipHash,
+        successful: false,
+        identifier: { startsWith: SHARE_ATTEMPT_PREFIX },
+        createdAt: { gte: new Date(Date.now() - SHARE_UNLOCK_WINDOW_MS) },
+      },
+    });
+    if (failures >= SHARE_UNLOCK_MAX_FAILURES_PER_IP_ANY_LINK) {
+      throw new HttpError(429, 'RATE_LIMITED', 'Too many attempts. Try again later.');
+    }
+  } catch (error) {
+    if (error instanceof HttpError) throw error;
+    console.error('Share probe rate limit check failed, allowing request:', error);
+  }
+}
+
+/** An unlock attempt on a code that is not a live passcode link: counts as a failure. */
+export const recordUnknownUnlockAttempt = (ipHash: string | null) =>
+  recordAuthAttempt(SHARE_UNKNOWN_ATTEMPT, ipHash, false);
 
 export const recordUnlockAttempt = (linkId: string, ipHash: string | null, successful: boolean) =>
   recordAuthAttempt(attemptIdentifier(linkId), ipHash, successful);

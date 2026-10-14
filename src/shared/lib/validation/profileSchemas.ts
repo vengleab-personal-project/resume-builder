@@ -4,6 +4,7 @@ import {
   PROFILE_PHOTO_MAX_LENGTH,
   type ProfileField,
 } from '@/shared/lib/profile';
+import { isDataImageUrl } from '@/shared/lib/safeUrl';
 
 // Messages are i18n keys, like authSchemas: the client resolves them against
 // src/shared/messages/*.
@@ -38,7 +39,7 @@ const email = z
 const photo = z
   .string()
   .max(PROFILE_PHOTO_MAX_LENGTH, { error: PROFILE_VALIDATION_KEYS.PHOTO_TOO_LARGE })
-  .refine((value) => value === '' || /^data:image\/(png|jpe?g|webp);base64,/.test(value), {
+  .refine((value) => value === '' || isDataImageUrl(value), {
     error: PROFILE_VALIDATION_KEYS.PHOTO_INVALID,
   });
 
