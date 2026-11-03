@@ -4,6 +4,8 @@ import { prisma } from '@/server/db/prisma';
 import type { BasicResumeDTO, ResumeDTO, ResumeSummary } from '@/shared/types/persistence';
 import type { ResumeData, ThemeConfig } from '@/shared/types';
 import type { BasicResumeData } from '@/shared/types/basic-resume';
+import { syncProfileFromResume } from '@/server/modules/profile/profileSync';
+import { sanitizeResumeData } from './resumeSanitizer';
 
 export const RESUME_SUMMARY_SELECT = {
   id: true,
@@ -115,6 +117,18 @@ export async function listOwnedResumes(
   return rows.map(toResumeSummary);
 }
 
+/**
+ * A FULL resume's `data` as it may be stored: its HTML and URL fields cleaned (see
+ * `resumeSanitizer`). A BASIC resume's `data` is a different shape, checked by its own
+ * schema, and is left alone.
+ */
+function storableData<T extends Prisma.InputJsonValue | undefined>(kind: ResumeKind, data: T): T {
+  if (kind !== 'FULL' || data === undefined || typeof data !== 'object' || data === null || Array.isArray(data)) {
+    return data;
+  }
+  return sanitizeResumeData(data as Record<string, unknown>) as T;
+}
+
 export interface ResumeCreateInput {
   title: string;
   kind: ResumeKind;
@@ -135,7 +149,8 @@ export async function createResume(
   userId: string,
   input: ResumeCreateInput
 ): Promise<ResumeFullRow> {
-  const { title, kind, data, sectionOrder, theme, isDefault } = input;
+  const { title, kind, sectionOrder, theme, isDefault } = input;
+  const data = storableData(kind, input.data);
 
   // The first resume of a kind a user ever creates is that kind's default, so
   // the sync hook always has something to hydrate from without a separate
@@ -156,10 +171,18 @@ export async function createResume(
       });
     }
 
-    return tx.resume.create({
+    const created = await tx.resume.create({
       data: { userId, title, kind, data, sectionOrder, theme, isDefault: shouldBeDefault },
       select: RESUME_FULL_SELECT,
     });
+
+    // A new default is the resume the profile follows from now on, so the profile
+    // adopts its identity fields (the same re-link as promoting an existing resume).
+    if (shouldBeDefault && kind === 'FULL') {
+      await syncProfileFromResume(tx, userId, (data as { personalInfo?: unknown } | null)?.personalInfo);
+    }
+
+    return created;
   });
 }
 
@@ -196,7 +219,8 @@ async function runVersionedUpdate(
   expectedVersion: number,
   patch: ResumePatch
 ): Promise<number> {
-  const { isDefault, ...rest } = patch;
+  const { isDefault, ...unsafeRest } = patch;
+  const rest = { ...unsafeRest, data: storableData(kind, unsafeRest.data) };
 
   return prisma.$transaction(async (tx) => {
     // Promoting to default has to demote the previous one in the same
@@ -216,6 +240,25 @@ async function runVersionedUpdate(
       where: { id, userId, kind, deletedAt: null, version: expectedVersion },
       data: { ...rest, ...(isDefault !== undefined ? { isDefault } : {}), version: { increment: 1 } },
     });
+
+    // The default FULL resume and the user's profile mirror each other's identity
+    // fields. Syncing here, in the same transaction, is what makes it hold for every
+    // writer at once: autosave, the sendBeacon twin, and promoting a resume to default.
+    // Only a write that changes the document or the default needs it.
+    if (result.count === 1 && kind === 'FULL' && (patch.data !== undefined || isDefault === true)) {
+      const current = await tx.resume.findFirst({
+        where: { id, userId, isDefault: true, deletedAt: null },
+        select: { data: true },
+      });
+      if (current) {
+        await syncProfileFromResume(
+          tx,
+          userId,
+          (current.data as { personalInfo?: unknown } | null)?.personalInfo
+        );
+      }
+    }
+
     return result.count;
   });
 }

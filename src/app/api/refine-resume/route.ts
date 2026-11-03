@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { serverEnv } from '@/server/config/env.server';
-import { HTTP_STATUS, API_ERROR_MESSAGES } from "@/shared/config/constants";
+import { HTTP_STATUS, API_ERROR_MESSAGES, AI_REQUEST_LIMITS } from "@/shared/config/constants";
+import { AiTimeoutError } from "@/server/modules/ai/clients/deadline";
 import {
   refineWithGemini,
   refineWithOpenAI,
@@ -28,6 +29,20 @@ export async function POST(req: NextRequest) {
 
   try {
     const { instruction, content, schema, config } = await req.json();
+
+    // Validated before it is used as a string: a missing `instruction` used to throw on
+    // `.includes` and surface as a 500, and none of these had a size bound.
+    if (typeof instruction !== 'string' || !instruction.trim()) {
+      return NextResponse.json({ error: 'instruction is required' }, { status: HTTP_STATUS.BAD_REQUEST });
+    }
+    const contentSize = typeof content === 'string' ? content.length : JSON.stringify(content ?? '').length;
+    if (
+      instruction.length > AI_REQUEST_LIMITS.MAX_INSTRUCTION_CHARS ||
+      contentSize > AI_REQUEST_LIMITS.MAX_REFINE_CONTENT_CHARS ||
+      (schema !== undefined && JSON.stringify(schema).length > AI_REQUEST_LIMITS.MAX_SCHEMA_CHARS)
+    ) {
+      return NextResponse.json({ error: 'Input is too large' }, { status: HTTP_STATUS.PAYLOAD_TOO_LARGE });
+    }
     const isJson = instruction.includes("JSON");
 
     // The client has always sent `config`; until now it was read by nobody and
@@ -71,7 +86,7 @@ export async function POST(req: NextRequest) {
     console.error("Refine API Error:", error);
 
     const errorMessage = error instanceof Error ? error.message : String(error);
-    if (errorMessage.includes("timed out")) {
+    if (error instanceof AiTimeoutError || errorMessage.includes("timed out")) {
       return NextResponse.json(
         {
           error:

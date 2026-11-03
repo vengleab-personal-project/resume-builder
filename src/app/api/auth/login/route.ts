@@ -76,7 +76,7 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
   });
 
   await recordAuthAttempt(username, ipHash, true);
-  await clearFailedAttempts(username, ipHash);
+  await clearFailedAttempts(username);
 
   return NextResponse.json({ user: toPublicUser(user) });
 });

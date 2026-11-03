@@ -29,6 +29,16 @@ export class PaymentError extends Error {
 
 const BILL_NUMBER_PREFIX = 'RB';
 
+/** Orders a user may have waiting for payment at once (each one is a live, payable QR). */
+export const MAX_OPEN_ORDERS_PER_USER = 5;
+
+/** Reconcile checks this many orders at a time against the provider. */
+const RECONCILE_CHUNK_SIZE = 5;
+/** Stop starting new chunks after this long: the route's maxDuration is 60s. */
+const RECONCILE_BUDGET_MS = 45_000;
+/** An order verified unpaid stops being polled this long after it expired. */
+const EXPIRED_POLL_GRACE_MS = 7 * 24 * 60 * 60 * 1000;
+
 // Short enough for the KHQR bill-number tag, random enough that a collision is
 // a retry rather than a design flaw. Uniqueness is decided by the DB index.
 function generateBillNumber(): string {
@@ -137,6 +147,15 @@ export async function createPaymentOrder(params: {
     );
   }
 
+  // Each open order is a live QR that can still be paid, so they are not cancelled to make
+  // room (the oldest may be the one the user already paid). A user over the cap cancels one.
+  const open = await prisma.paymentOrder.count({
+    where: { userId: params.userId, status: 'PENDING', expiresAt: { gt: new Date() } },
+  });
+  if (open >= MAX_OPEN_ORDERS_PER_USER) {
+    throw new PaymentError(429, 'TOO_MANY_OPEN_ORDERS', 'Too many unpaid orders. Cancel one first.');
+  }
+
   const expiresAt = new Date(Date.now() + serverEnv.PAYMENT_ORDER_TTL_SECONDS * 1000);
 
   let order: PaymentOrder | null = null;
@@ -222,12 +241,37 @@ export interface SettlementResult {
  * Claim and credit share one transaction: no external call happens between
  * them, so there is no window where an order reads PAID but no coins exist.
  */
+/**
+ * Whether what the provider says was paid covers the order. Money-handling and pure, so it is
+ * the part that is tested on its own.
+ *
+ * Both the amount and its currency must be present and right. Treating a missing amount as
+ * "fine" credited the full package whenever a provider response omitted it, and comparing
+ * minor units across currencies (100 KHR vs 100 USD cents) is meaningless.
+ */
+export type SettlementDecision =
+  | { ok: true }
+  | { ok: false; reason: 'AMOUNT_UNVERIFIED' | 'AMOUNT_MISMATCH' | 'CURRENCY_MISMATCH' };
+
+export function decideSettlement(
+  order: { fiatAmountMinor: number; currency: string },
+  paid: { paidAmountMinor?: number; paidCurrency?: string }
+): SettlementDecision {
+  if (typeof paid.paidAmountMinor !== 'number' || !paid.paidCurrency) {
+    return { ok: false, reason: 'AMOUNT_UNVERIFIED' };
+  }
+  if (paid.paidCurrency !== order.currency) return { ok: false, reason: 'CURRENCY_MISMATCH' };
+  if (paid.paidAmountMinor < order.fiatAmountMinor) return { ok: false, reason: 'AMOUNT_MISMATCH' };
+  return { ok: true };
+}
+
 export async function settlePaidOrder(params: {
   orderId: string;
   providerTxnId: string | null;
   paidAmountMinor?: number;
+  paidCurrency?: string;
 }): Promise<SettlementResult> {
-  const { orderId, providerTxnId, paidAmountMinor } = params;
+  const { orderId, providerTxnId, paidAmountMinor, paidCurrency } = params;
 
   const order = await prisma.paymentOrder.findUnique({ where: { id: orderId } });
   if (!order) {
@@ -242,13 +286,25 @@ export async function settlePaidOrder(params: {
     };
   }
 
-  // Underpayment must not be settled: crediting the full package for a partial
-  // transfer is a direct loss. It is flagged for manual review, not auto-failed.
-  if (typeof paidAmountMinor === 'number' && paidAmountMinor < order.fiatAmountMinor) {
-    await prisma.paymentOrder.updateMany({
-      where: { id: order.id, status: 'PENDING' },
-      data: { status: 'FAILED', failureReason: 'AMOUNT_MISMATCH', providerTxnId },
-    });
+  // An underpayment, a wrong currency or an amount the provider did not report must not be
+  // settled: crediting the full package is a direct loss. The order is parked FAILED with the
+  // reason, which is what a manual review reads; the coins are not credited.
+  const decision = decideSettlement(order, { paidAmountMinor, paidCurrency });
+  if (!decision.ok) {
+    try {
+      await prisma.paymentOrder.updateMany({
+        where: { id: order.id, status: 'PENDING' },
+        data: { status: 'FAILED', failureReason: decision.reason, providerTxnId },
+      });
+    } catch (error) {
+      // The bank transaction is already recorded on another order. Park this one without it:
+      // the reason it was refused matters more than the reference, and a poll must not 500.
+      if (!isUniqueViolation(error, 'providerTxnId')) throw error;
+      await prisma.paymentOrder.updateMany({
+        where: { id: order.id, status: 'PENDING' },
+        data: { status: 'FAILED', failureReason: decision.reason },
+      });
+    }
     return { settled: false, alreadySettled: false, balance: null };
   }
 
@@ -315,6 +371,7 @@ async function applyProviderState(
       orderId: order.id,
       providerTxnId: result.providerTxnId ?? null,
       paidAmountMinor: result.paidAmountMinor,
+      paidCurrency: result.paidCurrency,
     });
   } else if (result.state === 'FAILED') {
     await prisma.paymentOrder.updateMany({
@@ -380,6 +437,15 @@ export async function syncPaymentOrder(params: {
     // Our credentials or the network broke -- never the user's payment. The
     // order stays PENDING so the reconcile cron can recover it.
     if (error instanceof PaymentProviderError && error.retryable) {
+      // The debounce claim above stamped lastCheckedAt, but nothing was checked. For an order
+      // that is already past its time that stamp would read as "verified unpaid after it
+      // expired", so give it back and let the next run try this order first.
+      if (order.expiresAt.getTime() < Date.now()) {
+        await prisma.paymentOrder.updateMany({
+          where: { id: order.id, status: 'PENDING' },
+          data: { lastCheckedAt: order.lastCheckedAt },
+        });
+      }
       throw new PaymentError(503, error.code, error.message);
     }
     throw error;
@@ -461,46 +527,104 @@ export async function listUserOrders(params: {
   });
 }
 
+/**
+ * Stops polling orders that were verified unpaid long ago. An order is only ever marked
+ * EXPIRED by `applyProviderState`, i.e. after the provider said "no such payment" for an
+ * order past `expiresAt`; a blanket "past its time, so expired" sweep (what this used to be)
+ * turned a payment made just before the deadline by someone who then closed the tab into a
+ * terminal EXPIRED order nobody ever checked.
+ *
+ * Prisma cannot compare two columns, hence the raw statement: only orders that were checked
+ * *after* they expired, and expired a good while ago, are dropped.
+ */
 export async function expireStaleOrders(): Promise<number> {
-  const result = await prisma.paymentOrder.updateMany({
-    where: { status: 'PENDING', expiresAt: { lt: new Date() } },
-    data: { status: 'EXPIRED' },
-  });
-  return result.count;
+  const cutoff = new Date(Date.now() - EXPIRED_POLL_GRACE_MS);
+  return prisma.$executeRaw`
+    UPDATE "PaymentOrder"
+       SET "status" = 'EXPIRED'
+     WHERE "status" = 'PENDING'
+       AND "expiresAt" < ${cutoff}
+       AND "lastCheckedAt" IS NOT NULL
+       AND "lastCheckedAt" > "expiresAt"`;
 }
 
 /**
  * Safety net for "user paid, then closed the tab". Correctness does not depend
  * on this running -- the client poll is the primary mechanism -- so it swallows
  * per-order failures and reports counts.
+ *
+ * Orders that are past their time and have not been checked since go first, so a flood of
+ * fresh orders cannot push a real one out of the batch. Checks run a few at a time under a
+ * time budget: sequentially, 25 checks at the provider's 10s timeout is far past the route's
+ * 60s limit, and being killed mid-run skipped everything after it.
  */
-export async function reconcilePendingOrders(limit = 25): Promise<{
+export async function reconcilePendingOrders(
+  limit = 25,
+  options: { now?: () => number; budgetMs?: number } = {}
+): Promise<{
   checked: number;
   settled: number;
   expired: number;
   failed: number;
+  skipped: number;
 }> {
-  const candidates = await prisma.paymentOrder.findMany({
-    where: { status: 'PENDING' },
-    orderBy: { lastCheckedAt: { sort: 'asc', nulls: 'first' } },
-    take: Math.min(Math.max(limit, 1), 100),
-    select: { id: true },
+  const now = options.now ?? Date.now;
+  const budgetMs = options.budgetMs ?? RECONCILE_BUDGET_MS;
+  const startedAt = now();
+  const take = Math.min(Math.max(limit, 1), 100);
+
+  const overdue = await prisma.paymentOrder.findMany({
+    where: {
+      status: 'PENDING',
+      expiresAt: { lt: new Date() },
+    },
+    // Checked-before-expiry (or never) first: those are the ones not yet verified as unpaid.
+    orderBy: [{ lastCheckedAt: { sort: 'asc', nulls: 'first' } }],
+    take,
+    select: { id: true, expiresAt: true, lastCheckedAt: true },
   });
+  const unverified = overdue.filter(
+    (order) => !order.lastCheckedAt || order.lastCheckedAt <= order.expiresAt
+  );
+
+  const rest =
+    unverified.length >= take
+      ? []
+      : await prisma.paymentOrder.findMany({
+          where: { status: 'PENDING', id: { notIn: unverified.map((order) => order.id) } },
+          orderBy: { lastCheckedAt: { sort: 'asc', nulls: 'first' } },
+          take: take - unverified.length,
+          select: { id: true },
+        });
+
+  const ids = [...unverified.map((order) => order.id), ...rest.map((order) => order.id)];
 
   let settled = 0;
   let failed = 0;
+  let checked = 0;
 
-  for (const candidate of candidates) {
-    try {
-      const order = await syncPaymentOrder({ orderId: candidate.id, force: true });
-      if (order.status === 'PAID') settled += 1;
-    } catch (error) {
-      failed += 1;
-      console.error(`Reconcile failed for order ${candidate.id}:`, error);
-    }
+  for (let index = 0; index < ids.length; index += RECONCILE_CHUNK_SIZE) {
+    if (now() - startedAt > budgetMs) break;
+
+    const chunk = ids.slice(index, index + RECONCILE_CHUNK_SIZE);
+    const outcomes = await Promise.allSettled(
+      chunk.map((id) => syncPaymentOrder({ orderId: id, force: true }))
+    );
+
+    outcomes.forEach((outcome, position) => {
+      checked += 1;
+      if (outcome.status === 'fulfilled') {
+        if (outcome.value.status === 'PAID') settled += 1;
+      } else {
+        failed += 1;
+        console.error(`Reconcile failed for order ${chunk[position]}:`, outcome.reason);
+      }
+    });
   }
 
+  // Orders the provider itself reported as expired were already marked by applyProviderState;
+  // this only retires ones verified unpaid a long time ago.
   const expired = await expireStaleOrders();
 
-  return { checked: candidates.length, settled, expired, failed };
+  return { checked, settled, expired, failed, skipped: ids.length - checked };
 }

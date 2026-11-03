@@ -43,6 +43,8 @@ export interface SessionSubject {
   username: string;
   role: Role;
   tokenVersion: number;
+  /** Unix seconds of the real sign-in. Defaults to now; a refresh passes the original. */
+  authenticatedAt?: number;
 }
 
 export async function signSession(subject: SessionSubject): Promise<string> {
@@ -53,6 +55,7 @@ export async function signSession(subject: SessionSubject): Promise<string> {
     usr: subject.username,
     rol: subject.role,
     tv: subject.tokenVersion,
+    aat: subject.authenticatedAt ?? issuedAt,
   })
     .setProtectedHeader({ alg: JWT_ALGORITHM })
     .setSubject(subject.id)
@@ -69,7 +72,7 @@ export async function verifySession(token: string | undefined | null): Promise<S
       algorithms: [JWT_ALGORITHM],
     });
 
-    const { sub, usr, rol, tv, iat, exp } = payload as Record<string, unknown>;
+    const { sub, usr, rol, tv, iat, exp, aat } = payload as Record<string, unknown>;
 
     if (
       typeof sub !== 'string' ||
@@ -82,7 +85,7 @@ export async function verifySession(token: string | undefined | null): Promise<S
       return null;
     }
 
-    return { sub, usr, rol, tv, iat, exp };
+    return { sub, usr, rol, tv, iat, exp, aat: typeof aat === 'number' ? aat : undefined };
   } catch {
     return null;
   }
@@ -101,5 +104,56 @@ export function claimsToSubject(claims: SessionClaims): SessionSubject {
     username: claims.usr,
     role: claims.rol,
     tokenVersion: claims.tv,
+    // A cookie from before `aat` existed keeps reading as "signed in long ago": a refresh
+    // must never turn it into a fresh sign-in.
+    authenticatedAt: claims.aat ?? 0,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Share-link unlock tokens
+// ---------------------------------------------------------------------------
+//
+// Proof that a viewer entered a share link's passcode. Signed with the session key,
+// but with its own audience, so neither token can ever be accepted as the other: a
+// session JWT has no `aud`, and verifySession would reject this one's claims anyway.
+
+const SHARE_UNLOCK_AUDIENCE = 'share-unlock';
+
+export interface ShareUnlockClaims {
+  /** The link this unlocks - never another link, even of the same resume. */
+  linkId: string;
+  /** The link's passcodeVersion when unlocked; a passcode change invalidates it. */
+  passcodeVersion: number;
+}
+
+export async function signShareUnlock(
+  claims: ShareUnlockClaims,
+  ttlSeconds: number
+): Promise<string> {
+  const issuedAt = Math.floor(Date.now() / 1000);
+  return new SignJWT({ pv: claims.passcodeVersion })
+    .setProtectedHeader({ alg: JWT_ALGORITHM })
+    .setAudience(SHARE_UNLOCK_AUDIENCE)
+    .setSubject(claims.linkId)
+    .setIssuedAt(issuedAt)
+    .setExpirationTime(issuedAt + ttlSeconds)
+    .sign(getSigningKey());
+}
+
+export async function verifyShareUnlock(
+  token: string | undefined | null
+): Promise<ShareUnlockClaims | null> {
+  if (!token) return null;
+  try {
+    const { payload } = await jwtVerify(token, getSigningKey(), {
+      algorithms: [JWT_ALGORITHM],
+      audience: SHARE_UNLOCK_AUDIENCE,
+    });
+    const { sub, pv } = payload as Record<string, unknown>;
+    if (typeof sub !== 'string' || typeof pv !== 'number') return null;
+    return { linkId: sub, passcodeVersion: pv };
+  } catch {
+    return null;
+  }
 }

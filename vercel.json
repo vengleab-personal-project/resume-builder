@@ -25,6 +25,18 @@
     "src/app/api/cron/payments-reconcile/route.ts": {
       "maxDuration": 60,
       "memory": 512
+    },
+    "src/app/api/basic-resume/session/route.ts": {
+      "maxDuration": 60,
+      "memory": 512
+    },
+    "src/app/api/basic-resume/session/[id]/turn/route.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    },
+    "src/app/api/basic-resume/session/[id]/finish/route.ts": {
+      "maxDuration": 60,
+      "memory": 512
     }
   },
   "crons": [

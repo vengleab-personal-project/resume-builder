@@ -1,0 +1,60 @@
+// Public share links to a FULL resume. A resume can have many; each is switched on
+// and off independently and is protected one of two ways (ShareAccess).
+//
+// Resumes are soft-deleted, so the cascade below never fires when a user deletes a
+// resume: every public read (server/modules/share/publicShare.ts) must itself filter
+// on the resume being live, FULL and owned by an enabled user.
+
+enum ShareAccess {
+  // A long random code in the URL is the only key. Anyone holding the URL can view.
+  CODE
+  // A short, typeable code in the URL plus a passcode the viewer must enter.
+  PASSCODE
+}
+
+enum ShareContent {
+  // Always the resume as it is now.
+  LIVE
+  // A copy taken when the link was made (or last refreshed by the owner).
+  SNAPSHOT
+}
+
+model ResumeShareLink {
+  id String @id @default(cuid())
+
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // The URL key: /s/<code>. Random, never derived from the resume or the user.
+  code  String @unique
+  label String
+
+  access       ShareAccess
+  // argon2id, set only for PASSCODE links. Never leaves the server.
+  passcodeHash String?
+  // Bumped whenever the passcode changes, and carried in the viewer's unlock token,
+  // so changing the passcode locks out everyone who unlocked with the old one.
+  passcodeVersion Int @default(1)
+
+  content              ShareContent
+  snapshotData         Json?
+  snapshotSectionOrder Json?
+  snapshotTheme        Json?
+  snapshotAt           DateTime?
+
+  // The owner's UI language when the link was made: section headings on the shared
+  // page follow the CV's language, not the viewer's browser.
+  locale String @default("en")
+
+  isActive     Boolean   @default(true)
+  viewCount    Int       @default(0)
+  lastViewedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([resumeId])
+  @@index([userId])
+}

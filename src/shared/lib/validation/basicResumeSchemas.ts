@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { BASIC_RESUME_SCHEMA_VERSION } from '@/shared/lib/basic-resume';
-import { resumeTitleSchema } from '@/shared/lib/validation/resumeSchemas';
+import { safePhotoUrl } from '@/shared/lib/safeUrl';
+import { RESUME_THEME_MAX_BYTES, resumeTitleSchema } from '@/shared/lib/validation/resumeSchemas';
 
 // Unlike ResumeData -- which is deliberately not re-declared in zod because it is
 // a deep, client-owned structure that would drift on the first section added --
@@ -51,7 +52,8 @@ export const basicResumeSchema = z.object({
     phone: text,
     email: text.optional(),
   }),
-  photoUrl: text.optional(),
+  // Only a downscaled data URL is kept; a remote URL would report every view of the CV.
+  photoUrl: text.transform(safePhotoUrl).optional(),
   personal: basicPersonalDataSchema,
   education: z.array(basicEducationEntrySchema),
   experience: z.array(basicExperienceEntrySchema),
@@ -67,7 +69,12 @@ export const updateBasicResumeSchema = z
     version: z.number().int().nonnegative(),
     title: resumeTitleSchema.optional(),
     data: basicResumeSchema.optional(),
-    theme: z.record(z.string(), z.unknown()).optional(),
+    theme: z
+      .record(z.string(), z.unknown())
+      .refine((value) => new TextEncoder().encode(JSON.stringify(value)).length <= RESUME_THEME_MAX_BYTES, {
+        error: 'THEME_TOO_LARGE',
+      })
+      .optional(),
     isDefault: z.boolean().optional(),
   })
   .refine(

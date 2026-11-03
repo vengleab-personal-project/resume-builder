@@ -33,7 +33,8 @@ npm run db:studio             # prisma studio
 npm run db:seed               # prisma db seed -> tsx prisma/seed.ts (idempotent, seeds admin user + fallback AI config)
 ```
 
-There is no test suite/framework configured in this repo. `scripts/verify-coin-concurrency.ts`
+`npm test` runs Vitest over `tests/` — the pure modules only (sanitizers, URL rules); there is no
+CI yet and no component or API test harness. `scripts/verify-coin-concurrency.ts`
 is a standalone, manually-run script (not wired to `npm test`) that stress-tests
 coin-deduction and payment-settlement concurrency against a throwaway Postgres
 instance — see the header comment in that file for the exact run steps
@@ -57,7 +58,8 @@ src/
 │   ├── views/            # Page-level assemblies, one per route (e.g. CvBuilder, ResumeList)
 │   ├── features/         # Reusable feature modules with their own logic
 │   ├── components/       # Generic reusable UI + layouts (GlobalSidebar, AppSessionProvider)
-│   ├── hooks/             # Common cross-cutting hooks (useTranslations, useChatModels)
+│   ├── hooks/             # Common cross-cutting hooks (useTranslations, useChatModels, usePreviewScale)
+│   ├── lib/               # Browser-only helpers with no React state (image.ts: photo downscaling)
 │   └── store/             # Zustand, one file per domain
 ├── server/               # Backend only — never shipped to the browser
 │   ├── db/                 # Prisma client singleton; db/generated/prisma is gitignored
@@ -102,7 +104,7 @@ One file per domain in `src/client/store/` (`<domain>-store.ts`), exporting a si
 hook (`useResumeStore`, `useCoinStore`, `useLocaleStore`). Components should destructure only
 the fields they need from one domain's store — never reach across domains in one call.
 `useResumeStore` additionally persists to `localStorage` (`zustand/persist`) and carries a
-schema `version` + `migrate()` — bump both together whenever the persisted shape changes.
+schema `version` + `migrate()` — bump both together whenever the persisted shape changes. (Currently v4: `isProfileSeed`.)
 
 ### Resume persistence & sync (`client/features/Resume/useResumeSync.ts`)
 
@@ -119,6 +121,95 @@ schema `version` + `migrate()` — bump both together whenever the persisted sha
   `applyServerSnapshot` to swap the active document in the store before navigating to `/builder`.
 - Resumes are soft-deleted (`deletedAt`), never hard-deleted, because `EvaluationResult` rows
   reference them and a resume being scored later must not silently disappear.
+
+### User profile — identity shared by every resume (`UserProfile`, `/profile`)
+
+One `UserProfile` row per user (created lazily, `shared/lib/profile.ts` is the single definition
+of its fields) holds the identity every resume repeats: name, title, email, phone, address,
+LinkedIn, website, photo. It is kept in step with the user's **default FULL resume's
+`personalInfo`** in both directions, **on the server, inside the resume write transactions** —
+never by patching client stores:
+
+- **Resume → profile.** `runVersionedUpdate` and `createResume` (`resumePersistenceService.ts`)
+  call `syncProfileFromResume` (`server/modules/profile/profileSync.ts`) whenever a FULL resume
+  that is, or is becoming, the default is written. Autosave, the sendBeacon twin, set-default
+  and creation all pass through those two functions, so one hook covers all of them. Only
+  fields carrying a real value are copied: a blank or placeholder ("Your Name") never erases the
+  profile, and nothing is written (no version bump) when nothing changed. Only an *existing*
+  profile row is updated; `getOrCreateProfile` seeds a missing one from the default resume.
+- **Profile → resume.** `updateProfile` (`profileService.ts`) compare-and-swaps the profile on
+  `version` and, in the same transaction, merges the changed fields into the default resume via a
+  version-guarded, retried `updateMany` (it must not overwrite an autosave that landed meanwhile).
+  `mergeProfileIntoPersonalInfo` also fills fields the resume has *never set* (placeholder or
+  missing) from the profile, but leaves a field the user blanked (`''`) alone. The response
+  carries the updated resume; the profile page hands it to `applyServerSnapshot` when the builder
+  holds that resume, so its next autosave does not 409.
+- **Only the default resume syncs.** Other resumes are independent copies, seeded from the profile
+  at creation and never written back. BASIC resumes are not involved (different `data` shape).
+- **Seeding.** New resumes (`ResumeList` create, first-login hydration, `resetData`) start from
+  `seedResumeData(profile)`; an AI import fills its blanks (notably the photo) with
+  `fillPersonalInfoFromProfile`. `useProfileStore` is not persisted and is reset whenever the
+  signed-in user changes (`useResumeSync`).
+- **The seed trap.** A profile-seeded blank document is persisted with the resume store like any
+  other, and has a real-looking name — so on the next load it looked like user work and was
+  uploaded as a resume, carrying a stale identity back over the profile. `isProfileSeed`
+  (persisted, cleared by any `setResumeData`) marks it; hydration re-seeds such a document from the
+  current profile instead of uploading it. Keep that flag honest if you add another writer of
+  `resumeData` that is not a user edit.
+- **Photos** are downscaled in the browser (`client/lib/image.ts`) to a JPEG data URL under
+  `PROFILE_PHOTO_MAX_LENGTH`; the profile schema accepts only `data:image/(png|jpeg|webp)` URLs or
+  `''`, since the value is written into resume JSON and rendered by the templates. Resume writes
+  enforce the same rule (`safePhotoUrl`; a non-data photo is blanked, not rejected, so an autosave
+  never fails over it) and so does the BASIC schema. A legacy
+  oversize photo already on a resume is skipped by the sync rather than failing the save.
+
+### Share links — public, per-link on/off, code or passcode (`ResumeShareLink`, `/s/<code>`)
+
+A FULL resume can have up to `SHARE_LINKS_PER_RESUME_MAX` links, managed in `features/Share`
+(the Share button on resume cards and in the builder header). Each link is **CODE** (a 24-char
+random code is the only key) or **PASSCODE** (a short typeable code + an argon2-hashed passcode),
+and **LIVE** (current resume) or **SNAPSHOT** (copy taken at creation, refreshed on demand).
+
+- **One definition of "this link works"**: `liveLinkWhere` in `server/modules/share/publicShare.ts`
+  — active, resume FULL and not soft-deleted, owner not disabled. Resumes are soft-deleted, so the
+  FK cascade never fires; every public read must go through that filter. Unknown, disabled and
+  deleted all answer the same 404.
+- **The CV is never in the page HTML.** `app/s/[code]/page.tsx` only resolves "works / needs
+  passcode" with a minimal select; the client fetches `/s/<code>/content`, which requires the
+  `X-Share-Client` header and a same-origin Fetch-Metadata request. Keep the page's query
+  minimal: Next's **dev** server embeds server-side query results in the HTML for its tooling,
+  so selecting the resume there put the CV (and the passcode hash) in the page source.
+- **Stored resume HTML and URLs are untrusted.** `data` is an opaque JSON column and the API accepts
+  any string, so a CV can hold `<img onerror>` or a `javascript:` link no matter what the editor
+  produces — and the share page shows it to people who did not write it, on the app's origin
+  (`SameSite=Lax` cookies ride along). Two layers, one allow-list (`shared/config/rich-text.ts`):
+  `RichText` is the **only** place resume HTML reaches `dangerouslySetInnerHTML`, and it sanitizes at
+  render (`shared/lib/sanitize.ts`, DOMPurify; with no DOM it strips tags rather than pass input
+  through); and `storableData` in `resumePersistenceService` cleans FULL resume `data` on every
+  create/update (`server/modules/resumes/resumeSanitizer.ts`, `sanitize-html`) and share snapshots as
+  they are taken. Only HTML fields (summary, experience/education descriptions, trainings) are
+  sanitized — plain text such as "R&D" must not be HTML-escaped. Links go through `safeUrl`
+  (`http`, `https`, `mailto` only); photos must be `data:image/(png|jpeg|webp)` (`safePhotoUrl`),
+  because a remote `<img>` tells its host who opened the CV. No `style`, no non-`ql-` classes (a
+  `position: fixed` overlay is a phishing page). A new place that renders resume HTML must use
+  `RichText`; a new HTML or URL field must be added to `resumeSanitizer`.
+- **Passcodes**: `/s/<code>/unlock` sets `rb_share_unlock`, a jose JWT with `aud: share-unlock`
+  (`signShareUnlock` in `auth/session.ts`), `httpOnly`, `sameSite=strict`, **path `/s/<code>`** so
+  it opens that link only. It carries `passcodeVersion`; changing the passcode bumps it and kills
+  old unlocks. Wrong attempts are throttled on the `AuthAttempt` table (`share:<linkId>`): per IP
+  per link and per link overall, plus one visitor's failures across *all* links (an unknown code is
+  recorded as a failure too, so probing for codes is throttled) — all checked before any argon2
+  work. Login's counters exclude `share:` identifiers and `clearFailedAttempts` clears by identifier
+  only, never by IP: clearing by IP once let anyone with an account of their own reset the
+  counters every few guesses.
+- **Crawlers**: `isBlockedCrawler` (`shared/config/share.ts`, Edge-safe) makes middleware 404 known
+  AI/search agents and empty user agents on `/s/*`; `next.config.ts` adds `X-Robots-Tag`
+  (noindex/noai), `no-store`, `Referrer-Policy: no-referrer` (the code must not leak via Referer
+  when a viewer clicks a link in the CV) and `X-Frame-Options`; `app/robots.ts` disallows `/s/`.
+  None of this stops someone who has a CODE link from reading it — that is what PASSCODE is for.
+- The shared page renders through `ResumeDocument` with the link's `locale` (headings in the CV's
+  language) and the same scale-to-fit canvas and `usePrintPagination`, so its PDF matches the
+  owner's.
 
 ### PDF export is the browser's print engine — the print contract
 
@@ -141,6 +232,17 @@ test for it, and it has broken three separate ways, so treat these as invariants
   entries may split, but only between bullets. `exp.breakPage` (`print:break-after-page`) is a
   user-set manual break and must keep working. New section components inherit this for free if
   they use `section`/`li`/`p`/`h2`/`h3`; a bare `div` of text lines does not.
+- **The preview decides where pages break; print is forced to agree.** `usePrintPagination`
+  (`features/Resume/pagination.ts`) packs the laid-out preview's unbreakable blocks into pages
+  using the same rules (a `break-inside: avoid` box or a heading moves whole), draws the page
+  markers there, and stamps `data-print-break-before` on each page's first block; `globals.css`
+  turns that into `break-before: page`. Before this, markers were "every 285mm of content" and
+  routinely ended a page somewhere print didn't. Keep three things true: a block the print
+  rules treat as unbreakable must be unbreakable to `isUnbreakable` too; a two-column layout
+  marks its column row `data-print-columns` (each column paginates alone); and only update
+  pagination state when it changed - a re-render re-applies `dangerouslySetInnerHTML`, which
+  drops the marker on a bullet and re-fires the observer, so an unconditional update loops.
+  Never measure while print media is active (the guard in the hook).
 - **Page margins and the sidebar colour.** `@page` is `12mm 0` (`:first` has `margin-top: 0` so
   the header banner stays full-bleed). Nothing inside the document — not even `position:
   fixed` — paints into the top/bottom margins, so the grey sidebar would show white bands
@@ -149,6 +251,10 @@ test for it, and it has broken three separate ways, so treat these as invariants
   mounted (the theme colour is user-chosen, so it cannot be hard-coded). If you change the
   margin, change the `@page` rule and the `-12mm` offsets in `ResumePreview` together.
 - Browser print dialog Margins must stay on "Default"; "None"/"Minimum" override `@page`.
+- **Nothing in the print path may be taller than the first sheet's printable height.**
+  `#resume-preview` gets `min-height: calc(297mm - 12mm)` in print, and the A4-tall wrappers
+  above it (`min-h-[297mm]`, `min-h-[1122px]`) carry `print:min-h-0`. A full 297mm overflowed
+  page one's 285mm, so every one-page resume printed with a blank second page.
 - **The printed page is ~794px wide, so viewport breakpoints evaluate as a narrow screen in
   print.** A panel that is `hidden xl:flex` on screen is hidden in print unless it also says
   `print:flex` (the preview panel in `CvBuilder` does; without it Export PDF was a blank
@@ -262,6 +368,22 @@ through the same route.
   real job application is a serious harm.
 - **Never charge for a pipeline that isn't working.** Speaking the first question is the
   liveness check that decides whether to debit. A key being merely *present* is not enough.
+- **A turn is claimed before any model runs** (`claimTurn` in `/turn`, as `/finish` does), not
+  counted after: counting afterwards let N simultaneous requests all pass the cap check and each run
+  a paid transcription. `advanceSession` therefore does not increment `turnCount`. A request rejected
+  before a model ran (oversize audio or text) calls `releaseTurn`. The loser of a race gets 429,
+  which the client treats as retryable — **not** 409, which it reads as "interview exhausted".
+- **Voice grants are capped per session** (`voiceGrantsIssued`, `MAX_VOICE_GRANTS`): one debit buys
+  one interview, but resuming is free and mints a fresh token or renders speech each time, so
+  without the cap one debit bought unlimited tokens for the 30-minute TTL. Past the cap the resume
+  answers typed-only (`voice: false`); a grant that produced nothing is given back
+  (`releaseVoiceGrant`) so an outage does not use the cap up.
+- **One active session per user** (a database index), so `findActiveSession` looks up by user, not by
+  resume, after retiring expired rows. Starting on a different CV while one is active is
+  `409 SESSION_ACTIVE_ELSEWHERE`. The CV for a start with no `resumeId` is created *inside* the debit
+  callback, after the balance check, and soft-deleted again if the session cannot be created — a user
+  with no coins used to leave an empty CV behind on every refused attempt. The route uses
+  `withBillingErrors` so insufficient coins is the `402` the client turns into "top up" (it was a 500).
 - **No audio or transcripts are ever stored or logged**, anywhere. Recordings are biometric
   data with no consent flow, retention policy or deletion path here.
 - The caps in `VOICE_INTERVIEW_LIMITS` are the cost control for a single per-session debit, so
@@ -290,6 +412,12 @@ Two more conventions worth keeping:
   Prisma or any `server-only` module. It only does a fast-path redirect for protected routes
   (`PROTECTED_PATH_PREFIXES` in `shared/config/auth.ts`) and a UX-only admin-path check from the
   JWT's stale `rol` claim.
+- The session JWT carries `aat` (the real sign-in time), which survives the silent cookie refresh
+  (`iat` does not). A Telegram-only account may set its first password only if `aat` is within
+  `FIRST_PASSWORD_MAX_SESSION_AGE_SECONDS` (`REAUTH_REQUIRED` otherwise): that route cannot ask for a
+  current password, and a cookie alone must not be enough to attach a permanent way in. A cookie with
+  no `aat` counts as "long ago", including after a refresh. Signup is throttled per IP before its
+  argon2 hash (it also grants coins). The cron route takes `Authorization: Bearer` only.
 - The real authorization gate is always `requireUser()` / `requireAdmin()`
   (`server/modules/auth/guards.ts`), which re-reads the role from Postgres on every call — a
   demoted admin loses access immediately, without waiting for their cookie to expire.
@@ -317,7 +445,27 @@ a provider abstraction (`billing/payments/registry.ts`): Bakong KHQR is the real
 `providers/mock` is dev-only (dynamically imported so it never reaches a production bundle; it
 throws at load if `NODE_ENV === 'production'`). A Vercel Cron (`vercel.json`,
 `/api/cron/payments-reconcile`, guarded by `CRON_SECRET`) reconciles orders that missed a
-webhook/status callback.
+webhook/status callback. Rules that exist because they were each once wrong:
+
+- **An order is only EXPIRED by the provider's answer** (`applyProviderState`), never by "its time
+  is up". A blanket expiry sweep turned a payment made just before the deadline, by someone who then
+  closed the tab, into a terminal EXPIRED order nobody had checked. Reconcile checks overdue,
+  never-verified orders first, a few at a time (`RECONCILE_CHUNK_SIZE`) under a time budget below the
+  route's 60s; `expireStaleOrders` only retires orders *verified* unpaid long ago. When a provider is
+  unreachable `syncPaymentOrder` gives `lastCheckedAt` back for an overdue order, so an outage is never
+  recorded as "checked, unpaid".
+- **Settlement needs the amount and the currency** (`decideSettlement`, pure and tested). Missing,
+  short or wrong-currency → the order is parked `FAILED` with `AMOUNT_UNVERIFIED` /
+  `AMOUNT_MISMATCH` / `CURRENCY_MISMATCH`, never credited. A `paidCurrency` must be passed through
+  from the provider result by every caller of `settlePaidOrder`.
+- A user may have `MAX_OPEN_ORDERS_PER_USER` unpaid orders (each is a live, payable QR, so none is
+  auto-cancelled); past it `createPaymentOrder` answers `TOO_MANY_OPEN_ORDERS`.
+- **AI calls run under `withDeadline`** (`ai/clients/deadline.ts`, `AI_REQUEST_LIMITS.DEADLINE_MS`
+  50s, under the 60s `maxDuration`): a call still running when the platform kills the function never
+  reaches `withCoinDeduction`'s refund. It aborts the SDK call *and* rejects (the Vertex SDK ignores
+  the signal), throwing `AiTimeoutError`. Request bodies on the AI routes are bounded
+  (`AI_REQUEST_LIMITS`, `413`); a FULL resume's `data` is capped at `RESUME_DATA_MAX_BYTES` excluding
+  the photo (a legacy multi-MB photo must not make every autosave fail).
 
 ### i18n
 

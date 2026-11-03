@@ -31,31 +31,34 @@ export function isSessionUsable(session: VoiceInterviewSession): boolean {
  * Starting a second session while one is alive returns the first rather than
  * charging again -- a user who reloads the page mid-interview must not be
  * billed twice for the same CV.
+ *
+ * By user, not by resume: the partial unique index allows one ACTIVE session per
+ * *user*. Looking up by resume let a stale ACTIVE session on one CV make a start on
+ * another fail on that index inside the debit (refunded, but a generic 500). Expired
+ * rows are retired first, in one statement, so "active" means active.
  */
-export async function findActiveSession(
-  userId: string,
-  resumeId?: string
-): Promise<VoiceInterviewSession | null> {
-  const session = await prisma.voiceInterviewSession.findFirst({
-    where: {
-      userId,
-      ...(resumeId ? { resumeId } : {}),
-      status: 'ACTIVE',
-    },
-    orderBy: { createdAt: 'desc' },
+export async function findActiveSession(userId: string): Promise<VoiceInterviewSession | null> {
+  await prisma.voiceInterviewSession.updateMany({
+    where: { userId, status: 'ACTIVE', expiresAt: { lte: new Date() } },
+    data: { status: 'EXPIRED' },
   });
 
-  if (!session) return null;
+  return prisma.voiceInterviewSession.findFirst({
+    where: { userId, status: 'ACTIVE' },
+    orderBy: { createdAt: 'desc' },
+  });
+}
 
-  if (session.expiresAt.getTime() <= Date.now()) {
-    await prisma.voiceInterviewSession.update({
-      where: { id: session.id },
-      data: { status: 'EXPIRED' },
-    });
-    return null;
-  }
-
-  return session;
+/**
+ * Takes one of the session's voice grants (a live token or a rendered spoken question),
+ * atomically. False means the cap is spent and the caller must not mint or synthesize.
+ */
+export async function claimVoiceGrant(sessionId: string): Promise<boolean> {
+  const { count } = await prisma.voiceInterviewSession.updateMany({
+    where: { id: sessionId, voiceGrantsIssued: { lt: VOICE_INTERVIEW_LIMITS.MAX_VOICE_GRANTS } },
+    data: { voiceGrantsIssued: { increment: 1 } },
+  });
+  return count === 1;
 }
 
 export async function createSession(params: {
@@ -180,8 +183,8 @@ export async function advanceSession(
   sessionId: string,
   outcome: TurnOutcome
 ): Promise<void> {
+  // The turn itself was already counted by `claimTurn`, before any model ran.
   const data: Prisma.VoiceInterviewSessionUpdateInput = {
-    turnCount: { increment: 1 },
     questionId: outcome.next?.id ?? null,
     followUpUsed: outcome.isFollowUp,
   };
@@ -210,6 +213,14 @@ export async function claimTurn(session: VoiceInterviewSession): Promise<boolean
     data: { turnCount: { increment: 1 } },
   });
   return count === 1;
+}
+
+/** Gives back a voice grant that produced nothing (the token or speech failed), so an outage does not use up the cap. */
+export async function releaseVoiceGrant(sessionId: string): Promise<void> {
+  await prisma.voiceInterviewSession.updateMany({
+    where: { id: sessionId, voiceGrantsIssued: { gt: 1 } },
+    data: { voiceGrantsIssued: { decrement: 1 } },
+  });
 }
 
 /** Gives back a turn that was claimed but never got to use a model, so a retry is not charged twice. */

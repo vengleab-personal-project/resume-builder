@@ -222,6 +222,7 @@ async function testConcurrentSettlement(): Promise<void> {
         orderId: order.id,
         providerTxnId: 'mock_txn_probe',
         paidAmountMinor: pkg.priceMinor,
+        paidCurrency: pkg.currency,
       })
     )
   );
@@ -268,6 +269,7 @@ async function testConcurrentSettlement(): Promise<void> {
     orderId: rival.id,
     providerTxnId: 'mock_txn_probe',
     paidAmountMinor: pkg.priceMinor,
+    paidCurrency: pkg.currency,
   });
   const rivalOrder = await prisma.paymentOrder.findUniqueOrThrow({ where: { id: rival.id } });
   const purchasesAfterRival = await prisma.coinTransaction.count({

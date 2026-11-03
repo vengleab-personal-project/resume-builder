@@ -1,5 +1,5 @@
 import { Training } from '@/shared/types'
-import { normalizeHtmlSpaces } from '@/shared/lib/htmlUtils'
+import { RichText } from './RichText'
 
 import { SidebarSectionHeading } from './SectionHeading'
 
@@ -13,11 +13,9 @@ export const OtherTrainingSection = ({ otherTraining, title }: OtherTrainingSect
     <SidebarSectionHeading title={title} />
     <ul className="list-disc list-outside ml-4 text-xs space-y-2 text-slate-700 font-medium">
       {otherTraining.map((train, idx) => (
-        <li
-          key={idx}
-          className="pl-1"
-          dangerouslySetInnerHTML={{ __html: normalizeHtmlSpaces(train.name) }}
-        />
+        <li key={idx} className="pl-1">
+          <RichText inline html={train.name} />
+        </li>
       ))}
     </ul>
   </section>

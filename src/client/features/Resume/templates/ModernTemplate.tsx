@@ -117,7 +117,8 @@ export const ModernTemplate = ({ view, theme, density, printable }: ResumeTempla
       />
 
       {/* 2-Column Content */}
-      <div className="flex flex-1 relative">
+      {/* Each column paginates on its own in print (see ../pagination.ts). */}
+      <div className="flex flex-1 relative" data-print-columns>
         {/* Sidebar */}
         <aside
           className="w-[32%] flex flex-col shrink-0 relative overflow-hidden py-[var(--rv-sidebar-pad-y)] px-[var(--rv-sidebar-pad-x)] gap-[var(--rv-sidebar-gap)]"

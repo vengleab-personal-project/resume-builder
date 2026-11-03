@@ -26,6 +26,12 @@ export interface SessionClaims {
   tv: number;
   iat: number;
   exp: number;
+  /**
+   * When the person actually signed in (login, signup, Telegram). Unlike `iat` it survives
+   * a silent refresh of the cookie, so it can answer "did they just prove who they are?".
+   * Absent on cookies issued before it existed, which reads as "not recently".
+   */
+  aat?: number;
 }
 
 export type AuthErrorCode =
@@ -37,6 +43,7 @@ export type AuthErrorCode =
   | 'RATE_LIMITED'
   | 'ACCOUNT_DISABLED'
   | 'PASSWORD_ALREADY_SET'
+  | 'REAUTH_REQUIRED'
   | 'TELEGRAM_NOT_CONFIGURED'
   | 'TELEGRAM_INVALID_SIGNATURE'
   | 'TELEGRAM_EXPIRED'
@@ -45,6 +52,7 @@ export type AuthErrorCode =
   | 'LAST_CREDENTIAL'
   | 'CROSS_ORIGIN'
   | 'NOT_FOUND'
+  | 'LIMIT_REACHED'
   // Voice interview. These reach the client as designed UI states rather than
   // as generic failures -- see §8.2 -- so each one has to be distinguishable.
   | 'AUDIO_TOO_LARGE'
@@ -52,6 +60,7 @@ export type AuthErrorCode =
   | 'AUDIO_UNSUPPORTED'
   | 'SESSION_EXPIRED'
   | 'SESSION_EXHAUSTED'
+  | 'SESSION_ACTIVE_ELSEWHERE'
   | 'INTERNAL_ERROR';
 
 export interface AuthErrorResponse {

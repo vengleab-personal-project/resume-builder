@@ -40,7 +40,7 @@ export const ExecutiveAtsTemplate = ({ view, theme, density, printable }: Resume
                   key={exp.id || idx}
                   className={`space-y-1.5 ${exp.breakPage ? 'print:break-after-page' : ''}`}
                 >
-                  <div className="flex justify-between items-baseline flex-wrap gap-1" data-print-keep>
+                  <div className="flex justify-between items-baseline flex-wrap gap-1 print:break-after-avoid" data-print-keep>
                     <div>
                       <span className="font-bold text-slate-900">{exp.role}</span>
                       {exp.company && <span className="text-slate-600 font-medium"> — {exp.company}</span>}

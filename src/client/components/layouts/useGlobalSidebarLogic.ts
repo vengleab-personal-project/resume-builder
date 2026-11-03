@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { FileText, Files, IdCard, Sparkles, type LucideIcon } from 'lucide-react';
+import { CircleUserRound, FileText, Files, IdCard, Sparkles, type LucideIcon } from 'lucide-react';
 import { useTranslations } from '@/client/hooks/useTranslations';
 import { useSession } from '@/client/features/Auth/useSession';
 import { useUiStore } from '@/client/store/ui-store';
@@ -85,6 +85,7 @@ export const useGlobalSidebarLogic = () => {
       id: 'manage',
       label: t.groupManage,
       items: [
+        { href: '/profile', label: t.profile, hint: t.profileHint, icon: CircleUserRound },
         { href: '/resumes', label: t.myResumes, icon: Files },
         { href: '/evaluation', label: t.aiEvaluation, icon: Sparkles },
       ],

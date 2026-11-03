@@ -15,6 +15,7 @@ import {
   Pencil,
   Check,
   Coins,
+  Share2,
 } from 'lucide-react';
 import { ResumeEditor, ThemeSwitcher } from '@/client/features/Editor';
 import { ResumePreview, SyncStatusIndicator } from '@/client/features/Resume';
@@ -24,12 +25,22 @@ import { JobMatchDrawer } from '@/client/features/JobCopilot';
 import { PathwayModal } from '@/client/components/ui/PathwayModal';
 import { IngestModal } from '@/client/components/ui/IngestModal';
 import { LanguageSwitcher } from '@/client/components/ui/LanguageSwitcher';
+import { ShareDialog } from '@/client/features/Share';
 import { useCvBuilderLogic } from './useCvBuilderLogic';
-import { usePreviewScale } from './usePreviewScale';
+import { usePreviewScale } from '@/client/hooks/usePreviewScale';
 import { useTranslations } from '@/client/hooks/useTranslations';
 import { useResumeStore } from '@/client/store/resume-store';
 import { useCoinStore } from '@/client/store/coin-store';
+import { useProfileStore } from '@/client/store/profile-store';
+import { isUnsetIdentity } from '@/shared/lib/profile';
 import { ViewMode } from '@/shared/types';
+
+// A name that is blank, still the placeholder, or just the profile's own name seeded
+// into a new resume says nothing about whether the user has started this CV - so the
+// "how do you want to begin" pathway still opens for a profile-seeded blank resume.
+const isUnsetName = (name?: string): boolean =>
+  isUnsetIdentity('fullName', name) ||
+  name?.trim() === useProfileStore.getState().profile?.fullName;
 
 export default function CvBuilder() {
   const { handleExportPDF, handleExportDocx, isExporting, isExportingDocx } = useCvBuilderLogic();
@@ -37,6 +48,8 @@ export default function CvBuilder() {
   const { t: tCommon } = useTranslations('common');
   const { t: tViewMode } = useTranslations('viewMode');
   const { t: tJob } = useTranslations('jobCopilot');
+  const { t: tShare } = useTranslations('share');
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
   const {
     viewMode,
@@ -47,6 +60,7 @@ export default function CvBuilder() {
     setTitle,
     sectionOrder,
     setSectionOrder,
+    remoteResumeId,
   } = useResumeStore();
 
   const { balance, openTopUp, refreshBalance } = useCoinStore();
@@ -78,9 +92,7 @@ export default function CvBuilder() {
       (!resumeData.education || resumeData.education.length === 0) &&
       (!resumeData.skills || resumeData.skills.length === 0) &&
       (!resumeData.summary || resumeData.summary.trim() === '') &&
-      (!resumeData.personalInfo?.name ||
-        resumeData.personalInfo.name === 'Your Name' ||
-        resumeData.personalInfo.name.trim() === '');
+      isUnsetName(resumeData.personalInfo?.name);
 
     if (isEmpty) {
       setIsPathwayModalOpen(true);
@@ -105,7 +117,7 @@ export default function CvBuilder() {
 
   const handleClearData = () => {
     if (window.confirm(tCommon.confirmClearData)) {
-      resetData();
+      resetData(useProfileStore.getState().profile);
       setIsPathwayModalOpen(true);
     }
   };
@@ -275,6 +287,18 @@ export default function CvBuilder() {
               <Trash2 size={15} />
             </button>
 
+            {/* Share: only once the resume exists on the server - a link needs a row. */}
+            {remoteResumeId && (
+              <button
+                type="button"
+                onClick={() => setIsShareOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 bg-white text-slate-700 rounded-lg text-xs font-semibold hover:bg-slate-50 transition-colors"
+              >
+                <Share2 size={14} />
+                <span className="hidden sm:inline">{tShare.button}</span>
+              </button>
+            )}
+
             {/* Export Menu */}
             <div className="relative" ref={exportMenuRef}>
               <button
@@ -396,7 +420,7 @@ export default function CvBuilder() {
             >
               <div
                 ref={canvasRef}
-                className="absolute top-0 left-0 origin-top-left w-[210mm] min-h-[297mm] shadow-2xl bg-white items-center justify-center flex print:static print:w-full print:h-full print:shadow-none print:transform-none!"
+                className="absolute top-0 left-0 origin-top-left w-[210mm] min-h-[297mm] shadow-2xl bg-white items-center justify-center flex print:static print:w-full print:h-auto print:min-h-0 print:shadow-none print:transform-none!"
                 style={{ transform: `scale(${zoom})` }}
               >
                 <div className="w-full h-full">
@@ -438,6 +462,12 @@ export default function CvBuilder() {
         onClose={() => setIsIngestModalOpen(false)}
       />
 
+      <ShareDialog
+        resumeId={remoteResumeId}
+        resumeTitle={title}
+        open={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+      />
     </div>
   );
 }

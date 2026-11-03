@@ -2,8 +2,9 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
 import type { Prisma } from '@/server/db/generated/prisma';
 import { assertSameOrigin, requireUser } from '@/server/modules/auth/guards';
-import { HttpError, withErrorHandling } from '@/server/errors';
+import { HttpError } from '@/server/errors';
 import { withCoinDeduction } from '@/server/modules/billing/coinService';
+import { withBillingErrors } from '@/server/modules/billing/http';
 import { resolveAiRequest } from '@/server/modules/ai/registry';
 import {
   isLiveConversationAvailable,
@@ -14,12 +15,15 @@ import {
 import {
   createResume,
   findOwnedBasicResume,
+  softDeleteResume,
   toBasicResumeDTO,
 } from '@/server/modules/resumes/resumePersistenceService';
 import {
+  claimVoiceGrant,
   createSession,
   currentQuestion,
   findActiveSession,
+  releaseVoiceGrant,
   setCursor,
 } from '@/server/modules/resumes/voiceInterviewService';
 import {
@@ -63,7 +67,9 @@ async function liveGrantFor(wanted: boolean | undefined, locale: 'en' | 'km'): P
  * in a flow the user can restart. What makes one charge safe is that the session
  * is bounded server-side -- 12 turns, 30 minutes, 120s and 5MB per upload.
  */
-export const POST = withErrorHandling(async (req: NextRequest) => {
+// withBillingErrors, not withErrorHandling: this route debits, and a user without the coins must get
+// the 402 the client turns into "top up", not a generic 500.
+export const POST = withBillingErrors(async (req: NextRequest) => {
   assertSameOrigin(req);
 
   const user = await requireUser();
@@ -75,8 +81,15 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
   const { locale, resumeId, live: wantsLive, fresh } = parsed.data;
 
   // Resuming rather than starting: return the live session untouched and,
-  // crucially, do not debit again.
-  const existing = await findActiveSession(user.id, resumeId);
+  // crucially, do not debit again. One session per user is live at a time (a database
+  // index), so an active session on a different CV than the one asked for is a conflict to
+  // report, not something to start over or to trip that index inside the debit.
+  const existing = await findActiveSession(user.id);
+  if (existing && resumeId && existing.resumeId !== resumeId) {
+    throw new HttpError(409, 'SESSION_ACTIVE_ELSEWHERE', 'An interview is already running for another CV', {
+      resumeId: existing.resumeId,
+    });
+  }
   if (existing) {
     if (fresh) {
       const first = nextInterviewQuestion(null);
@@ -89,10 +102,14 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     const question = currentQuestion(existing) ?? nextInterviewQuestion(null);
     const resume = await findOwnedBasicResume(user.id, existing.resumeId);
     const text = question ? promptFor(question.id, existing.locale as 'en' | 'km', false) : '';
-    // Resuming never debits, so a fresh token costs nothing; the old one was
-    // single-use and may already be spent.
-    const liveGrant = text ? await liveGrantFor(wantsLive, existing.locale === 'km' ? 'km' : 'en') : null;
-    const spoken = !liveGrant && text ? await synthesizeSpeech(text) : null;
+    // Resuming never debits, and the old token was single-use and may already be spent, so a
+    // fresh one is allowed -- but only a few per session: the debit paid for one interview, not
+    // for unlimited tokens until it expires. Past the cap the interview carries on typed.
+    const mayUseVoice = text ? await claimVoiceGrant(existing.id) : false;
+    const liveGrant = mayUseVoice ? await liveGrantFor(wantsLive, existing.locale === 'km' ? 'km' : 'en') : null;
+    const spoken = mayUseVoice && !liveGrant ? await synthesizeSpeech(text) : null;
+    // A grant that produced nothing (the model was unreachable) is not spent.
+    if (mayUseVoice && !liveGrant && !spoken) await releaseVoiceGrant(existing.id);
     return NextResponse.json({
       sessionId: existing.id,
       resumeId: existing.resumeId,
@@ -108,19 +125,8 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
     });
   }
 
-  const target = resumeId
-    ? await findOwnedBasicResume(user.id, resumeId)
-    : toBasicResumeDTO(
-        await createResume(user.id, {
-          title: 'Basic CV',
-          kind: 'BASIC',
-          data: createEmptyBasicResumeData() as unknown as Prisma.InputJsonValue,
-          sectionOrder: [...BASIC_SECTION_ORDER] as unknown as Prisma.InputJsonValue,
-          theme: INITIAL_THEME as unknown as Prisma.InputJsonValue,
-        })
-      );
-
-  if (!target) {
+  const existingTarget = resumeId ? await findOwnedBasicResume(user.id, resumeId) : null;
+  if (resumeId && !existingTarget) {
     throw new HttpError(404, 'NOT_FOUND', 'Resume not found');
   }
 
@@ -134,12 +140,36 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
   const charged = await withCoinDeduction(
     { userId: user.id, action: 'VOICE_INTERVIEW', modelId: chatModel.modelId },
     async () => {
-      const session = await createSession({
-        userId: user.id,
-        resumeId: target.id,
-        locale,
-        questionId: first.id,
-      });
+      // Created here, after the balance check, rather than before it: a user with too few
+      // coins used to leave an empty CV behind on every refused attempt.
+      const created = existingTarget
+        ? null
+        : await createResume(user.id, {
+            title: 'Basic CV',
+            kind: 'BASIC',
+            data: createEmptyBasicResumeData() as unknown as Prisma.InputJsonValue,
+            sectionOrder: [...BASIC_SECTION_ORDER] as unknown as Prisma.InputJsonValue,
+            theme: INITIAL_THEME as unknown as Prisma.InputJsonValue,
+          });
+      const target = existingTarget ?? toBasicResumeDTO(created!);
+
+      let session;
+      try {
+        session = await createSession({
+          userId: user.id,
+          resumeId: target.id,
+          locale,
+          questionId: first.id,
+        });
+      } catch (error) {
+        // The debit is refunded by withCoinDeduction; take the new, empty CV with it.
+        if (created) await softDeleteResume(user.id, created.id, 'BASIC').catch(() => false);
+        // Two starts racing past the lookup above: the index let one in.
+        if ((error as { code?: string } | null)?.code === 'P2002') {
+          throw new HttpError(409, 'SESSION_ACTIVE_ELSEWHERE', 'An interview is already running');
+        }
+        throw error;
+      }
 
       // Minting the live token (or, in press-to-talk, speaking the first
       // question) is the one model call this route makes, so it doubles as the
@@ -153,20 +183,20 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       const liveGrant = await liveGrantFor(wantsLive, locale);
       const spoken = liveGrant ? null : await synthesizeSpeech(text);
 
-      return { data: { session, spoken, liveGrant }, billable: liveGrant !== null || spoken !== null };
+      return { data: { session, spoken, liveGrant, target }, billable: liveGrant !== null || spoken !== null };
     }
   );
 
   return NextResponse.json(
     {
       sessionId: charged.data.session.id,
-      resumeId: target.id,
+      resumeId: charged.data.target.id,
       resumed: false,
       locale,
       question: { id: first.id, text, optional: first.optional },
       position: 1,
       total: BASIC_INTERVIEW_SCRIPT.length,
-      resume: target,
+      resume: charged.data.target,
       charged: charged.charged,
       balance: charged.balance,
       // False whenever speech did not actually work, whatever the reason, so the

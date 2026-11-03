@@ -1,5 +1,6 @@
-import type { ResumeData, ThemeConfig } from './index';
+import type { ResumeData, SupportedLocale, ThemeConfig } from './index';
 import type { BasicResumeData, ResumeKindKey } from './basic-resume';
+import type { ProfileFields } from '@/shared/lib/profile';
 
 // Wire shape of a resume row. `data`/`sectionOrder`/`theme` come back exactly
 // as the editor stored them, so a hydrated store can be fed them verbatim.
@@ -82,6 +83,58 @@ export interface VersionConflictResponse {
 export interface BasicVersionConflictResponse {
   error: 'VERSION_CONFLICT';
   resume: BasicResumeDTO;
+}
+
+// The user's general profile: identity fields shared by every resume, synchronised
+// with the default FULL resume (see server/modules/profile/profileService.ts).
+// `ProfileFields` are strings with '' meaning unset.
+export interface ProfileDTO extends ProfileFields {
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// PATCH /api/profile. `resume` is the default resume after the profile's fields were
+// written into it, or null when the user has none. The builder adopts it so its next
+// autosave carries the new version instead of losing a 409.
+export interface ProfileUpdateResponse {
+  profile: ProfileDTO;
+  resume: ResumeDTO | null;
+}
+
+// 409 from PATCH /api/profile: the profile that won, as with VersionConflictResponse.
+export interface ProfileConflictResponse {
+  error: 'VERSION_CONFLICT';
+  profile: ProfileDTO;
+}
+
+// A share link as its owner sees it. The passcode hash never leaves the server.
+export type ShareAccessKey = 'CODE' | 'PASSCODE';
+export type ShareContentKey = 'LIVE' | 'SNAPSHOT';
+
+export interface ShareLinkDTO {
+  id: string;
+  resumeId: string;
+  code: string;
+  label: string;
+  access: ShareAccessKey;
+  content: ShareContentKey;
+  locale: SupportedLocale;
+  isActive: boolean;
+  viewCount: number;
+  lastViewedAt: string | null;
+  snapshotAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// GET /s/<code>/content: what the public viewer page renders, and nothing else
+// (no ids, no owner, no title).
+export interface SharedResumeContent {
+  data: ResumeData;
+  sectionOrder: string[];
+  theme: ThemeConfig;
+  locale: SupportedLocale;
 }
 
 export type SyncStatus = 'idle' | 'syncing' | 'saved' | 'error' | 'conflict';
